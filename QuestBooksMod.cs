@@ -16,9 +16,9 @@ public sealed partial class QuestBooksMod : Mod
     /// <summary>
     ///     Gets the singleton instance of the <see cref="QuestBooksMod"/> class.
     /// </summary>
-    /// <value>
+    /// <remarks>
     ///     Shorthand for <see cref="ModContent.GetInstance{T}"/>.
-    /// </value>
+    /// </remarks>
     public static Mod Instance => ModContent.GetInstance<QuestBooksMod>();
 
     public static bool DesignerEnabled { get; internal set; }

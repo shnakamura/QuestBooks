@@ -41,33 +41,17 @@ public class DisplayElement : QuestLogElement
     /// <summary>
     ///     The position within the canvas to display this element.
     /// </summary>
-    public Vector2 CanvasPosition
-    {
-        get;
-        set;
-    }
+    public Vector2 CanvasPosition { get; set; }
 
     [ElementTooltip("DisplayScale")]
-    public float Scale
-    {
-        get;
-        set;
-    } = 1f;
+    public float Scale { get; set; } = 1f;
 
     [UseConverter(typeof(AngleConverter))]
     [ElementTooltip("DisplayRotation")]
-    public float Rotation
-    {
-        get;
-        set;
-    } = 0f;
+    public float Rotation { get; set; } = 0f;
 
     [ElementTooltip("DrawLayer")]
-    public float Layer
-    {
-        get;
-        set;
-    } = 0.5f;
+    public float Layer { get; set; } = 0.5f;
 
     public override float DrawPriority => Layer;
 

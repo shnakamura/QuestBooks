@@ -12,20 +12,12 @@ public abstract class PlaceTileHook : GlobalTile
     /// <remarks>
     ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public PlaceTilePredicate Predicate
-    {
-        get;
-        init;
-    }
+    public PlaceTilePredicate Predicate { get; init; }
 
     /// <summary>
     ///     Gets the callback that is invoked when a tile is placed in the world and the predicate matches.
     /// </summary>
-    public PlaceTileCallback Callback
-    {
-        get;
-        init;
-    }
+    public PlaceTileCallback Callback { get; init; }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="PlaceTileHook" /> class with the specified predicate and callback.

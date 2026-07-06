@@ -12,20 +12,12 @@ public abstract class KillNPCHook : GlobalNPC
     /// <remarks>
     ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public KillNPCPredicate Predicate
-    {
-        get;
-        init;
-    }
+    public KillNPCPredicate Predicate { get; init; }
 
     /// <summary>
     ///     Gets the callback that is invoked when an NPC is killed and the predicate matches.
     /// </summary>
-    public KillNPCCallback Callback
-    {
-        get;
-        init;
-    }
+    public KillNPCCallback Callback { get; init; }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="KillNPCHook" /> class with the specified predicate and callback.

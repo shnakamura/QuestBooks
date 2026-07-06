@@ -12,11 +12,7 @@ public class HiddenQuest : QuestLogElement, IConnectable
 {
     [UseConverter(typeof(QuestChecker))]
     [ElementTooltip("QuestKey")]
-    public string QuestKey
-    {
-        get;
-        set;
-    } = new Placeholder().Key;
+    public string QuestKey { get; set; } = new Placeholder().Key;
 
     // Used when the texture is not found or has not been assigned yet.
     private const string DefaultTexture = "QuestBooks/Assets/Textures/Quests/Medium";
@@ -24,19 +20,11 @@ public class HiddenQuest : QuestLogElement, IConnectable
     private static readonly Asset<Texture2D> DefaultAsset = Main.dedServ ? null : ModContent.Request<Texture2D>(DefaultTexture);
     private static readonly Asset<Texture2D> DefaultOutlineAsset = Main.dedServ ? null : ModContent.Request<Texture2D>(DefaultOutline);
 
-    public Vector2 CanvasPosition
-    {
-        get;
-        set;
-    }
+    public Vector2 CanvasPosition { get; set; }
 
     public Vector2 ConnectorAnchor => CanvasPosition - QuestLogDrawer.ActiveStyle.QuestAreaOffset;
 
-    public List<Connector> Connections
-    {
-        get;
-        set;
-    } = [];
+    public List<Connector> Connections { get; set; } = [];
 
     public override bool VisibleOnCanvas() => QuestLogDrawer.ActiveStyle.UseDesigner;
 

@@ -15,20 +15,12 @@ public abstract class BuyItemHook : GlobalItem
     /// <remarks>
     ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public BuyItemPredicate Predicate
-    {
-        get;
-        init;
-    }
+    public BuyItemPredicate Predicate { get; init; }
 
     /// <summary>
     ///     Gets the callback that is invoked when an item is bought and the predicate matches.
     /// </summary>
-    public BuyItemCallback Callback
-    {
-        get;
-        init;
-    }
+    public BuyItemCallback Callback { get; init; }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="BuyItemHook" /> class with the specified predicate and callback.

@@ -20,11 +20,7 @@ public class EnterLivingTree : VanillaQuest
         /// <summary>
         ///     Gets the current count of living tree tiles detected around the player.
         /// </summary>
-        public static int Count
-        {
-            get;
-            private set;
-        }
+        public static int Count { get; private set; }
 
         /// <summary>
         ///     Gets a value indicating whether the player is inside the living tree biome.

@@ -14,11 +14,7 @@ public class RunMarathon : VanillaQuest
     /// <summary>
     ///     Gets the total number of pixels the player has walked through.
     /// </summary>
-    public float PixelsTravelled
-    {
-        get;
-        private set;
-    }
+    public float PixelsTravelled { get; private set; }
 
     /// <summary>
     ///     Gets the total number of tiles the player has walked through.

@@ -12,23 +12,11 @@ public class Connector : QuestLogElement
     public override float DrawPriority => 0.25f;
 
     [ElementTooltip("ConnectorThickness")]
-    public float LineThickness
-    {
-        get;
-        set;
-    } = 5f;
+    public float LineThickness { get; set; } = 5f;
 
-    public IConnectable Source
-    {
-        get;
-        set;
-    }
+    public IConnectable Source { get; set; }
 
-    public IConnectable Destination
-    {
-        get;
-        set;
-    }
+    public IConnectable Destination { get; set; }
 
     public override bool IsHovered(Vector2 mousePosition, Vector2 canvasViewOffset, float zoom, ref string mouseTooltip)
     {
@@ -142,32 +130,16 @@ public class ConnectorPoint : QuestLogElement, IConnectable
     public override float DrawPriority => 0.26f;
 
     [ElementTooltip("ConnectorPointSize")]
-    public float Size
-    {
-        get;
-        set;
-    } = 5f;
+    public float Size { get; set; } = 5f;
 
     [ElementTooltip("ConnectorPointFeeds")]
-    public int RequiredFeeds
-    {
-        get;
-        set;
-    } = 1;
+    public int RequiredFeeds { get; set; } = 1;
 
-    public Vector2 CanvasPosition
-    {
-        get;
-        set;
-    }
+    public Vector2 CanvasPosition { get; set; }
 
     public Vector2 ConnectorAnchor => CanvasPosition - QuestLogDrawer.ActiveStyle.QuestAreaOffset;
 
-    public List<Connector> Connections
-    {
-        get;
-        set;
-    } = [];
+    public List<Connector> Connections { get; set; } = [];
 
     public bool CompleteConnection(IConnectable source) => source != this && Connections.Any(x => x.Source == this && x.Destination.CompleteConnection(this));
 
@@ -217,16 +189,9 @@ public class ConnectorPoint : QuestLogElement, IConnectable
 public interface IConnectable
 {
     [JsonIgnore]
-    Vector2 ConnectorAnchor
-    {
-        get;
-    }
+    Vector2 ConnectorAnchor { get; }
 
-    List<Connector> Connections
-    {
-        get;
-        set;
-    }
+    List<Connector> Connections { get; set; }
 
     bool CompleteConnection(IConnectable source);
 

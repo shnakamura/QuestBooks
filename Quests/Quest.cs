@@ -17,11 +17,7 @@ public abstract class Quest : ModType, ILocalizedModType
     ///     Whether this quest has been completed.<br />
     ///     This will only be accurate on the implementation instance from <see cref="QuestManager.GetQuest{TQuest}()" /> (or one of its overloads)
     /// </summary>
-    public bool Completed
-    {
-        get;
-        internal set;
-    }
+    public bool Completed { get; internal set; }
 
     /// <summary>
     ///     The unique identifier of this quest. Can be anything, but cannot be used by other quests.<br />

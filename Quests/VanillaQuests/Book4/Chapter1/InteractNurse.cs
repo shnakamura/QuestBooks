@@ -18,11 +18,7 @@ public class InteractNurse : VanillaQuest
     /// <summary>
     ///     The amount of coins the player has spent at the nurse so far.
     /// </summary>
-    public int CoinsSpent
-    {
-        get;
-        private set;
-    }
+    public int CoinsSpent { get; private set; }
 
     public override QuestType QuestType => QuestType.Player;
 

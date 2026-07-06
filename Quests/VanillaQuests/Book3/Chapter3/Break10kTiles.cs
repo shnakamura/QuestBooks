@@ -10,11 +10,7 @@ public class Break10kTiles : VanillaQuest
     /// </summary>
     public const int TargetTiles = 10000;
 
-    public int TilesBroken
-    {
-        get;
-        private set;
-    }
+    public int TilesBroken { get; private set; }
 
     public override QuestType QuestType => QuestType.Player;
 

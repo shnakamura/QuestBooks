@@ -14,20 +14,12 @@ public abstract class CraftItemHook : GlobalItem
     /// <remarks>
     ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public CraftItemHookPredicate Predicate
-    {
-        get;
-        init;
-    }
+    public CraftItemHookPredicate Predicate { get; init; }
 
     /// <summary>
     ///     Gets the callback that is invoked when an item is crafted and the predicate matches.
     /// </summary>
-    public CraftItemHookCallback Callback
-    {
-        get;
-        init;
-    }
+    public CraftItemHookCallback Callback { get; init; }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="CraftItemHook" /> class with the specified predicate and callback.

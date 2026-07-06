@@ -15,18 +15,10 @@ internal class QuestJumpElement : QuestLogElement, IConnectable
     public int IncomingFeeds => Connections.Count(x => x.Destination == this && x.Source.ConnectionActive(this));
 
     [ElementTooltip("DisplayPrerequisites")]
-    public virtual int DisplayFeeds
-    {
-        get;
-        set;
-    } = 0;
+    public virtual int DisplayFeeds { get; set; } = 0;
 
     [ElementTooltip("UnlockPrerequisites")]
-    public virtual int UnlockFeeds
-    {
-        get;
-        set;
-    } = 0;
+    public virtual int UnlockFeeds { get; set; } = 0;
 
     private const string DefaultTexture = "QuestBooks/Assets/Textures/Quests/Diamond";
     private const string DefaultOutline = "QuestBooks/Assets/Textures/Quests/DiamondOutline";
@@ -53,29 +45,17 @@ internal class QuestJumpElement : QuestLogElement, IConnectable
     [JsonProperty]
     [UseConverter(typeof(QuestBookChecker))]
     [ElementTooltip("JumpBook")]
-    public virtual QuestBook JumpBook
-    {
-        get;
-        set;
-    } = QuestManager.QuestBooks?.FirstOrDefault(defaultValue: null) ?? null;
+    public virtual QuestBook JumpBook { get; set; } = QuestManager.QuestBooks?.FirstOrDefault(defaultValue: null) ?? null;
 
     [JsonProperty]
     [UseConverter(typeof(QuestChapterChecker))]
     [ElementTooltip("JumpChapter")]
-    public virtual QuestChapter JumpChapter
-    {
-        get;
-        set;
-    } = QuestManager.QuestBooks?.FirstOrDefault(defaultValue: null)?.Chapters.FirstOrDefault(defaultValue: null) ?? null;
+    public virtual QuestChapter JumpChapter { get; set; } = QuestManager.QuestBooks?.FirstOrDefault(defaultValue: null)?.Chapters.FirstOrDefault(defaultValue: null) ?? null;
 
     [JsonProperty]
     [UseConverter(typeof(Vector2Converter))]
     [ElementTooltip("JumpOffset")]
-    public virtual Vector2 JumpOffset
-    {
-        get;
-        set;
-    } = Vector2.Zero;
+    public virtual Vector2 JumpOffset { get; set; } = Vector2.Zero;
 
     [JsonIgnore]
     [UseConverter(typeof(DisplayElement.TextureChecker))]
@@ -117,18 +97,10 @@ internal class QuestJumpElement : QuestLogElement, IConnectable
     }
 
     [ElementTooltip("TooltipLocalization")]
-    public string TooltipLocalization
-    {
-        get;
-        set;
-    } = "Mods.QuestBooks.Tooltips.Elements.QuestJumpHover";
+    public string TooltipLocalization { get; set; } = "Mods.QuestBooks.Tooltips.Elements.QuestJumpHover";
 
     [ElementTooltip("LockedTooltipLocalization")]
-    public string LockedTooltipLocalization
-    {
-        get;
-        set;
-    } = "Mods.QuestBooks.Tooltips.Library.LockedTooltip";
+    public string LockedTooltipLocalization { get; set; } = "Mods.QuestBooks.Tooltips.Library.LockedTooltip";
 
     [JsonIgnore]
     [HideInDesigner]
@@ -138,19 +110,11 @@ internal class QuestJumpElement : QuestLogElement, IConnectable
     [HideInDesigner]
     public string LockedTooltip => string.IsNullOrWhiteSpace(LockedTooltipLocalization) ? null : Language.GetOrRegister(LockedTooltipLocalization).Value;
 
-    public Vector2 CanvasPosition
-    {
-        get;
-        set;
-    }
+    public Vector2 CanvasPosition { get; set; }
 
     public Vector2 ConnectorAnchor => CanvasPosition - QuestLogDrawer.ActiveStyle.QuestAreaOffset;
 
-    public List<Connector> Connections
-    {
-        get;
-        set;
-    } = [];
+    public List<Connector> Connections { get; set; } = [];
 
     public override bool VisibleOnCanvas() => IncomingFeeds >= DisplayFeeds || QuestLogDrawer.ActiveStyle.UseDesigner;
     public bool Unlocked() => IncomingFeeds >= UnlockFeeds;

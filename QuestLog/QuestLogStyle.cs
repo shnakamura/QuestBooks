@@ -9,57 +9,23 @@ namespace QuestBooks.QuestLog;
 [ExtendsFromMod("QuestBooks")]
 public abstract class QuestLogStyle
 {
-    public abstract string Key
-    {
-        get;
-    }
+    public abstract string Key { get; }
 
-    public abstract string DisplayName
-    {
-        get;
-    }
+    public abstract string DisplayName { get; }
 
-    public virtual bool UseDesigner
-    {
-        get;
-        set;
-    } = false;
+    public virtual bool UseDesigner { get; set; } = false;
 
-    public virtual QuestBook SelectedBook
-    {
-        get;
-        set;
-    } = null;
+    public virtual QuestBook SelectedBook { get; set; } = null;
 
-    public virtual QuestChapter SelectedChapter
-    {
-        get;
-        set;
-    } = null;
+    public virtual QuestChapter SelectedChapter { get; set; } = null;
 
-    public virtual QuestLogElement SelectedElement
-    {
-        get;
-        set;
-    } = null;
+    public virtual QuestLogElement SelectedElement { get; set; } = null;
 
-    public virtual QuestLogElement HoveredElement
-    {
-        get;
-        set;
-    } = null;
+    public virtual QuestLogElement HoveredElement { get; set; } = null;
 
-    public virtual Vector2 QuestAreaOffset
-    {
-        get;
-        set;
-    } = Vector2.Zero;
+    public virtual Vector2 QuestAreaOffset { get; set; } = Vector2.Zero;
 
-    public virtual float Zoom
-    {
-        get;
-        set;
-    } = 1f;
+    public virtual float Zoom { get; set; } = 1f;
 
     public virtual void OnSelect()
     {

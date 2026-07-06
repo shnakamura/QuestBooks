@@ -11,27 +11,19 @@ using QuestBooks.Utilities;
 
 namespace QuestBooks;
 
-public class QuestBooksMod : Mod
+public sealed partial class QuestBooksMod : Mod
 {
-    public static Mod Instance
-    {
-        get;
-        private set;
-    }
+    /// <summary>
+    ///     Gets the singleton instance of the <see cref="QuestBooksMod"/> class.
+    /// </summary>
+    /// <value>
+    ///     Shorthand for <see cref="ModContent.GetInstance{T}"/>.
+    /// </value>
+    public static Mod Instance => ModContent.GetInstance<QuestBooksMod>();
 
-    public static bool DesignerEnabled
-    {
-        get;
-        internal set;
-    }
+    public static bool DesignerEnabled { get; internal set; }
 
-    public static Mod DesignerMod
-    {
-        get;
-        private set;
-    }
-
-    public override void Load() => Instance = this;
+    public static Mod DesignerMod { get; private set; }
 
     public override void PostSetupContent()
     {
@@ -43,13 +35,6 @@ public class QuestBooksMod : Mod
         }
 
         VanillaQuestBooks.AddVanillaQuests(this);
-    }
-
-    public override void HandlePacket(BinaryReader reader, int whoAmI)
-    {
-        var packetType = PacketManager.IdToPacket[reader.ReadByte()];
-        var packet = (QuestPacket)Activator.CreateInstance(packetType)!;
-        packet.HandlePacket(in reader, whoAmI);
     }
 
     #region API
@@ -200,24 +185,6 @@ public class QuestBooksMod : Mod
         QuestLoader.LogStyleRegistry.TryAdd(mod, []);
         QuestLoader.LogStyleRegistry[mod].Add(questLogStyle);
     }
-
-    public static Quest GetQuest(string questName) => QuestManager.GetQuest(questName);
-    public static TQuest GetQuest<TQuest>() where TQuest : Quest => QuestManager.GetQuest<TQuest>();
-
-    public static bool TryGetQuest(string questName, out Quest result) => QuestManager.TryGetQuest(questName, out result);
-    public static bool TryGetQuest<TQuest>(out TQuest result) where TQuest : Quest => QuestManager.TryGetQuest(out result);
-
-    public static void CompleteQuest<TQuest>() where TQuest : Quest => CompleteQuest(GetQuest<TQuest>());
-    public static void CompleteQuest(string questName) => CompleteQuest(GetQuest(questName));
-    public static void CompleteQuest(Quest quest) => QuestManager.CompleteQuest(quest);
-
-    public static void MarkComplete<TQuest>() where TQuest : Quest => MarkComplete(GetQuest<TQuest>());
-    public static void MarkComplete(string questName) => MarkComplete(GetQuest(questName));
-    public static void MarkComplete(Quest quest) => QuestManager.MarkComplete(quest);
-
-    public static void MarkIncomplete<TQuest>() where TQuest : Quest => MarkIncomplete(GetQuest<TQuest>());
-    public static void MarkIncomplete(string questName) => MarkIncomplete(GetQuest(questName));
-    public static void MarkIncomplete(Quest quest) => QuestManager.MarkIncomplete(quest);
 
     #endregion
 }

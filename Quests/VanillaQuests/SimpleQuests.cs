@@ -28,11 +28,7 @@ public abstract class InfoQuest : VanillaQuest
 {
     public override QuestType QuestType => QuestType.Player;
 
-    public bool Read
-    {
-        get;
-        set;
-    }
+    public bool Read { get; set; }
 
     public override void MakeSimpleInfoPage(out string title, out string contents, out Texture2D texture)
     {

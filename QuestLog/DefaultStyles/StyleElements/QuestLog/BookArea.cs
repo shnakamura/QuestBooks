@@ -96,7 +96,6 @@ public partial class BasicQuestLogStyle
 
         if (!UseDesigner)
         {
-            return;
         }
     }
 }

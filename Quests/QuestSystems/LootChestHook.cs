@@ -12,20 +12,12 @@ public abstract class LootChestHook : GlobalTile
     /// <remarks>
     ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public LootChestPredicate Predicate
-    {
-        get;
-        init;
-    }
+    public LootChestPredicate Predicate { get; init; }
 
     /// <summary>
     ///     Gets the callback that is invoked when a tile is right-clicked and the predicate matches.
     /// </summary>
-    public LootChestCallback Callback
-    {
-        get;
-        init;
-    }
+    public LootChestCallback Callback { get; init; }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="LootChestHook" /> class with the specified predicate and callback.

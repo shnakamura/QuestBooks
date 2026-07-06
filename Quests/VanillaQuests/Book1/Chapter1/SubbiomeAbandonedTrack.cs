@@ -21,11 +21,7 @@ public class SubbiomeAbandonedTrack : VanillaQuest
         /// <summary>
         ///     Gets the current count of abandoned track tiles detected around the player.
         /// </summary>
-        public static int Count
-        {
-            get;
-            private set;
-        }
+        public static int Count { get; private set; }
 
         /// <summary>
         ///     Gets a value indicating whether the player is inside an abandoned track.

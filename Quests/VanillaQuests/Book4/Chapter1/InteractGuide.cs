@@ -16,11 +16,7 @@ public class InteractGuide : VanillaQuest
     /// <summary>
     ///     Gets a list of item types that the player has interacted with in the guide's inventory.
     /// </summary>
-    public List<int> MaterialsCache
-    {
-        get;
-        private set;
-    } = [];
+    public List<int> MaterialsCache { get; private set; } = [];
 
     /// <summary>
     ///     Gets the amount of unique items the player has interacted with in the guide's inventory.

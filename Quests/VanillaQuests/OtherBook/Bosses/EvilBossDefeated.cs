@@ -12,10 +12,7 @@ public class EvilBossDefeated : VanillaQuest
     private readonly Texture2D brain = Main.dedServ ? null : ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/Quests/Book0/Chapter1/BrainOfCthulhu").Value;
     private readonly Texture2D worm = Main.dedServ ? null : ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/Quests/Book0/Chapter1/EaterOfWorlds").Value;
 
-    public Texture2D OutlineTexture
-    {
-        get;
-    } = Main.dedServ ? null : ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/Quests/LargeOutline").Value;
+    public Texture2D OutlineTexture { get; } = Main.dedServ ? null : ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/Quests/LargeOutline").Value;
 
     public Texture2D IconTexture => Crimson ? brain : worm;
 

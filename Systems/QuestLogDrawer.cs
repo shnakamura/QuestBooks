@@ -7,16 +7,9 @@ namespace QuestBooks.Systems;
 
 public class QuestLogDrawer : ModSystem
 {
-    public static RenderTarget2D ScreenRenderTarget
-    {
-        get;
-        private set;
-    }
+    public static RenderTarget2D ScreenRenderTarget { get; private set; }
 
-    public static BlendState BlendState
-    {
-        get;
-    } = new()
+    public static BlendState BlendState { get; } = new()
     {
         ColorSourceBlend = Blend.SourceAlpha,
         AlphaSourceBlend = Blend.One,
@@ -29,85 +22,44 @@ public class QuestLogDrawer : ModSystem
     /// <summary>
     ///     Whether the log will be drawn on this frame.
     /// </summary>
-    public static bool DisplayLog
-    {
-        get;
-        private set;
-    }
+    public static bool DisplayLog { get; private set; }
 
     /// <summary>
     ///     Whether the player is wanting to display the log. This could be <see langword="false" /> while <see cref="DisplayLog" /> is <see langword="true" /> if the log drawer is currently in its closing
     ///     animation.
     /// </summary>
-    public static bool TargetDisplayLog
-    {
-        get;
-        private set;
-    }
+    public static bool TargetDisplayLog { get; private set; }
 
     public static Vector2 RealScreenSize => ScreenRenderTarget.Size();
 
-    public static Dictionary<string, QuestLogStyle> QuestLogStyles
-    {
-        get;
-        internal set;
-    } = null;
+    public static Dictionary<string, QuestLogStyle> QuestLogStyles { get; internal set; } = null;
 
-    public static QuestLogStyle ActiveStyle
-    {
-        get;
-        internal set;
-    }
+    public static QuestLogStyle ActiveStyle { get; internal set; }
 
-    public static Dictionary<string, QuestBooksMod.CoverDrawDelegate> CoverDrawCalls
-    {
-        get;
-    } = [];
+    public static Dictionary<string, QuestBooksMod.CoverDrawDelegate> CoverDrawCalls { get; } = [];
 
-    public static Dictionary<string, QuestBooksMod.LogTitleRetrievalDelegate> LogTitleRetrievalCalls
-    {
-        get;
-    } = [];
+    public static Dictionary<string, QuestBooksMod.LogTitleRetrievalDelegate> LogTitleRetrievalCalls { get; } = [];
 
-    public static Dictionary<string, QuestBooksMod.LogTitleDrawDelegate> LogTitleDrawCalls
-    {
-        get;
-    } = [];
+    public static Dictionary<string, QuestBooksMod.LogTitleDrawDelegate> LogTitleDrawCalls { get; } = [];
 
     /// <summary>
     ///     The total length of the opening/closing animation, in frames. This can be changed.
     /// </summary>
-    public static int OpenAnimationLength
-    {
-        get;
-        set;
-    } = 20;
+    public static int OpenAnimationLength { get; set; } = 20;
 
     /// <summary>
     ///     The current timer for the opening/closing animation. Counts down from <see cref="OpenAnimationLength" /> to 0.
     /// </summary>
-    public static int OpenTimer
-    {
-        get;
-        set;
-    }
+    public static int OpenTimer { get; set; }
 
     /// <summary>
     ///     Determines whether the opening/closing animation is currently in progress.
     /// </summary>
     public static bool AnimationInProgress => OpenTimer > 0;
 
-    public static Vector2 QuestLogDrawOffset
-    {
-        get;
-        set;
-    } = Vector2.Zero;
+    public static Vector2 QuestLogDrawOffset { get; set; } = Vector2.Zero;
 
-    public static float QuestLogDrawOpacity
-    {
-        get;
-        set;
-    } = 1f;
+    public static float QuestLogDrawOpacity { get; set; } = 1f;
 
     public static void Toggle(bool? active = null, bool skipAnimation = false)
     {

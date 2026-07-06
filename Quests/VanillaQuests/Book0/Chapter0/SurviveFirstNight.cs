@@ -2,11 +2,7 @@
 
 public class SurviveFirstNight : VanillaQuest
 {
-    public bool CachedNight
-    {
-        get;
-        set;
-    }
+    public bool CachedNight { get; set; }
 
     public override bool CheckCompletion() => false;
 

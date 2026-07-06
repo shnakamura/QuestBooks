@@ -7,11 +7,7 @@ namespace QuestBooks.QuestLog.DefaultStyles;
 public partial class BasicQuestLogStyle
 {
     // The scale to draw to the render targets
-    protected float TargetScale
-    {
-        get;
-        set;
-    } = 1f;
+    protected float TargetScale { get; set; } = 1f;
 
     private Vector2? cachedMouseClick;
     private bool canvasMoving;

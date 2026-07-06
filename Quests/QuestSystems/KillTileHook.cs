@@ -12,20 +12,12 @@ public abstract class KillTileHook : GlobalTile
     /// <remarks>
     ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public KillTilePredicate Predicate
-    {
-        get;
-        init;
-    }
+    public KillTilePredicate Predicate { get; init; }
 
     /// <summary>
     ///     Gets the callback that is invoked when a tile is killed and the predicate matches.
     /// </summary>
-    public KillTileCallback Callback
-    {
-        get;
-        init;
-    }
+    public KillTileCallback Callback { get; init; }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="KillTileHook" /> class with the specified predicate and callback.

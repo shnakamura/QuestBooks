@@ -12,20 +12,13 @@ public abstract class QuestChapter
     /// <summary>
     ///     The collection of <see cref="QuestLogElement" />s to be displayed in the quest log.
     /// </summary>
-    public abstract List<QuestLogElement> Elements
-    {
-        get;
-        set;
-    }
+    public abstract List<QuestLogElement> Elements { get; set; }
 
     /// <summary>
     ///     The string that will be displayed in the quest log. You should use localization here where applicable.
     /// </summary>
     [JsonIgnore]
-    public abstract string DisplayName
-    {
-        get;
-    }
+    public abstract string DisplayName { get; }
 
     /// <summary>
     ///     A collection of all quests contained by elements in this quest line.<br />
@@ -85,47 +78,27 @@ public abstract class QuestChapter
     /// <summary>
     ///     Determines whether this quest line should be "draggable" in the log. This value can be modified from the designer.
     /// </summary>
-    public virtual bool EnableShifting
-    {
-        get;
-        set;
-    } = false;
+    public virtual bool EnableShifting { get; set; } = false;
 
     /// <summary>
     ///     Determines the center of the view area to jump to when selecting a draggable chapter.
     /// </summary>
-    public virtual Vector2 ViewAnchor
-    {
-        get;
-        set;
-    } = Vector2.Zero;
+    public virtual Vector2 ViewAnchor { get; set; } = Vector2.Zero;
 
     /// <summary>
     ///     Determines the maximum (bottom right) view window for a draggable chapter.
     /// </summary>
-    public virtual Vector2 MaxViewPoint
-    {
-        get;
-        set;
-    } = Vector2.Zero;
+    public virtual Vector2 MaxViewPoint { get; set; } = Vector2.Zero;
 
     /// <summary>
     ///     Determines the minimum (top left) view window for a draggable chapter.
     /// </summary>
-    public virtual Vector2 MinViewPoint
-    {
-        get;
-        set;
-    } = Vector2.Zero;
+    public virtual Vector2 MinViewPoint { get; set; } = Vector2.Zero;
 
     /// <summary>
     ///     Determines the default zoom level for a draggable chapter.
     /// </summary>
-    public virtual float DefaultZoom
-    {
-        get;
-        set;
-    } = 1f;
+    public virtual float DefaultZoom { get; set; } = 1f;
 
     public virtual void Update()
     {

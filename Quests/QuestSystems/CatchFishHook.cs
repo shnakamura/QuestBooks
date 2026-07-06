@@ -14,20 +14,12 @@ public abstract class CatchFishHook : ModPlayer
     /// <remarks>
     ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public CatchFishPredicate Predicate
-    {
-        get;
-        init;
-    }
+    public CatchFishPredicate Predicate { get; init; }
 
     /// <summary>
     ///     Gets the callback that is invoked when a fish is caught and the predicate matches.
     /// </summary>
-    public CatchFishCallback Callback
-    {
-        get;
-        init;
-    }
+    public CatchFishCallback Callback { get; init; }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="CatchFishHook" /> class with the specified predicate and callback.

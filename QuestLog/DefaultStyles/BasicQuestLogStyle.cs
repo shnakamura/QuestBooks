@@ -13,51 +13,24 @@ public partial class BasicQuestLogStyle : QuestLogStyle
     public override string Key => "DefaultQuestLog";
     public override string DisplayName => "Book";
 
-    public QuestLogElement[] SortedElements
-    {
-        get;
-        set;
-    }
+    public QuestLogElement[] SortedElements { get; set; }
 
-    protected Dictionary<QuestChapter, (Vector2, float)> CachedViews
-    {
-        get;
-        set;
-    } = [];
+    protected Dictionary<QuestChapter, (Vector2, float)> CachedViews { get; set; } = [];
 
     // Mouse position on canvas
-    protected Vector2 ScaledMousePos
-    {
-        get;
-        set;
-    }
+    protected Vector2 ScaledMousePos { get; set; }
 
-    protected Point MouseCanvas
-    {
-        get;
-        set;
-    }
+    protected Point MouseCanvas { get; set; }
 
-    protected bool PreviouslyOpened
-    {
-        get;
-        set;
-    }
+    protected bool PreviouslyOpened { get; set; }
 
     // Indicates whether ANY part of the log has just been moved
     // Could be the log itself, could be resizing, could be the quest area
     // Used to keep track of whether the right click was intended to "reset" the current action, or the result of some other action
-    protected bool JustMoved
-    {
-        get;
-        set;
-    }
+    protected bool JustMoved { get; set; }
 
     // Our blending drastically changes between content draws
-    protected static BlendState LayerBlending
-    {
-        get;
-    } = new()
+    protected static BlendState LayerBlending { get; } = new()
     {
         ColorSourceBlend = Blend.SourceAlpha,
         ColorDestinationBlend = Blend.InverseSourceAlpha,
@@ -67,10 +40,7 @@ public partial class BasicQuestLogStyle : QuestLogStyle
         AlphaBlendFunction = BlendFunction.Add
     };
 
-    protected static BlendState ContentBlending
-    {
-        get;
-    } = new()
+    protected static BlendState ContentBlending { get; } = new()
     {
         ColorSourceBlend = Blend.SourceAlpha,
         ColorDestinationBlend = Blend.InverseSourceAlpha,
@@ -80,10 +50,7 @@ public partial class BasicQuestLogStyle : QuestLogStyle
         AlphaBlendFunction = BlendFunction.Add
     };
 
-    protected static BlendState TargetCopying
-    {
-        get;
-    } = new()
+    protected static BlendState TargetCopying { get; } = new()
     {
         ColorSourceBlend = Blend.One,
         ColorDestinationBlend = Blend.InverseSourceAlpha,
@@ -93,10 +60,7 @@ public partial class BasicQuestLogStyle : QuestLogStyle
         AlphaBlendFunction = BlendFunction.Add
     };
 
-    protected static BlendState LibraryBlending
-    {
-        get;
-    } = new()
+    protected static BlendState LibraryBlending { get; } = new()
     {
         ColorSourceBlend = Blend.SourceAlpha,
         ColorDestinationBlend = Blend.InverseSourceAlpha,
@@ -106,10 +70,7 @@ public partial class BasicQuestLogStyle : QuestLogStyle
         AlphaBlendFunction = BlendFunction.Max
     };
 
-    protected static BlendState GridBlending
-    {
-        get;
-    } = new()
+    protected static BlendState GridBlending { get; } = new()
     {
         ColorSourceBlend = Blend.One,
         ColorDestinationBlend = Blend.One,
@@ -153,17 +114,9 @@ public partial class BasicQuestLogStyle : QuestLogStyle
 
     #region Draw Parameters
 
-    public Vector2 LogPositionOffset
-    {
-        get;
-        set;
-    } = Vector2.Zero;
+    public Vector2 LogPositionOffset { get; set; } = Vector2.Zero;
 
-    public float LogScale
-    {
-        get;
-        set;
-    } = 1f;
+    public float LogScale { get; set; } = 1f;
 
     private Rectangle LogArea;
     private readonly List<Action<SpriteBatch>> DrawTasks = [];

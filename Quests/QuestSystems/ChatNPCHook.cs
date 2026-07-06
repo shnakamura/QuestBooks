@@ -6,17 +6,9 @@ public delegate void ChatNPCHookCallback(NPC npc, bool firstButton);
 
 public abstract class ChatNPCHook : GlobalNPC
 {
-    public ChatNPCHookPredicate Predicate
-    {
-        get;
-        init;
-    }
+    public ChatNPCHookPredicate Predicate { get; init; }
 
-    public ChatNPCHookCallback Callback
-    {
-        get;
-        init;
-    }
+    public ChatNPCHookCallback Callback { get; init; }
 
     public ChatNPCHook(ChatNPCHookPredicate predicate, ChatNPCHookCallback callback)
     {

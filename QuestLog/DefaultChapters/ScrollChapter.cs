@@ -20,7 +20,7 @@ public class ScrollChapter : BasicChapter
         var chapterColor = unlocked ? Color.White : Color.DarkGray;
         Color outlineColor = new(0, 0, 0, 0);
         var textColor = unlocked ? Color.White : Color.Gray;
-        Color textOutlineColor = unlocked ? new Color(69, 69, 69, 255) : new Color(40, 40, 40, 255);
+        var textOutlineColor = unlocked ? new Color(69, 69, 69, 255) : new Color(40, 40, 40, 255);
 
         if (selected)
         {

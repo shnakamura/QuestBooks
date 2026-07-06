@@ -6,9 +6,5 @@
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Class)]
 public class TooltipAttribute(string localizationKey) : Attribute
 {
-    public virtual string LocalizationKey
-    {
-        get;
-        init;
-    } = localizationKey;
+    public virtual string LocalizationKey { get; init; } = localizationKey;
 }

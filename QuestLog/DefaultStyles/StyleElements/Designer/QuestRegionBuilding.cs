@@ -30,11 +30,7 @@ public partial class BasicQuestLogStyle
     protected readonly Stack<(Action undo, Action redo)> ActionHistory = [];
     protected readonly Stack<(Action undo, Action redo)> RedoActions = [];
 
-    protected bool HistoryAccessed
-    {
-        get;
-        set;
-    } // Prevents repeated history access on consecutive frames
+    protected bool HistoryAccessed { get; set; } // Prevents repeated history access on consecutive frames
 
     protected void AddHistory(Action undo, Action redo)
     {

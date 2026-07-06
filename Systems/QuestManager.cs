@@ -13,125 +13,49 @@ public static class QuestManager
 {
     // These are only string values so that the quests don't have a chance to end
     // up being duplicated by user-error. We only want one loaded copy of each quest.
-    public static FrozenDictionary<string, Quest> ActiveQuests
-    {
-        get;
-        internal set;
-    }
+    public static FrozenDictionary<string, Quest> ActiveQuests { get; internal set; }
 
-    public static string[] CompletedQuests
-    {
-        get;
-        internal set;
-    }
+    public static string[] CompletedQuests { get; internal set; }
 
-    public static string[] IncompleteQuests
-    {
-        get;
-        internal set;
-    }
+    public static string[] IncompleteQuests { get; internal set; }
 
-    public static FrozenDictionary<string, Quest> WorldQuests
-    {
-        get;
-        internal set;
-    }
+    public static FrozenDictionary<string, Quest> WorldQuests { get; internal set; }
 
-    public static string[] CompletedWorldQuests
-    {
-        get;
-        internal set;
-    }
+    public static string[] CompletedWorldQuests { get; internal set; }
 
-    public static string[] IncompleteWorldQuests
-    {
-        get;
-        internal set;
-    }
+    public static string[] IncompleteWorldQuests { get; internal set; }
 
-    public static FrozenDictionary<string, Quest> PlayerQuests
-    {
-        get;
-        internal set;
-    }
+    public static FrozenDictionary<string, Quest> PlayerQuests { get; internal set; }
 
-    public static string[] CompletedPlayerQuests
-    {
-        get;
-        internal set;
-    }
+    public static string[] CompletedPlayerQuests { get; internal set; }
 
-    public static string[] IncompletePlayerQuests
-    {
-        get;
-        internal set;
-    }
+    public static string[] IncompletePlayerQuests { get; internal set; }
 
     // Used to remember quests that were previously completed but now unloaded
-    public static HashSet<string> UnloadedCompletedWorldQuests
-    {
-        get;
-        internal set;
-    } = [];
+    public static HashSet<string> UnloadedCompletedWorldQuests { get; internal set; } = [];
 
-    public static HashSet<string> UnloadedCompletedPlayerQuests
-    {
-        get;
-        internal set;
-    } = [];
+    public static HashSet<string> UnloadedCompletedPlayerQuests { get; internal set; } = [];
 
-    public static IList<QuestBook> QuestBooks
-    {
-        get;
-        internal set;
-    }
+    public static IList<QuestBook> QuestBooks { get; internal set; }
 
-    public static Dictionary<string, IList<QuestBook>> QuestLogs
-    {
-        get;
-    } = [];
+    public static Dictionary<string, IList<QuestBook>> QuestLogs { get; } = [];
 
-    public static Dictionary<string, IList<QuestBook>> GlobalQuestBooks
-    {
-        get;
-    } = [];
+    public static Dictionary<string, IList<QuestBook>> GlobalQuestBooks { get; } = [];
 
-    public static Dictionary<string, Mod> QuestLogMods
-    {
-        get;
-    } = [];
+    public static Dictionary<string, Mod> QuestLogMods { get; } = [];
 
-    public static string ActiveQuestLog
-    {
-        get;
-        internal set;
-    }
+    public static string ActiveQuestLog { get; internal set; }
 
     public static IEnumerable<KeyValuePair<string, IList<QuestBook>>> AvailableQuestLogs => QuestLogs.Where(kvp => !DisabledQuestLogs.Contains(kvp.Key));
 
-    public static List<string> DisabledQuestLogs
-    {
-        get;
-    } = [];
+    public static List<string> DisabledQuestLogs { get; } = [];
 
     // These are registered on load
-    public static List<Type> AvailableQuestBookTypes
-    {
-        get;
-        internal set;
-    } = [];
+    public static List<Type> AvailableQuestBookTypes { get; internal set; } = [];
 
-    public static List<Type> AvailableQuestLineTypes
-    {
-        get;
-        internal set;
-    } = [];
+    public static List<Type> AvailableQuestLineTypes { get; internal set; } = [];
 
-    public static Dictionary<Type, QuestLogElement> AvailableQuestElementTypes
-    {
-        get;
-        internal set;
-    } = [];
+    public static Dictionary<Type, QuestLogElement> AvailableQuestElementTypes { get; internal set; } = [];
 
     private static readonly PropertyInfo modProperty = typeof(Quest).GetProperty("Mod", BindingFlags.Instance | BindingFlags.Public)!;
 

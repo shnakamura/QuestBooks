@@ -12,20 +12,13 @@ public abstract class QuestBook
     /// <summary>
     ///     The list of all quest lines contained within this book.
     /// </summary>
-    public abstract List<QuestChapter> Chapters
-    {
-        get;
-        set;
-    }
+    public abstract List<QuestChapter> Chapters { get; set; }
 
     /// <summary>
     ///     The string that will be displayed in the quest log. You should use localization here where applicable.
     /// </summary>
     [JsonIgnore]
-    public abstract string DisplayName
-    {
-        get;
-    }
+    public abstract string DisplayName { get; }
 
     /// <summary>
     ///     A collection of all quests contained by all elements in all chapters in this quest book.<br />

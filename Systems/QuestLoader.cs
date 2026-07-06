@@ -24,33 +24,15 @@ internal class QuestLoader : ModSystem
     /// <summary>
     ///     Whether or not the quest completion status' have been loaded for a selected world/character.
     /// </summary>
-    public static bool QuestsLoaded
-    {
-        get;
-        private set;
-    }
+    public static bool QuestsLoaded { get; private set; }
 
-    public static Dictionary<Type, Mod> QuestMods
-    {
-        get;
-    } = [];
+    public static Dictionary<Type, Mod> QuestMods { get; } = [];
 
-    public static FrozenDictionary<Type, string> QuestKeys
-    {
-        get;
-        internal set;
-    }
+    public static FrozenDictionary<Type, string> QuestKeys { get; internal set; }
 
-    public static QuestLogStyle ExclusiveOverrideStyle
-    {
-        get;
-        internal set;
-    } = null;
+    public static QuestLogStyle ExclusiveOverrideStyle { get; internal set; } = null;
 
-    public static Dictionary<Mod, List<QuestLogStyle>> LogStyleRegistry
-    {
-        get;
-    } = [];
+    public static Dictionary<Mod, List<QuestLogStyle>> LogStyleRegistry { get; } = [];
 
     internal static void LoadQuests(Mod mod)
     {

@@ -5,11 +5,7 @@ namespace QuestBooks.QuestLog.DefaultChapters;
 
 public abstract class BasicChapter : QuestChapter
 {
-    public override List<QuestLogElement> Elements
-    {
-        get;
-        set;
-    } = [];
+    public override List<QuestLogElement> Elements { get; set; } = [];
 
     public override string DisplayName => Language.GetOrRegister(NameKey).Value;
 

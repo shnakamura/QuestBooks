@@ -14,11 +14,7 @@ public abstract class QuestLogElement
 {
     [JsonIgnore]
     [HideInDesigner]
-    public bool TemplateInstance
-    {
-        get;
-        internal set;
-    } = false;
+    public bool TemplateInstance { get; internal set; } = false;
 
     [JsonIgnore]
     public virtual bool HasInfoPage => false;
@@ -40,11 +36,7 @@ public abstract class QuestLogElement
     // We manually set it to false when constructing new elements for placement.
     [JsonIgnore]
     [HideInDesigner]
-    public bool PreviouslyPlaced
-    {
-        get;
-        set;
-    } = true;
+    public bool PreviouslyPlaced { get; set; } = true;
 
     #region Common Methods
 
@@ -123,11 +115,7 @@ public abstract class QuestLogElement
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public sealed class UseConverterAttribute(Type propertyConverterType) : Attribute
     {
-        public Type PropertyConverterType
-        {
-            get;
-            init;
-        } = propertyConverterType;
+        public Type PropertyConverterType { get; init; } = propertyConverterType;
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false)]
@@ -244,8 +232,5 @@ public abstract class QuestLogElement
 public abstract class QuestElement : QuestLogElement
 {
     [JsonIgnore]
-    public abstract Quest Quest
-    {
-        get;
-    }
+    public abstract Quest Quest { get; }
 }

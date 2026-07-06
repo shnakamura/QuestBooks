@@ -17,11 +17,7 @@ public class QuestDisplay : QuestElement, IConnectable
 {
     [UseConverter(typeof(QuestChecker))]
     [ElementTooltip("QuestKey")]
-    public virtual string QuestKey
-    {
-        get;
-        set;
-    } = new Placeholder().Key;
+    public virtual string QuestKey { get; set; } = new Placeholder().Key;
 
     // Already has JsonIgnore
     public override Quest Quest => QuestManager.TryGetQuest(QuestKey, out var quest) ? quest : QuestManager.GetQuest<Placeholder>();
@@ -30,18 +26,10 @@ public class QuestDisplay : QuestElement, IConnectable
     public int IncomingFeeds => Connections.Count(x => x.Destination == this && x.Source.ConnectionActive(this));
 
     [ElementTooltip("DisplayPrerequisites")]
-    public virtual int DisplayFeeds
-    {
-        get;
-        set;
-    } = 0;
+    public virtual int DisplayFeeds { get; set; } = 0;
 
     [ElementTooltip("UnlockPrerequisites")]
-    public virtual int UnlockFeeds
-    {
-        get;
-        set;
-    } = 0;
+    public virtual int UnlockFeeds { get; set; } = 0;
 
     // Used when the texture is not found or has not been assigned yet.
     private const string DefaultTexture = "QuestBooks/Assets/Textures/Quests/Medium";
@@ -133,19 +121,11 @@ public class QuestDisplay : QuestElement, IConnectable
         }
     }
 
-    public Vector2 CanvasPosition
-    {
-        get;
-        set;
-    }
+    public Vector2 CanvasPosition { get; set; }
 
     public Vector2 ConnectorAnchor => CanvasPosition - QuestLogDrawer.ActiveStyle.QuestAreaOffset;
 
-    public List<Connector> Connections
-    {
-        get;
-        set;
-    } = [];
+    public List<Connector> Connections { get; set; } = [];
 
     // The following 2 fields are used to track when a "notification"
     // should be shown to indicate a new quest.

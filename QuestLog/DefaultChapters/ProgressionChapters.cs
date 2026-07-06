@@ -1,6 +1,6 @@
-﻿using QuestBooks.Core.Quests;
-using QuestBooks.Quests.VanillaQuests.Book0.Chapter0;
-using QuestBooks.Quests.VanillaQuests.OtherBook.Bosses;
+﻿using QuestBooks.Content.Quests.Vanilla.Book0.Chapter0;
+using QuestBooks.Content.Quests.Vanilla.OtherBook.Bosses;
+using QuestBooks.Core.Quests;
 
 namespace QuestBooks.QuestLog.DefaultChapters;
 

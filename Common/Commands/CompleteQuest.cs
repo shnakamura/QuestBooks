@@ -2,7 +2,7 @@
 
 namespace QuestBooks.Common.Commands;
 
-internal class CompleteQuest : QuestBooksCommand
+internal sealed class CompleteQuest : QuestBooksCommand
 {
     public override string Command => "completequest";
 
@@ -29,6 +29,7 @@ internal class CompleteQuest : QuestBooksCommand
         }
 
         QuestManager.CompleteQuest(quest);
+        
         caller.Reply(this.GetLocalization("Success").Format(questKey));
     }
 }

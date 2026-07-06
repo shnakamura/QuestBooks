@@ -1,0 +1,22 @@
+﻿using QuestBooks.Core.Quests;
+
+namespace QuestBooks.Content.Quests.Vanilla.Book2.Chapter1;
+
+public class AlertMartiansProbe : VanillaQuest
+{
+    public override void Load() => On_Main.StartInvasion += Check;
+
+    public override bool CheckCompletion() => false;
+
+    private static void Check(On_Main.orig_StartInvasion orig, int type)
+    {
+        orig(type);
+
+        if (type != InvasionID.MartianMadness)
+        {
+            return;
+        }
+
+        QuestBooksMod.MarkComplete<AlertMartiansProbe>();
+    }
+}

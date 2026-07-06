@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using QuestBooks.Assets;
 using QuestBooks.Core.Quests;
-using QuestBooks.Quests.VanillaQuests;
 using ReLogic.Content;
 using static QuestBooks.QuestLog.DefaultElements.QuestDisplay;
 

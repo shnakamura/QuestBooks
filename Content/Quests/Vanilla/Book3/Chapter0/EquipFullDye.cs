@@ -1,0 +1,13 @@
+﻿using System.Linq;
+using QuestBooks.Core.Quests;
+
+namespace QuestBooks.Content.Quests.Vanilla.Book3.Chapter0;
+
+public class EquipFullDye : VanillaQuest
+{
+    public override QuestType QuestType => QuestType.Player;
+
+    public override bool CheckCompletion() => Main.LocalPlayer.EnumerateArmorDyes().All(static dye => !dye.Item.IsAir)
+                                              && Main.LocalPlayer.EnumerateAccessoryDyes().All(static dye => !dye.Item.IsAir)
+                                              && Main.LocalPlayer.EnumerateEquipmentDyes().All(static dye => !dye.Item.IsAir);
+}

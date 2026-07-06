@@ -1,0 +1,13 @@
+﻿using QuestBooks.Core.Quests;
+using QuestBooks.Quests.QuestSystems;
+
+namespace QuestBooks.Content.Quests.Vanilla.Book1.Chapter0;
+
+public class GetWaterCandle : VanillaQuest
+{
+    public override QuestType QuestType => QuestType.Player;
+
+    public override bool CheckCompletion() => false;
+
+    public class GetWaterCandleCheck() : KillTileHook<GetWaterCandle>(TileID.WaterCandle);
+}

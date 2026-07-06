@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using QuestBooks.Assets;
 using QuestBooks.Core.Quests;
 using QuestBooks.Quests;
-using QuestBooks.Quests.VanillaQuests;
 using QuestBooks.Utilities;
 using ReLogic.Content;
 using Terraria.GameContent;

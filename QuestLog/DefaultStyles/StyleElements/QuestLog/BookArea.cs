@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using QuestBooks.Systems;
+using QuestBooks.Core.Quests;
 using Terraria.GameInput;
 
 namespace QuestBooks.QuestLog.DefaultStyles;

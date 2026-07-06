@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using QuestBooks.Assets;
-using QuestBooks.Systems;
+using QuestBooks.Core.Quests;
 using SDL2;
 using Terraria.Localization;
 

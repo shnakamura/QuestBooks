@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using QuestBooks.Assets;
-using QuestBooks.Systems;
+using QuestBooks.Core.Quests;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
 

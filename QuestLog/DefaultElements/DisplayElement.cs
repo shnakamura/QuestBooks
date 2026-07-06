@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using QuestBooks.Systems;
+using QuestBooks.Core.Quests;
 using ReLogic.Content;
 
 namespace QuestBooks.QuestLog.DefaultElements;

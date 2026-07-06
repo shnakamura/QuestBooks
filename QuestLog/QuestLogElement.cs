@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using QuestBooks.Assets;
+using QuestBooks.Core.Quests;
 using QuestBooks.Quests;
 using Terraria.GameContent;
 using Terraria.Localization;

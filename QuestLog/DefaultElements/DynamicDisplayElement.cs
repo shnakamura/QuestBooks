@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using QuestBooks.Systems;
+using QuestBooks.Core.Quests;
 
 namespace QuestBooks.QuestLog.DefaultElements;
 

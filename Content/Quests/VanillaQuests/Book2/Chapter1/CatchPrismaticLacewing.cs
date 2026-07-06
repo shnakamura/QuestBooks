@@ -1,0 +1,10 @@
+﻿using QuestBooks.Core.Quests;
+
+namespace QuestBooks.Quests.VanillaQuests.Book2.Chapter1;
+
+public class CatchPrismaticLacewing : VanillaQuest
+{
+    public override QuestType QuestType => QuestType.Player;
+
+    public override bool CheckCompletion() => Main.LocalPlayer.HasItem(ItemID.EmpressButterfly);
+}

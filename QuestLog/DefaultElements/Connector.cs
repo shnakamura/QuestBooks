@@ -2,7 +2,7 @@
 using System.Linq;
 using Newtonsoft.Json;
 using QuestBooks.Assets;
-using QuestBooks.Systems;
+using QuestBooks.Core.Quests;
 
 namespace QuestBooks.QuestLog.DefaultElements;
 

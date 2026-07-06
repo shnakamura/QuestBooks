@@ -13,6 +13,9 @@
         <EmbeddedResource Remove=".vs\**"/>
         <None Remove=".vs\**"/>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Content\" />
+    </ItemGroup>
 
     <!-- References -->
 

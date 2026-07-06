@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using QuestBooks.Assets;
-using QuestBooks.Systems;
+using QuestBooks.Core.Quests;
 using QuestBooks.Utilities;
 using Terraria.Audio;
 using Terraria.GameContent;

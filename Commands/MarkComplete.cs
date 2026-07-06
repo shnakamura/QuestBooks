@@ -1,4 +1,4 @@
-﻿using QuestBooks.Systems;
+﻿using QuestBooks.Core.Quests;
 
 namespace QuestBooks.Commands;
 

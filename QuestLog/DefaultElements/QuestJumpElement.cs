@@ -2,7 +2,7 @@
 using System.Linq;
 using Newtonsoft.Json;
 using QuestBooks.Assets;
-using QuestBooks.Systems;
+using QuestBooks.Core.Quests;
 using ReLogic.Content;
 using Terraria.Localization;
 

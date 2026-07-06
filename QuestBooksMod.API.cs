@@ -1,5 +1,5 @@
-﻿using QuestBooks.Quests;
-using QuestBooks.Systems;
+﻿using QuestBooks.Core.Quests;
+using QuestBooks.Quests;
 
 namespace QuestBooks;
 

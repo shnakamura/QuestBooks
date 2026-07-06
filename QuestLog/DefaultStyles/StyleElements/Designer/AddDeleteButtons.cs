@@ -1,7 +1,7 @@
 ﻿using QuestBooks.Assets;
+using QuestBooks.Core.Quests;
 using QuestBooks.QuestLog.DefaultChapters;
 using QuestBooks.QuestLog.DefaultQuestBooks;
-using QuestBooks.Systems;
 using SDL2;
 using Terraria.Audio;
 using Terraria.Localization;

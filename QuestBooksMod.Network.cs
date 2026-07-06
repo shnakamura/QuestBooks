@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using QuestBooks.Systems.NetCode;
+using QuestBooks.Core.Network;
 
 namespace QuestBooks;
 

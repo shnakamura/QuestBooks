@@ -2,9 +2,9 @@
 using System.Linq;
 using Newtonsoft.Json;
 using QuestBooks.Assets;
+using QuestBooks.Core.Quests;
 using QuestBooks.Quests;
 using QuestBooks.Quests.VanillaQuests;
-using QuestBooks.Systems;
 using QuestBooks.Utilities;
 using ReLogic.Content;
 using Terraria.GameContent;

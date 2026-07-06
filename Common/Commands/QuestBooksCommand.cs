@@ -1,6 +1,6 @@
 ﻿using QuestBooks.Core.Quests;
 
-namespace QuestBooks.Commands;
+namespace QuestBooks.Common.Commands;
 
 internal abstract class QuestBooksCommand : ModCommand, ILocalizedModType
 {

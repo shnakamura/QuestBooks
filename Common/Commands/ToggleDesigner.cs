@@ -1,6 +1,6 @@
 ﻿using Terraria.Audio;
 
-namespace QuestBooks.Commands;
+namespace QuestBooks.Common.Commands;
 
 internal class ToggleDesigner : QuestBooksCommand
 {

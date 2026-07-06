@@ -10,6 +10,9 @@ using QuestBooks.Utilities;
 
 namespace QuestBooks;
 
+/// <summary>
+///     The <see cref="Mod"/> implementation for Quest Books.
+/// </summary>
 public sealed partial class QuestBooksMod : Mod
 {
     /// <summary>

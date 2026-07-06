@@ -2,6 +2,9 @@
 
 namespace QuestBooks.Common.Configuration;
 
+/// <summary>
+///     The client-side <see cref="ModConfig"/> implementation for Quest Books.
+/// </summary>
 public sealed class ClientSideConfiguration : ModConfig
 {
     /// <summary>

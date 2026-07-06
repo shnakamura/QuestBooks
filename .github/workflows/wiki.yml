@@ -2,7 +2,9 @@ name: GitHub Wiki
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - master
     paths:
       - wiki/**
       - .github/workflows/wiki.yml

@@ -11,7 +11,9 @@ public class DefeatDayEmpress : VanillaQuest
         private static void CheckDaytimeEOL(NPC npc)
         {
             if (!npc.AI_120_HallowBoss_IsGenuinelyEnraged())
+            {
                 return;
+            }
 
             QuestBooksMod.CompleteQuest<DefeatDayEmpress>();
         }

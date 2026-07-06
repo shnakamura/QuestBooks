@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using Terraria.GameContent.Achievements;
+﻿using Terraria.GameContent.Achievements;
 
 namespace QuestBooks.Quests.VanillaQuests.Book3.Chapter3;
 
@@ -12,7 +11,9 @@ public class DefeatMechaMayhem : VanillaQuest
     private static void Check(int eventId)
     {
         if (eventId != AchievementHelperID.Events.DefeatedMechaMayhem)
+        {
             return;
+        }
 
         QuestBooksMod.MarkComplete<DefeatMechaMayhem>();
     }

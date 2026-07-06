@@ -13,7 +13,9 @@ public sealed class ChestSystem : ModSystem
             var index = Chest.FindChest(i, j);
 
             if (index == -1)
+            {
                 return;
+            }
 
             var chest = Main.chest[index];
 
@@ -23,12 +25,16 @@ public sealed class ChestSystem : ModSystem
         public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
         {
             if (fail)
+            {
                 return;
+            }
 
             var index = Chest.FindChest(i, j);
 
             if (index == -1)
+            {
                 return;
+            }
 
             var chest = Main.chest[index];
 
@@ -64,11 +70,11 @@ public sealed class ChestSystem : ModSystem
     ///     The vertical coordinate of the chest, in tiles.
     /// </param>
     /// <returns>
-    ///     <see langword="true"/> if the chest at the given coordinates has been naturally generated;
-    ///     otherwise, <see langword="false"/>.
+    ///     <see langword="true" /> if the chest at the given coordinates has been naturally generated;
+    ///     otherwise, <see langword="false" />.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     <paramref name="x"/> or <paramref name="y"/> is negative.
+    ///     <paramref name="x" /> or <paramref name="y" /> is negative.
     /// </exception>
     public static bool IsNatural(int x, int y)
     {
@@ -88,11 +94,11 @@ public sealed class ChestSystem : ModSystem
     ///     The vertical coordinate of the chest, in tiles.
     /// </param>
     /// <returns>
-    ///     <see langword="true"/> if the chest at the given coordinates has been explored by a player;
-    ///     otherwise, <see langword="false"/>.
+    ///     <see langword="true" /> if the chest at the given coordinates has been explored by a player;
+    ///     otherwise, <see langword="false" />.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     <paramref name="x"/> or <paramref name="y"/> is negative.
+    ///     <paramref name="x" /> or <paramref name="y" /> is negative.
     /// </exception>
     public static bool IsExplored(int x, int y)
     {
@@ -109,7 +115,9 @@ public sealed class ChestSystem : ModSystem
             var chest = Main.chest[i];
 
             if (chest == null)
+            {
                 continue;
+            }
 
             flags.Add((chest.x, chest.y), false);
         }
@@ -144,6 +152,8 @@ public sealed class ChestSystem : ModSystem
         var values = tag.GetList<bool>(ValuesTag);
 
         for (var i = 0; i < count; i++)
+        {
             flags.Add(keys[i], values[i]);
+        }
     }
 }

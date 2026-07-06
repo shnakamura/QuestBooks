@@ -1,5 +1,4 @@
 ﻿using QuestBooks.Quests.QuestSystems;
-using QuestBooks.Systems;
 using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
@@ -15,7 +14,9 @@ public class CraftHellstoneGear : VanillaQuest
         private static void Complete(Item item, RecipeItemCreationContext context)
         {
             if (!context.Recipe.HasIngredient(ItemID.HellstoneBar))
+            {
                 return;
+            }
 
             QuestBooksMod.MarkComplete<CraftHellstoneGear>();
         }

@@ -1,28 +1,33 @@
 ﻿using System.Collections.Generic;
 using Terraria.Localization;
 
-namespace QuestBooks.QuestLog.DefaultQuestBooks
+namespace QuestBooks.QuestLog.DefaultQuestBooks;
+
+/// <summary>
+///     A simple quest book that provides a localization key for a display name.<br />
+///     This class is abstract and should be inherited.
+/// </summary>
+public abstract class BasicQuestBook : QuestBook
 {
-    /// <summary>
-    /// A simple quest book that provides a localization key for a display name.<br/>
-    /// This class is abstract and should be inherited.
-    /// </summary>
-    public abstract class BasicQuestBook : QuestBook
+    public override List<QuestChapter> Chapters
     {
-        public override List<QuestChapter> Chapters { get; set; } = [];
+        get;
+        set;
+    } = [];
 
-        public override string DisplayName { get => Language.GetOrRegister(NameKey).Value; }
+    public override string DisplayName => Language.GetOrRegister(NameKey).Value;
 
-        public string NameKey;
+    public string NameKey;
 
-        public override void CloneTo(QuestBook newInstance)
+    public override void CloneTo(QuestBook newInstance)
+    {
+        if (newInstance is BasicQuestBook book)
         {
-            if (newInstance is BasicQuestBook book)
-                book.NameKey = NameKey;
-
-            base.CloneTo(newInstance);
+            book.NameKey = NameKey;
         }
 
-        internal sealed class BookTooltip(string localizationKey) : TooltipAttribute($"Mods.QuestBooks.Tooltips.Library.{localizationKey}");
+        base.CloneTo(newInstance);
     }
+
+    internal sealed class BookTooltip(string localizationKey) : TooltipAttribute($"Mods.QuestBooks.Tooltips.Library.{localizationKey}");
 }

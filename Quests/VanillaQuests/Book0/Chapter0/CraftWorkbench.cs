@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using System.Linq;
+﻿using System.Linq;
 using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.VanillaQuests.Book0.Chapter0;
@@ -16,10 +15,14 @@ public class CraftWorkbench : VanillaQuest
         public override void OnCreated(Item item, ItemCreationContext context)
         {
             if (context is not RecipeItemCreationContext || item.createTile == -1)
+            {
                 return;
+            }
 
             if (item.createTile != TileID.WorkBenches && !(ModContent.GetModTile(item.createTile)?.AdjTiles?.Contains(TileID.WorkBenches) ?? false))
+            {
                 return;
+            }
 
             QuestBooksMod.CompleteQuest<CraftWorkbench>();
         }

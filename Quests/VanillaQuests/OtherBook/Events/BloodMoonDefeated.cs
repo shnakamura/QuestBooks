@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.VanillaQuests.OtherBook.Events;
+﻿namespace QuestBooks.Quests.VanillaQuests.OtherBook.Events;
 
 public class BloodMoonDefeated : VanillaQuest
 {
@@ -8,15 +6,19 @@ public class BloodMoonDefeated : VanillaQuest
 
     public class BloodMoonCheck : ModSystem
     {
-        private bool cachedBloodMoon = false;
+        private bool cachedBloodMoon;
 
         public override void PostUpdateTime()
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
                 return;
+            }
 
             if (!Main.bloodMoon && cachedBloodMoon)
+            {
                 QuestBooksMod.CompleteQuest<BloodMoonDefeated>();
+            }
 
             cachedBloodMoon = Main.bloodMoon;
         }

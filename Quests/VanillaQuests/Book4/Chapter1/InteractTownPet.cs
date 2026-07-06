@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.VanillaQuests.Book4.Chapter1;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book4.Chapter1;
 
 public class InteractTownPet : VanillaQuest
 {

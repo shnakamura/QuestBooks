@@ -1,6 +1,4 @@
-﻿
-using QuestBooks.Utilities;
-using System.Linq;
+﻿using System.Linq;
 
 namespace QuestBooks.Quests.VanillaQuests.Book3.Chapter2;
 
@@ -11,7 +9,8 @@ public class GetAnyRunningBoots : VanillaQuest
     {
         Boots = ItemID.Sets.Factory.CreateNamedSet("Boots")
             .Description("Boots-type accessories")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 ItemID.SpectreBoots,
                 ItemID.FrostsparkBoots,
                 ItemID.SailfishBoots,

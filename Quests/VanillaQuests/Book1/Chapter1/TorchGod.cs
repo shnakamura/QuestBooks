@@ -1,5 +1,4 @@
 ﻿using MonoMod.Cil;
-using QuestBooks.Systems;
 
 namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
 
@@ -14,7 +13,9 @@ public class TorchGod : VanillaQuest
         var cursor = new ILCursor(context);
 
         if (!cursor.TryGotoNext(MoveType.After, static i => i.MatchLdarg0(), static i => i.MatchLdfld<Player>("numberOfTorchAttacksMade"), static i => i.MatchLdcI4(95)))
+        {
             throw new Exception();
+        }
 
         cursor.EmitDelegate(static () => QuestBooksMod.MarkComplete<TorchGod>());
     }

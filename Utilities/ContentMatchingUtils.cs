@@ -48,7 +48,7 @@ public static partial class Utils
     public static bool Match<T>(int type) where T : ModItem => type == ModContent.ItemType<T>();
 
     /// <summary>
-    /// Allows shorthand delegate matching access to <see cref="Match{T}(int)"/>
+    ///     Allows shorthand delegate matching access to <see cref="Match{T}(int)" />
     /// </summary>
     public static bool Match<T>(FishingAttempt attempt, int drop, int npc, AdvancedPopupRequest sonar, Vector2 position) where T : ModItem => Match<T>(drop);
 
@@ -59,12 +59,12 @@ public static partial class Utils
     public static bool MatchTile<T>(int type) where T : ModTile => type == ModContent.TileType<T>();
 
     /// <summary>
-    /// Allows shorthand delegate matching access to <see cref="MatchTile{T}(int)"/>
+    ///     Allows shorthand delegate matching access to <see cref="MatchTile{T}(int)" />
     /// </summary>
     public static bool Match<T>(int x, int y, int tileType) where T : ModTile => MatchTile<T>(tileType);
 
     /// <summary>
-    /// Allows shorthand delegate matching access to <see cref="MatchTile{T}(int)"/>
+    ///     Allows shorthand delegate matching access to <see cref="MatchTile{T}(int)" />
     /// </summary>
     public static bool Match<T>(int i, int j, int type, Item item) where T : ModTile => MatchTile<T>(type);
 

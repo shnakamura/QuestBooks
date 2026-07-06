@@ -1,12 +1,13 @@
-﻿using QuestBooks.Quests.QuestSystems;
-using System.Linq;
+﻿using System.Linq;
+using QuestBooks.Quests.QuestSystems;
 
 namespace QuestBooks.Quests.VanillaQuests.Book3.Chapter1;
 
 public class DefeatOgre : VanillaQuest
 {
     // Not affected by other mods, does not need to be a set
-    public static readonly int[] OgreTypes = [
+    public static readonly int[] OgreTypes =
+    [
         NPCID.DD2OgreT2,
         NPCID.DD2OgreT2
     ];

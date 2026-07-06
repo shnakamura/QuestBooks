@@ -1,5 +1,5 @@
-﻿using QuestBooks.Systems;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using QuestBooks.Systems;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
 
@@ -16,7 +16,11 @@ public class InteractGuide : VanillaQuest
     /// <summary>
     ///     Gets a list of item types that the player has interacted with in the guide's inventory.
     /// </summary>
-    public List<int> MaterialsCache { get; private set; } = [];
+    public List<int> MaterialsCache
+    {
+        get;
+        private set;
+    } = [];
 
     /// <summary>
     ///     Gets the amount of unique items the player has interacted with in the guide's inventory.
@@ -42,18 +46,24 @@ public class InteractGuide : VanillaQuest
         var quest = QuestManager.GetQuest<InteractGuide>();
 
         if (quest.Completed)
+        {
             return;
+        }
 
         var guide = context == ItemSlot.Context.GuideItem;
 
         if (!guide)
+        {
             return;
+        }
 
         var item = Main.guideItem;
         var cache = quest.MaterialsCache;
 
         if (item.IsAir || cache.Contains(item.type))
+        {
             return;
+        }
 
         cache.Add(item.type);
     }

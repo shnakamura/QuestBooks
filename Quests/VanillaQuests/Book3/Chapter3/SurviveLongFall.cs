@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using Terraria.GameContent.Achievements;
+﻿using Terraria.GameContent.Achievements;
 
 namespace QuestBooks.Quests.VanillaQuests.Book3.Chapter3;
 
@@ -14,7 +13,9 @@ public class SurviveLongFall : VanillaQuest
     private static void Check(On_AchievementsHelper.orig_HandleSpecialEvent orig, Player player, int eventId)
     {
         if (eventId == AchievementHelperID.Special.SurviveHugeFall)
+        {
             QuestBooksMod.MarkComplete<SurviveLongFall>();
+        }
 
         orig(player, eventId);
     }

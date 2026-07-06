@@ -1,271 +1,304 @@
-﻿using QuestBooks.Assets;
+﻿using System.Collections.Generic;
+using QuestBooks.Assets;
 using QuestBooks.Systems;
-using QuestBooks.Utilities;
-using System.Collections.Generic;
 using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.Localization;
 
-namespace QuestBooks.QuestLog.DefaultStyles
+namespace QuestBooks.QuestLog.DefaultStyles;
+
+public partial class BasicQuestLogStyle
 {
-    public partial class BasicQuestLogStyle
+    private readonly List<(Rectangle box, Type type)> elementSelections = [];
+    private int elementTypeScrollOffset;
+    private QuestLogElement placingElement;
+    private const float zoomIncrement = 0.1f;
+
+    private void HandleQuestRegionTools()
     {
-        private readonly List<(Rectangle box, Type type)> elementSelections = [];
-        private int elementTypeScrollOffset = 0;
-        private QuestLogElement placingElement = null;
-        private const float zoomIncrement = 0.1f;
+        var enableShifting = LogArea.CookieCutter(new Vector2(0.12f, -1.1f), new Vector2(0.069f, 0.075f));
+        var moveBounds = enableShifting.CookieCutter(new Vector2(0f, -2.3f), Vector2.One);
+        var showMidpoint = moveBounds.CookieCutter(new Vector2(2.2f, 0f), Vector2.One);
+        var showBackdrop = enableShifting.CookieCutter(new Vector2(2.2f, 0f), Vector2.One);
+        var showGrid = showBackdrop.CookieCutter(new Vector2(2.2f, 0f), Vector2.One);
+        var snapGrid = showGrid.CookieCutter(new Vector2(2.2f, 0f), Vector2.One);
+        var scale = enableShifting.Width / (float)QuestAssets.ShiftingCanvas.Asset.Width;
 
-        private void HandleQuestRegionTools()
+        var gridSize = snapGrid.CookieCutter(new Vector2(2.2f, 0f), new Vector2(0.95f, 1f));
+        var gridUp = gridSize.CookieCutter(new Vector2(1.4f, -0.5f), new Vector2(0.4f, 0.5f));
+        var gridDown = gridUp.CookieCutter(new Vector2(0f, 2f), Vector2.One);
+
+        var zoomScale = gridSize.CookieCutter(new Vector2(0f, -2.3f), Vector2.One);
+        var zoomUp = zoomScale.CookieCutter(new Vector2(1.4f, -0.5f), new Vector2(0.4f, 0.5f));
+        var zoomDown = zoomUp.CookieCutter(new Vector2(0f, 2f), Vector2.One);
+
+        var enableShiftingHovered = false;
+        var moveBoundsHovered = false;
+        var showMidpointHovered = false;
+        var showBackdropHovered = false;
+        var showGridHovered = false;
+        var snapGridHovered = false;
+
+        var gridSizeHovered = false;
+        var gridUpHovered = false;
+        var gridDownHovered = false;
+
+        var zoomScaleHovered = false;
+        var zoomUpHovered = false;
+        var zoomDownHovered = false;
+
+        if (enableShifting.Contains(MouseCanvas))
         {
-            Rectangle enableShifting = LogArea.CookieCutter(new(0.12f, -1.1f), new(0.069f, 0.075f));
-            Rectangle moveBounds = enableShifting.CookieCutter(new(0f, -2.3f), Vector2.One);
-            Rectangle showMidpoint = moveBounds.CookieCutter(new(2.2f, 0f), Vector2.One);
-            Rectangle showBackdrop = enableShifting.CookieCutter(new(2.2f, 0f), Vector2.One);
-            Rectangle showGrid = showBackdrop.CookieCutter(new(2.2f, 0f), Vector2.One);
-            Rectangle snapGrid = showGrid.CookieCutter(new(2.2f, 0f), Vector2.One);
-            float scale = enableShifting.Width / (float)QuestAssets.ShiftingCanvas.Asset.Width;
+            LockMouse();
+            enableShiftingHovered = true;
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ShiftingCanvas");
 
-            Rectangle gridSize = snapGrid.CookieCutter(new(2.2f, 0f), new(0.95f, 1f));
-            Rectangle gridUp = gridSize.CookieCutter(new(1.4f, -0.5f), new(0.4f, 0.5f));
-            Rectangle gridDown = gridUp.CookieCutter(new(0f, 2f), Vector2.One);
+            if (LeftMouseJustReleased && SelectedChapter is not null)
+            {
+                var chapter = SelectedChapter;
+                var oldAnchor = chapter.ViewAnchor;
+                chapter.EnableShifting = !chapter.EnableShifting;
 
-            Rectangle zoomScale = gridSize.CookieCutter(new(0f, -2.3f), Vector2.One);
-            Rectangle zoomUp = zoomScale.CookieCutter(new(1.4f, -0.5f), new(0.4f, 0.5f));
-            Rectangle zoomDown = zoomUp.CookieCutter(new(0f, 2f), Vector2.One);
+                if (chapter.EnableShifting)
+                {
+                    chapter.ViewAnchor = defaultAnchor;
+                }
 
-            bool enableShiftingHovered = false;
-            bool moveBoundsHovered = false;
-            bool showMidpointHovered = false;
-            bool showBackdropHovered = false;
-            bool showGridHovered = false;
-            bool snapGridHovered = false;
+                else
+                {
+                    QuestAreaOffset = Vector2.Zero;
+                }
 
-            bool gridSizeHovered = false;
-            bool gridUpHovered = false;
-            bool gridDownHovered = false;
+                AddHistory
+                (
+                    () =>
+                    {
+                        chapter.EnableShifting = !chapter.EnableShifting;
 
-            bool zoomScaleHovered = false;
-            bool zoomUpHovered = false;
-            bool zoomDownHovered = false;
+                        if (chapter.EnableShifting)
+                        {
+                            chapter.ViewAnchor = oldAnchor;
+                        }
+                        else
+                        {
+                            QuestAreaOffset = Vector2.Zero;
+                        }
+                    },
+                    () =>
+                    {
+                        chapter.EnableShifting = !chapter.EnableShifting;
 
-            if (enableShifting.Contains(MouseCanvas))
+                        if (chapter.EnableShifting)
+                        {
+                            chapter.ViewAnchor = defaultAnchor;
+                        }
+                        else
+                        {
+                            QuestAreaOffset = Vector2.Zero;
+                        }
+                    }
+                );
+            }
+        }
+
+        if (SelectedChapter?.EnableShifting ?? false)
+        {
+            if (moveBounds.Contains(MouseCanvas))
             {
                 LockMouse();
-                enableShiftingHovered = true;
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ShiftingCanvas");
+                moveBoundsHovered = true;
+                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.MoveBounds");
 
-                if (LeftMouseJustReleased && SelectedChapter is not null)
+                if (LeftMouseJustReleased)
+                {
+                    this.moveBounds = !this.moveBounds;
+                }
+            }
+
+            else if (showMidpoint.Contains(MouseCanvas))
+            {
+                LockMouse();
+                showMidpointHovered = true;
+                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ShowMidpoint");
+
+                if (LeftMouseJustReleased)
+                {
+                    this.showMidpoint = !this.showMidpoint;
+                }
+            }
+
+            else if (zoomScale.Contains(MouseCanvas))
+            {
+                LockMouse();
+                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ZoomScale");
+                zoomScaleHovered = true;
+
+                if (LeftMouseJustReleased)
                 {
                     var chapter = SelectedChapter;
-                    Vector2 oldAnchor = chapter.ViewAnchor;
-                    chapter.EnableShifting = !chapter.EnableShifting;
+                    var oldZoom = chapter.DefaultZoom;
 
-                    if (chapter.EnableShifting)
-                        chapter.ViewAnchor = defaultAnchor;
+                    chapter.DefaultZoom = Zoom;
+                    var newZoom = chapter.DefaultZoom;
 
-                    else
-                        QuestAreaOffset = Vector2.Zero;
-
-                    AddHistory(() =>
+                    if (oldZoom != newZoom)
                     {
-                        chapter.EnableShifting = !chapter.EnableShifting;
-                        if (chapter.EnableShifting)
-                            chapter.ViewAnchor = oldAnchor;
-                        else
-                            QuestAreaOffset = Vector2.Zero;
-                    }, () =>
-                    {
-                        chapter.EnableShifting = !chapter.EnableShifting;
-                        if (chapter.EnableShifting)
-                            chapter.ViewAnchor = defaultAnchor;
-                        else
-                            QuestAreaOffset = Vector2.Zero;
-                    });
-                }
-            }
-
-            if (SelectedChapter?.EnableShifting ?? false)
-            {
-                if (moveBounds.Contains(MouseCanvas))
-                {
-                    LockMouse();
-                    moveBoundsHovered = true;
-                    MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.MoveBounds");
-
-                    if (LeftMouseJustReleased)
-                        this.moveBounds = !this.moveBounds;
-                }
-
-                else if (showMidpoint.Contains(MouseCanvas))
-                {
-                    LockMouse();
-                    showMidpointHovered = true;
-                    MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ShowMidpoint");
-
-                    if (LeftMouseJustReleased)
-                        this.showMidpoint = !this.showMidpoint;
-                }
-
-                else if (zoomScale.Contains(MouseCanvas))
-                {
-                    LockMouse();
-                    MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ZoomScale");
-                    zoomScaleHovered = true;
-
-                    if (LeftMouseJustReleased)
-                    {
-                        var chapter = SelectedChapter;
-                        float oldZoom = chapter.DefaultZoom;
-
-                        chapter.DefaultZoom = Zoom;
-                        float newZoom = chapter.DefaultZoom;
-
-                        if (oldZoom != newZoom)
-                            AddHistory(() =>
-                            {
-                                chapter.DefaultZoom = oldZoom;
-                            }, () =>
-                            {
-                                chapter.DefaultZoom = newZoom;
-                            });
+                        AddHistory(() => { chapter.DefaultZoom = oldZoom; }, () => { chapter.DefaultZoom = newZoom; });
                     }
                 }
+            }
 
-                else if (zoomUp.Contains(MouseCanvas))
+            else if (zoomUp.Contains(MouseCanvas))
+            {
+                LockMouse();
+                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ZoomUp");
+                zoomUpHovered = true;
+
+                if (LeftMouseJustReleased && SelectedChapter.DefaultZoom < 2f)
                 {
-                    LockMouse();
-                    MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ZoomUp");
-                    zoomUpHovered = true;
+                    var chapter = SelectedChapter;
+                    chapter.DefaultZoom += zoomIncrement;
 
-                    if (LeftMouseJustReleased && SelectedChapter.DefaultZoom < 2f)
-                    {
-                        var chapter = SelectedChapter;
-                        chapter.DefaultZoom += zoomIncrement;
-
-                        AddHistory(() =>
-                        {
-                            chapter.DefaultZoom -= zoomIncrement;
-                        }, () =>
-                        {
-                            chapter.DefaultZoom += zoomIncrement;
-                        });
-                    }
+                    AddHistory(() => { chapter.DefaultZoom -= zoomIncrement; }, () => { chapter.DefaultZoom += zoomIncrement; });
                 }
+            }
 
-                else if (zoomDown.Contains(MouseCanvas))
+            else if (zoomDown.Contains(MouseCanvas))
+            {
+                LockMouse();
+                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ZoomDown");
+                zoomDownHovered = true;
+
+                if (LeftMouseJustReleased && SelectedChapter.DefaultZoom > 0.1f)
                 {
-                    LockMouse();
-                    MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ZoomDown");
-                    zoomDownHovered = true;
+                    var chapter = SelectedChapter;
+                    chapter.DefaultZoom -= 0.1f;
 
-                    if (LeftMouseJustReleased && SelectedChapter.DefaultZoom > 0.1f)
-                    {
-                        var chapter = SelectedChapter;
-                        chapter.DefaultZoom -= 0.1f;
-
-                        AddHistory(() =>
-                        {
-                            chapter.DefaultZoom += zoomIncrement;
-                        }, () =>
-                        {
-                            chapter.DefaultZoom -= zoomIncrement;
-                        });
-                    }
+                    AddHistory(() => { chapter.DefaultZoom += zoomIncrement; }, () => { chapter.DefaultZoom -= zoomIncrement; });
                 }
-
-                SelectedChapter.DefaultZoom = float.Round(SelectedChapter.DefaultZoom, 2);
             }
 
-            if (showBackdrop.Contains(MouseCanvas))
+            SelectedChapter.DefaultZoom = float.Round(SelectedChapter.DefaultZoom, 2);
+        }
+
+        if (showBackdrop.Contains(MouseCanvas))
+        {
+            LockMouse();
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ToggleBackdrop");
+            showBackdropHovered = true;
+
+            if (LeftMouseJustReleased)
             {
-                LockMouse();
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ToggleBackdrop");
-                showBackdropHovered = true;
-
-                if (LeftMouseJustReleased)
-                    this.showBackdrop = !this.showBackdrop;
+                this.showBackdrop = !this.showBackdrop;
             }
+        }
 
-            if (showGrid.Contains(MouseCanvas))
+        if (showGrid.Contains(MouseCanvas))
+        {
+            LockMouse();
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ToggleGrid");
+            showGridHovered = true;
+
+            if (LeftMouseJustReleased)
             {
-                LockMouse();
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ToggleGrid");
-                showGridHovered = true;
-
-                if (LeftMouseJustReleased)
-                    this.showGrid = !this.showGrid;
+                this.showGrid = !this.showGrid;
             }
+        }
 
-            if (snapGrid.Contains(MouseCanvas))
+        if (snapGrid.Contains(MouseCanvas))
+        {
+            LockMouse();
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.SnapGrid");
+            snapGridHovered = true;
+
+            if (LeftMouseJustReleased)
             {
-                LockMouse();
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.SnapGrid");
-                snapGridHovered = true;
-
-                if (LeftMouseJustReleased)
-                    snapToGrid = !snapToGrid;
+                snapToGrid = !snapToGrid;
             }
+        }
 
-            if (gridSize.Contains(MouseCanvas))
+        if (gridSize.Contains(MouseCanvas))
+        {
+            LockMouse();
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.GridSize");
+            gridSizeHovered = true;
+
+            if (LeftMouseJustReleased)
             {
-                LockMouse();
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.GridSize");
-                gridSizeHovered = true;
-
-                if (LeftMouseJustReleased)
-                    this.gridSize = 20;
+                this.gridSize = 20;
             }
+        }
 
-            else if (gridUp.Contains(MouseCanvas))
+        else if (gridUp.Contains(MouseCanvas))
+        {
+            LockMouse();
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.GridSizeUp");
+            gridUpHovered = true;
+
+            if (LeftMouseJustReleased)
             {
-                LockMouse();
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.GridSizeUp");
-                gridUpHovered = true;
-
-                if (LeftMouseJustReleased)
-                    this.gridSize++;
+                this.gridSize++;
             }
+        }
 
-            else if (gridDown.Contains(MouseCanvas))
+        else if (gridDown.Contains(MouseCanvas))
+        {
+            LockMouse();
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.GridSizeDown");
+            gridDownHovered = true;
+
+            if (LeftMouseJustReleased && this.gridSize > 2)
             {
-                LockMouse();
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.GridSizeDown");
-                gridDownHovered = true;
-
-                if (LeftMouseJustReleased && this.gridSize > 2)
-                    this.gridSize--;
+                this.gridSize--;
             }
+        }
 
-            DrawTasks.Add(sb =>
+        DrawTasks.Add
+        (sb =>
             {
                 void DrawToggle(Rectangle area, bool hovered, Texture2D button, Texture2D buttonHovered, float opacity = 1f, bool outline = false)
                 {
-                    Texture2D texture = hovered ? buttonHovered : button;
-                    Vector2 center = area.Center();
+                    var texture = hovered ? buttonHovered : button;
+                    var center = area.Center();
 
                     if (outline)
+                    {
                         sb.Draw(QuestAssets.ToolOutline, center, null, Color.Yellow * opacity, 0f, QuestAssets.ToolOutline.Asset.Size() * 0.5f, scale, SpriteEffects.None, 0f);
+                    }
 
                     sb.Draw(texture, center, null, Color.White * opacity, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
                 }
 
-                bool active = SelectedChapter is not null;
-                DrawToggle(enableShifting, enableShiftingHovered, QuestAssets.ShiftingCanvas, active ? QuestAssets.ShiftingCanvasHovered : QuestAssets.ShiftingCanvas, active ? 1f : 0.5f, SelectedChapter?.EnableShifting ?? false);
+                var active = SelectedChapter is not null;
+
+                DrawToggle
+                (
+                    enableShifting,
+                    enableShiftingHovered,
+                    QuestAssets.ShiftingCanvas,
+                    active ? QuestAssets.ShiftingCanvasHovered : QuestAssets.ShiftingCanvas,
+                    active ? 1f : 0.5f,
+                    SelectedChapter?.EnableShifting ?? false
+                );
 
                 if (this.showBackdrop)
+                {
                     DrawToggle(showBackdrop, showBackdropHovered, QuestAssets.ToggleBackdropEnabled, QuestAssets.ToggleBackdropEnabledHovered, outline: true);
+                }
 
                 else
+                {
                     DrawToggle(showBackdrop, showBackdropHovered, QuestAssets.ToggleBackdropDisabled, QuestAssets.ToggleBackdropDisabledHovered);
+                }
 
                 DrawToggle(showGrid, showGridHovered, QuestAssets.ToggleGrid, QuestAssets.ToggleGridHovered, outline: this.showGrid);
-                DrawToggle(snapGrid, snapGridHovered, QuestAssets.GridSnapping, QuestAssets.GridSnappingHovered, outline: this.snapToGrid);
+                DrawToggle(snapGrid, snapGridHovered, QuestAssets.GridSnapping, QuestAssets.GridSnappingHovered, outline: snapToGrid);
 
                 DrawToggle(gridSize, gridSizeHovered, QuestAssets.GridSize, QuestAssets.GridSizeHovered);
                 DrawToggle(gridUp, gridUpHovered, QuestAssets.ScaleUp, QuestAssets.ScaleUpHovered);
                 DrawToggle(gridDown, gridDownHovered, QuestAssets.ScaleDown, QuestAssets.ScaleDownHovered);
 
-                Rectangle gridText = gridSize.CookieCutter(new(0.5f, 0.2f), new(0.75f, 0.75f));
+                var gridText = gridSize.CookieCutter(new Vector2(0.5f, 0.2f), new Vector2(0.75f, 0.75f));
                 sb.DrawOutlinedStringInRectangle(gridText, FontAssets.DeathText.Value, Color.White, Color.Black, this.gridSize.ToString(), clipBounds: false);
 
                 if (active && SelectedChapter.EnableShifting)
@@ -277,48 +310,50 @@ namespace QuestBooks.QuestLog.DefaultStyles
                     DrawToggle(zoomUp, zoomUpHovered, QuestAssets.ScaleUp, QuestAssets.ScaleUpHovered);
                     DrawToggle(zoomDown, zoomDownHovered, QuestAssets.ScaleDown, QuestAssets.ScaleDownHovered);
 
-                    gridText = zoomScale.CookieCutter(new(0.5f, 0.2f), new(0.75f, 0.75f));
+                    gridText = zoomScale.CookieCutter(new Vector2(0.5f, 0.2f), new Vector2(0.75f, 0.75f));
                     sb.DrawOutlinedStringInRectangle(gridText, FontAssets.DeathText.Value, Color.White, Color.Black, SelectedChapter.DefaultZoom.ToString("N1"), clipBounds: false);
                 }
-            });
+            }
+        );
 
-            if (SelectedChapter is not null)
+        if (SelectedChapter is not null)
+        {
+            var elementTypeSelection = LogArea.CookieCutter(new Vector2(1.24f, 0f), new Vector2(0.23f, 0.9f));
+            AddRectangle(elementTypeSelection, Color.Gray * 0.6f, fill: true);
+            AddRectangle(elementTypeSelection, Color.Black, 3f);
+
+            var elementTypeDisplay = elementTypeSelection.CookieCutter(new Vector2(0f, -1.03f), new Vector2(1f, 0.075f));
+            DrawTasks.Add(sb => sb.DrawOutlinedStringInRectangle(elementTypeDisplay, FontAssets.DeathText.Value, Color.White, Color.Black, "Element Selection:"));
+
+            var typeBox = elementTypeSelection.CreateScaledMargin(0.025f).CookieCutter(new Vector2(0f, -0.95f), new Vector2(1f, 0.078f));
+            elementSelections.Clear();
+
+            foreach (var elementType in QuestManager.AvailableQuestElementTypes.Keys)
             {
-                Rectangle elementTypeSelection = LogArea.CookieCutter(new(1.24f, 0f), new(0.23f, 0.9f));
-                AddRectangle(elementTypeSelection, Color.Gray * 0.6f, fill: true);
-                AddRectangle(elementTypeSelection, Color.Black, 3f);
+                elementSelections.Add((typeBox, elementType));
+                typeBox = typeBox.CookieCutter(new Vector2(0, 2.2f), Vector2.One);
+            }
 
-                Rectangle elementTypeDisplay = elementTypeSelection.CookieCutter(new(0f, -1.03f), new(1f, 0.075f));
-                DrawTasks.Add(sb => sb.DrawOutlinedStringInRectangle(elementTypeDisplay, FontAssets.DeathText.Value, Color.White, Color.Black, "Element Selection:"));
+            if (elementTypeSelection.Contains(MouseCanvas))
+            {
+                LockMouse();
+                var data = PlayerInput.ScrollWheelDeltaForUI;
 
-                Rectangle typeBox = elementTypeSelection.CreateScaledMargin(0.025f).CookieCutter(new(0f, -0.95f), new(1f, 0.078f));
-                elementSelections.Clear();
-
-                foreach (Type elementType in QuestManager.AvailableQuestElementTypes.Keys)
+                if (data != 0)
                 {
-                    elementSelections.Add((typeBox, elementType));
-                    typeBox = typeBox.CookieCutter(new(0, 2.2f), Vector2.One);
+                    var scrollAmount = data / 6;
+                    var initialOffset = elementTypeScrollOffset;
+                    elementTypeScrollOffset += scrollAmount;
+
+                    var lastBox = elementSelections[^1].box;
+                    var minScrollValue = -(lastBox.Bottom - (elementTypeSelection.Height + elementTypeSelection.Y));
+
+                    elementTypeScrollOffset = minScrollValue < 0 ? int.Clamp(elementTypeScrollOffset, minScrollValue, 0) : 0;
                 }
+            }
 
-                if (elementTypeSelection.Contains(MouseCanvas))
-                {
-                    LockMouse();
-                    int data = PlayerInput.ScrollWheelDeltaForUI;
-
-                    if (data != 0)
-                    {
-                        int scrollAmount = data / 6;
-                        int initialOffset = elementTypeScrollOffset;
-                        elementTypeScrollOffset += scrollAmount;
-
-                        Rectangle lastBox = elementSelections[^1].box;
-                        int minScrollValue = -(lastBox.Bottom - (elementTypeSelection.Height + elementTypeSelection.Y));
-
-                        elementTypeScrollOffset = minScrollValue < 0 ? int.Clamp(elementTypeScrollOffset, minScrollValue, 0) : 0;
-                    }
-                }
-
-                DrawTasks.Add(sb =>
+            DrawTasks.Add
+            (sb =>
                 {
                     sb.GetDrawParameters(out var blend, out var sampler, out var depth, out var raster, out var effect, out var matrix);
                     sb.End();
@@ -327,69 +362,79 @@ namespace QuestBooks.QuestLog.DefaultStyles
                     raster.ScissorTestEnable = true;
 
                     sb.Begin(SpriteSortMode.Deferred, blend, sampler, depth, raster, effect, matrix);
-                });
+                }
+            );
 
-                foreach (var (box, elementType) in elementSelections)
+            foreach (var (box, elementType) in elementSelections)
+            {
+                var placing = (placingElement?.GetType() ?? null) == elementType;
+                var otherPlacing = !placing && placingElement is not null;
+
+                box.Offset(0, elementTypeScrollOffset);
+
+                if (!placing)
                 {
-                    bool placing = (placingElement?.GetType() ?? null) == elementType;
-                    bool otherPlacing = !placing && placingElement is not null;
+                    AddRectangle(box, Color.Gray, fill: true);
+                    AddRectangle(box, Color.LightGray);
+                }
 
-                    box.Offset(0, elementTypeScrollOffset);
+                else
+                {
+                    AddRectangle(box, Color.PaleGoldenrod, fill: true);
+                    AddRectangle(box, Color.Yellow);
+                }
 
+                var textArea = box.CookieCutter(new Vector2(0.2f, 0f), new Vector2(0.78f, 1f));
+                var iconArea = box.CookieCutter(new Vector2(-0.775f, 0f), new Vector2(0.225f, 1f)).CreateScaledMargin(0.2f);
+
+                DrawTasks.Add
+                (sb =>
+                    {
+                        sb.DrawOutlinedStringInRectangle(textArea.CookieCutter(new Vector2(0f, 0.25f), Vector2.One), FontAssets.DeathText.Value, Color.White, Color.Black, elementType.Name);
+                        QuestManager.AvailableQuestElementTypes[elementType].DrawDesignerIcon(sb, iconArea);
+                    }
+                );
+
+                if (box.Contains(MouseCanvas) && elementTypeSelection.Contains(MouseCanvas))
+                {
                     if (!placing)
                     {
-                        AddRectangle(box, Color.Gray, fill: true);
-                        AddRectangle(box, Color.LightGray);
+                        AddRectangle(box, Color.White);
                     }
 
-                    else
+                    MouseTooltip = $"[c/CCC018:{elementType.FullName}]";
+
+                    if (Attribute.GetCustomAttribute(elementType, typeof(TooltipAttribute)) is TooltipAttribute tooltip)
                     {
-                        AddRectangle(box, Color.PaleGoldenrod, fill: true);
-                        AddRectangle(box, Color.Yellow);
+                        MouseTooltip += $"\n{Language.GetTextValue(tooltip.LocalizationKey)}";
                     }
 
-                    Rectangle textArea = box.CookieCutter(new(0.2f, 0f), new(0.78f, 1f));
-                    Rectangle iconArea = box.CookieCutter(new(-0.775f, 0f), new(0.225f, 1f)).CreateScaledMargin(0.2f);
-
-                    DrawTasks.Add(sb =>
+                    if (LeftMouseJustReleased)
                     {
-                        sb.DrawOutlinedStringInRectangle(textArea.CookieCutter(new(0f, 0.25f), Vector2.One), FontAssets.DeathText.Value, Color.White, Color.Black, elementType.Name);
-                        QuestManager.AvailableQuestElementTypes[elementType].DrawDesignerIcon(sb, iconArea);
-                    });
-
-                    if (box.Contains(MouseCanvas) && elementTypeSelection.Contains(MouseCanvas))
-                    {
-                        if (!placing)
-                            AddRectangle(box, Color.White);
-
-                        MouseTooltip = $"[c/CCC018:{elementType.FullName}]";
-
-                        if (Attribute.GetCustomAttribute(elementType, typeof(TooltipAttribute)) is TooltipAttribute tooltip)
-                            MouseTooltip += $"\n{Language.GetTextValue(tooltip.LocalizationKey)}";
-
-                        if (LeftMouseJustReleased)
+                        if ((placingElement?.GetType() ?? null) != elementType)
                         {
-                            if ((placingElement?.GetType() ?? null) != elementType)
-                            {
-                                placingElement = (QuestLogElement)Activator.CreateInstance(elementType);
-                                placingElement.PreviouslyPlaced = false;
-                            }
+                            placingElement = (QuestLogElement)Activator.CreateInstance(elementType);
+                            placingElement.PreviouslyPlaced = false;
+                        }
 
-                            else
-                                placingElement = null;
+                        else
+                        {
+                            placingElement = null;
                         }
                     }
                 }
-
-                if (RightMouseJustReleased && (placingElement?.PreviouslyPlaced ?? false) && !JustMoved)
-                {
-                    SelectedChapter.Elements.Add(placingElement);
-                    SortedElements = null;
-                }
             }
 
-            if (RightMouseJustReleased && !JustMoved)
-                placingElement = null;
+            if (RightMouseJustReleased && (placingElement?.PreviouslyPlaced ?? false) && !JustMoved)
+            {
+                SelectedChapter.Elements.Add(placingElement);
+                SortedElements = null;
+            }
+        }
+
+        if (RightMouseJustReleased && !JustMoved)
+        {
+            placingElement = null;
         }
     }
 }

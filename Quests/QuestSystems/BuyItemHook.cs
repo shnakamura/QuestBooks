@@ -1,5 +1,4 @@
 ﻿using QuestBooks.Quests.VanillaQuests;
-using QuestBooks.Systems;
 using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.QuestSystems;
@@ -14,17 +13,25 @@ public abstract class BuyItemHook : GlobalItem
     ///     Gets the predicate that determines whether this hook should be invoked when an item is bought.
     /// </summary>
     /// <remarks>
-    ///     If <see langword="null"/>, evaluates as <see langword="true"/>.
+    ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public BuyItemPredicate Predicate { get; init; }
+    public BuyItemPredicate Predicate
+    {
+        get;
+        init;
+    }
 
     /// <summary>
     ///     Gets the callback that is invoked when an item is bought and the predicate matches.
     /// </summary>
-    public BuyItemCallback Callback { get; init; }
+    public BuyItemCallback Callback
+    {
+        get;
+        init;
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BuyItemHook"/> class with the specified predicate and callback.
+    ///     Initializes a new instance of the <see cref="BuyItemHook" /> class with the specified predicate and callback.
     /// </summary>
     /// <param name="predicate">
     ///     The predicate that determines whether this hook should be invoked when an item is bought.
@@ -33,7 +40,7 @@ public abstract class BuyItemHook : GlobalItem
     ///     The callback that is invoked when an item is bought and the predicate matches.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="callback"/> is <see langword="null"/>.
+    ///     <paramref name="callback" /> is <see langword="null" />.
     /// </exception>
     public BuyItemHook(BuyItemPredicate predicate, BuyItemCallback callback)
     {
@@ -44,7 +51,7 @@ public abstract class BuyItemHook : GlobalItem
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BuyItemHook"/> class with the specified callback.
+    ///     Initializes a new instance of the <see cref="BuyItemHook" /> class with the specified callback.
     /// </summary>
     /// <param name="callback">
     ///     The callback that is invoked when an item is bought and the predicate matches.
@@ -52,19 +59,25 @@ public abstract class BuyItemHook : GlobalItem
     /// <remarks>
     ///     Checks for any item bought, regardless of type.
     /// </remarks>
-    public BuyItemHook(BuyItemCallback callback) : this(null, callback) { }
+    public BuyItemHook(BuyItemCallback callback) : this(null, callback)
+    {
+    }
 
     public override bool InstancePerEntity => true;
 
     public override void OnCreated(Item item, ItemCreationContext context)
     {
         if (context is not BuyItemCreationContext buy)
+        {
             return;
-        
+        }
+
         var matches = Predicate?.Invoke(item) ?? true;
-        
+
         if (!matches)
+        {
             return;
+        }
 
         Callback.Invoke(item, buy);
     }
@@ -74,29 +87,33 @@ public abstract class BuyItemHook<TQuest> : BuyItemHook
     where TQuest : VanillaQuest
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}"/> class with the specified predicate.
+    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}" /> class with the specified predicate.
     /// </summary>
     /// <param name="predicate">
     ///     The predicate that determines whether this hook should be invoked when an item is bought.
     /// </param>
-    public BuyItemHook(BuyItemPredicate predicate) : base(predicate, Complete) { }
+    public BuyItemHook(BuyItemPredicate predicate) : base(predicate, Complete)
+    {
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}" /> class.
     /// </summary>
     /// <remarks>
-    ///    Checks for any item bought, regardless of type.
+    ///     Checks for any item bought, regardless of type.
     /// </remarks>
-    public BuyItemHook() : base(Complete) { }
+    public BuyItemHook() : base(Complete)
+    {
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}"/> class with the specified item type.
+    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}" /> class with the specified item type.
     /// </summary>
     /// <param name="type">
     ///     The type of the item that should trigger this hook when bought.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     <paramref name="type"/> is less than or equal to zero.
+    ///     <paramref name="type" /> is less than or equal to zero.
     /// </exception>
     public BuyItemHook(int type) : base(Complete)
     {
@@ -105,13 +122,13 @@ public abstract class BuyItemHook<TQuest> : BuyItemHook
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}"/> class with the specified item bool set.
+    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}" /> class with the specified item bool set.
     /// </summary>
     /// <param name="set">
     ///     A factory bool set of items that should trigger this hook when bought.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="set"/> is null.
+    ///     <paramref name="set" /> is null.
     /// </exception>
     public BuyItemHook(bool[] set) : base(Complete)
     {
@@ -120,13 +137,13 @@ public abstract class BuyItemHook<TQuest> : BuyItemHook
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}"/> class with the specified item types.
+    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest}" /> class with the specified item types.
     /// </summary>
     /// <param name="matches">
     ///     The types of items that should trigger this hook when bought.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="matches"/> is null.
+    ///     <paramref name="matches" /> is null.
     /// </exception>
     public BuyItemHook(params int[] matches) : base(Complete)
     {
@@ -142,7 +159,9 @@ public abstract class BuyItemHook<TQuest, TModItem> : BuyItemHook<TQuest>
     where TModItem : ModItem
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest, TModItem}"/> class.
+    ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest, TModItem}" /> class.
     /// </summary>
-    public BuyItemHook() : base(Match<TModItem>) { }
+    public BuyItemHook() : base(Match<TModItem>)
+    {
+    }
 }

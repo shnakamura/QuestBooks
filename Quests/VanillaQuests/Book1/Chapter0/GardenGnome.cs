@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using Terraria.GameContent.Achievements;
+﻿using Terraria.GameContent.Achievements;
 
 namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
 
@@ -14,7 +13,9 @@ public class GardenGnome : VanillaQuest
     private static void Check(On_AchievementsHelper.orig_NotifyProgressionEvent orig, int eventId)
     {
         if (eventId == AchievementHelperID.Events.TurnGnomeToStatue)
+        {
             QuestBooksMod.MarkComplete<GardenGnome>();
+        }
 
         orig(eventId);
     }

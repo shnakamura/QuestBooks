@@ -9,7 +9,8 @@ public class DefeatBiomeMimic : VanillaQuest
     {
         BiomeMimics = NPCID.Sets.Factory.CreateNamedSet("BiomeMimics")
             .Description("All biome mimics")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 NPCID.BigMimicCorruption,
                 NPCID.BigMimicCrimson,
                 NPCID.BigMimicHallow,

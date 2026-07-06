@@ -1,396 +1,492 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 using QuestBooks.Assets;
 using QuestBooks.Quests;
 using QuestBooks.Quests.VanillaQuests;
 using QuestBooks.Systems;
+using QuestBooks.Utilities;
 using ReLogic.Content;
-using System.Collections.Generic;
-using System.Linq;
 using Terraria.GameContent;
 using Terraria.UI.Chat;
 
-namespace QuestBooks.QuestLog.DefaultElements
+namespace QuestBooks.QuestLog.DefaultElements;
+
+[ElementTooltip("QuestDisplay")]
+public class QuestDisplay : QuestElement, IConnectable
 {
-    [ElementTooltip("QuestDisplay")]
-    public class QuestDisplay : QuestElement, IConnectable
+    [UseConverter(typeof(QuestChecker))]
+    [ElementTooltip("QuestKey")]
+    public virtual string QuestKey
     {
-        [UseConverter(typeof(QuestChecker))]
-        [ElementTooltip("QuestKey")]
-        public virtual string QuestKey { get; set; } = new Placeholder().Key;
+        get;
+        set;
+    } = new Placeholder().Key;
 
-        // Already has JsonIgnore
-        public override Quest Quest => QuestManager.TryGetQuest(QuestKey, out var quest) ? quest : QuestManager.GetQuest<Placeholder>();
+    // Already has JsonIgnore
+    public override Quest Quest => QuestManager.TryGetQuest(QuestKey, out var quest) ? quest : QuestManager.GetQuest<Placeholder>();
 
-        [JsonIgnore]
-        public int IncomingFeeds => Connections.Count(x => x.Destination == this && x.Source.ConnectionActive(this));
+    [JsonIgnore]
+    public int IncomingFeeds => Connections.Count(x => x.Destination == this && x.Source.ConnectionActive(this));
 
-        [ElementTooltip("DisplayPrerequisites")]
-        public virtual int DisplayFeeds { get; set; } = 0;
+    [ElementTooltip("DisplayPrerequisites")]
+    public virtual int DisplayFeeds
+    {
+        get;
+        set;
+    } = 0;
 
-        [ElementTooltip("UnlockPrerequisites")]
-        public virtual int UnlockFeeds { get; set; } = 0;
+    [ElementTooltip("UnlockPrerequisites")]
+    public virtual int UnlockFeeds
+    {
+        get;
+        set;
+    } = 0;
 
-        // Used when the texture is not found or has not been assigned yet.
-        private const string DefaultTexture = "QuestBooks/Assets/Textures/Quests/Medium";
-        private const string DefaultOutline = "QuestBooks/Assets/Textures/Quests/MediumOutline";
-        private static readonly Asset<Texture2D> DefaultAsset = Main.dedServ ? null : ModContent.Request<Texture2D>(DefaultTexture);
+    // Used when the texture is not found or has not been assigned yet.
+    private const string DefaultTexture = "QuestBooks/Assets/Textures/Quests/Medium";
+    private const string DefaultOutline = "QuestBooks/Assets/Textures/Quests/MediumOutline";
+    private static readonly Asset<Texture2D> DefaultAsset = Main.dedServ ? null : ModContent.Request<Texture2D>(DefaultTexture);
 
-        // Concise autoproperties coming in C# 13....
-        [JsonProperty] private string _outlineTexturePath = DefaultOutline;
-        [JsonProperty] private string _lockedTexturePath = "";
-        [JsonProperty] private string _incompleteTexturePath = "";
-        [JsonProperty] private string _completedTexturePath = DefaultTexture;
+    // Concise autoproperties coming in C# 13....
+    [JsonProperty]
+    private string _outlineTexturePath = DefaultOutline;
 
-        [JsonIgnore] protected Asset<Texture2D> _outlineTexture = null;
-        [JsonIgnore] protected Asset<Texture2D> _lockedTexture = null;
-        [JsonIgnore] protected Asset<Texture2D> _incompleteTexture = null;
-        [JsonIgnore] protected Asset<Texture2D> _completedTexture = null;
+    [JsonProperty]
+    private string _lockedTexturePath = string.Empty;
 
-        [JsonIgnore]
-        [UseConverter(typeof(DisplayElement.TextureChecker))]
-        [ElementTooltip("CompletedTexture")]
-        public virtual string Texture
+    [JsonProperty]
+    private string _incompleteTexturePath = string.Empty;
+
+    [JsonProperty]
+    private string _completedTexturePath = DefaultTexture;
+
+    [JsonIgnore]
+    protected Asset<Texture2D> _outlineTexture;
+
+    [JsonIgnore]
+    protected Asset<Texture2D> _lockedTexture;
+
+    [JsonIgnore]
+    protected Asset<Texture2D> _incompleteTexture;
+
+    [JsonIgnore]
+    protected Asset<Texture2D> _completedTexture;
+
+    [JsonIgnore]
+    [UseConverter(typeof(DisplayElement.TextureChecker))]
+    [ElementTooltip("CompletedTexture")]
+    public virtual string Texture
+    {
+        // Because of our custom converter, this will only ever be
+        // set if the texture path is valid
+        get => _completedTexturePath;
+        set
         {
-            // Because of our custom converter, this will only ever be
-            // set if the texture path is valid
-            get => _completedTexturePath;
-            set { _completedTexturePath = value; _completedTexture = null; }
+            _completedTexturePath = value;
+            _completedTexture = null;
+        }
+    }
+
+    [JsonIgnore]
+    [UseConverter(typeof(DisplayElement.TextureChecker))]
+    [ElementTooltip("OutlineTexture")]
+    public virtual string OutlineTexture
+    {
+        // Because of our custom converter, this will only ever be
+        // set if the texture path is valid
+        get => _outlineTexturePath;
+        set
+        {
+            _outlineTexturePath = value;
+            _outlineTexture = null;
+        }
+    }
+
+    [JsonIgnore]
+    [UseConverter(typeof(TextureCheckerEmptyAllowed))]
+    [ElementTooltip("LockedTexture")]
+    public virtual string LockedTexture
+    {
+        // Because of our custom converter, this will only ever be
+        // set if the texture path is valid
+        get => _lockedTexturePath;
+        set
+        {
+            _lockedTexturePath = value;
+            _lockedTexture = null;
+        }
+    }
+
+    [JsonIgnore]
+    [UseConverter(typeof(TextureCheckerEmptyAllowed))]
+    [ElementTooltip("IncompleteTexture")]
+    public virtual string IncompleteTexture
+    {
+        // Because of our custom converter, this will only ever be
+        // set if the texture path is valid
+        get => _incompleteTexturePath;
+        set
+        {
+            _incompleteTexturePath = value;
+            _incompleteTexture = null;
+        }
+    }
+
+    public Vector2 CanvasPosition
+    {
+        get;
+        set;
+    }
+
+    public Vector2 ConnectorAnchor => CanvasPosition - QuestLogDrawer.ActiveStyle.QuestAreaOffset;
+
+    public List<Connector> Connections
+    {
+        get;
+        set;
+    } = [];
+
+    // The following 2 fields are used to track when a "notification"
+    // should be shown to indicate a new quest.
+    [JsonIgnore]
+    private bool? _showNotification;
+
+    /// <summary>
+    ///     Determines whether the "notification" indicator should be displayed on the "open quest log" button in the inventory.
+    /// </summary>
+    [JsonIgnore]
+    [HideInDesigner]
+    public virtual bool ShowNotification
+    {
+        get => Unlocked() && (_showNotification ?? false);
+        set => _showNotification = value;
+    }
+
+    public override bool VisibleOnCanvas() => Quest.Completed || IncomingFeeds >= DisplayFeeds || QuestLogDrawer.ActiveStyle.UseDesigner;
+    public bool Unlocked() => Quest.Completed || IncomingFeeds >= UnlockFeeds;
+    public bool Completed() => Quest.Completed;
+
+    public bool CompleteConnection(IConnectable source) => VisibleOnCanvas();
+
+    public bool ConnectionVisible(IConnectable destination) => VisibleOnCanvas();
+
+    public bool ConnectionActive(IConnectable destination) => Quest.Completed;
+
+    public override bool IsHovered(Vector2 mousePosition, Vector2 canvasViewOffset, float zoom, ref string mouseTooltip)
+    {
+        // mousePosition is already in logical canvas coordinates (zoom factored out)
+        _completedTexture ??= ModContent.Request<Texture2D>(_completedTexturePath);
+        var hovered = VisibleOnCanvas() && CenteredRectangle(CanvasPosition, _completedTexture.Size()).Contains(mousePosition.ToPoint());
+        var unlocked = HasInfoPage && (Unlocked() || QuestLogDrawer.ActiveStyle.UseDesigner);
+
+        var tooltip = unlocked ? Quest.HoverTooltip : Quest.LockedTooltip;
+
+        if (hovered && tooltip != null)
+        {
+            mouseTooltip = tooltip;
         }
 
-        [JsonIgnore]
-        [UseConverter(typeof(DisplayElement.TextureChecker))]
-        [ElementTooltip("OutlineTexture")]
-        public virtual string OutlineTexture
+        return hovered && unlocked;
+    }
+
+    public override void DrawToCanvas(SpriteBatch spriteBatch, Vector2 canvasViewOffset, float zoom, bool selected, bool hovered)
+    {
+        var unlocked = Unlocked();
+        var completed = Completed();
+
+        if (Quest.PreTextureDraw(spriteBatch, CanvasPosition, canvasViewOffset, zoom, unlocked, selected, hovered))
         {
-            // Because of our custom converter, this will only ever be
-            // set if the texture path is valid
-            get => _outlineTexturePath;
-            set { _outlineTexturePath = value; _outlineTexture = null; }
-        }
-
-        [JsonIgnore]
-        [UseConverter(typeof(TextureCheckerEmptyAllowed))]
-        [ElementTooltip("LockedTexture")]
-        public virtual string LockedTexture
-        {
-            // Because of our custom converter, this will only ever be
-            // set if the texture path is valid
-            get => _lockedTexturePath;
-            set { _lockedTexturePath = value; _lockedTexture = null; }
-        }
-
-        [JsonIgnore]
-        [UseConverter(typeof(TextureCheckerEmptyAllowed))]
-        [ElementTooltip("IncompleteTexture")]
-        public virtual string IncompleteTexture
-        {
-            // Because of our custom converter, this will only ever be
-            // set if the texture path is valid
-            get => _incompleteTexturePath;
-            set { _incompleteTexturePath = value; _incompleteTexture = null; }
-        }
-
-        public Vector2 CanvasPosition { get; set; }
-
-        public Vector2 ConnectorAnchor => CanvasPosition - QuestLogDrawer.ActiveStyle.QuestAreaOffset;
-
-        public List<Connector> Connections { get; set; } = [];
-
-        // The following 2 fields are used to track when a "notification"
-        // should be shown to indicate a new quest.
-        [JsonIgnore] private bool? _showNotification = null;
-
-        /// <summary>
-        /// Determines whether the "notification" indicator should be displayed on the "open quest log" button in the inventory.
-        /// </summary>
-        [JsonIgnore]
-        [HideInDesigner]
-        public virtual bool ShowNotification
-        {
-            get => Unlocked() && (_showNotification ?? false);
-            set => _showNotification = value;
-        }
-
-        public override bool VisibleOnCanvas() => Quest.Completed || IncomingFeeds >= DisplayFeeds || QuestLogDrawer.ActiveStyle.UseDesigner;
-        public bool Unlocked() => Quest.Completed || IncomingFeeds >= UnlockFeeds;
-        public bool Completed() => Quest.Completed;
-
-        public bool CompleteConnection(IConnectable source) => VisibleOnCanvas();
-
-        public bool ConnectionVisible(IConnectable destination) => VisibleOnCanvas();
-
-        public bool ConnectionActive(IConnectable destination) => Quest.Completed;
-
-        public override bool IsHovered(Vector2 mousePosition, Vector2 canvasViewOffset, float zoom, ref string mouseTooltip)
-        {
-            // mousePosition is already in logical canvas coordinates (zoom factored out)
-            _completedTexture ??= ModContent.Request<Texture2D>(_completedTexturePath);
-            bool hovered = VisibleOnCanvas() && CenteredRectangle(CanvasPosition, _completedTexture.Size()).Contains(mousePosition.ToPoint());
-            bool unlocked = HasInfoPage && (Unlocked() || QuestLogDrawer.ActiveStyle.UseDesigner);
-
-            string tooltip = unlocked ? Quest.HoverTooltip : Quest.LockedTooltip;
-            if (hovered && tooltip != null)
-                mouseTooltip = tooltip;
-
-            return hovered && unlocked;
-        }
-
-        public override void DrawToCanvas(SpriteBatch spriteBatch, Vector2 canvasViewOffset, float zoom, bool selected, bool hovered)
-        {
-            bool unlocked = Unlocked();
-            bool completed = Completed();
-
-            if (Quest.PreTextureDraw(spriteBatch, CanvasPosition, canvasViewOffset, zoom, unlocked, selected, hovered))
+            if (QuestLogDrawer.ActiveStyle.UseDesigner)
             {
-                if (QuestLogDrawer.ActiveStyle.UseDesigner)
+                var cycle = (int)(Main.timeForVisualEffects % 180 / 60);
+
+                switch (cycle)
                 {
-                    int cycle = (int)(Main.timeForVisualEffects % 180 / 60);
-                    switch (cycle)
-                    {
-                        case 0:
-                            DrawLocked(spriteBatch, canvasViewOffset, zoom, hovered, selected);
-                            break;
+                    case 0:
+                        DrawLocked(spriteBatch, canvasViewOffset, zoom, hovered, selected);
+                        break;
 
-                        case 1:
-                            DrawIncomplete(spriteBatch, canvasViewOffset, zoom, hovered, selected);
-                            break;
+                    case 1:
+                        DrawIncomplete(spriteBatch, canvasViewOffset, zoom, hovered, selected);
+                        break;
 
-                        default:
-                            DrawCompleted(spriteBatch, canvasViewOffset, zoom, hovered, selected);
-                            break;
-                    }
+                    default:
+                        DrawCompleted(spriteBatch, canvasViewOffset, zoom, hovered, selected);
+                        break;
                 }
-
-                else if (!unlocked && !completed)
-                    DrawLocked(spriteBatch, canvasViewOffset, zoom, hovered, selected);
-
-                else if (!completed)
-                    DrawIncomplete(spriteBatch, canvasViewOffset, zoom, hovered, selected);
-
-                else
-                    DrawCompleted(spriteBatch, canvasViewOffset, zoom, hovered, selected);
             }
 
-            if (selected)
-                _showNotification = false;
-
-            Quest.PostTextureDraw(spriteBatch, CanvasPosition, canvasViewOffset, zoom, unlocked, selected, hovered);
-
-            if (ShowNotification)
-                Quest.DrawNotification(spriteBatch, (CanvasPosition - canvasViewOffset + new Vector2(20f)) * zoom, zoom, unlocked, hovered);
-        }
-
-        protected virtual void DrawOutline(SpriteBatch spriteBatch, Vector2 canvasOffset, float zoom, Color color)
-        {
-            _outlineTexture ??= ModContent.Request<Texture2D>(_outlineTexturePath);
-            DrawTexture(spriteBatch, _outlineTexture.Value, canvasOffset, zoom, color);
-        }
-
-        protected virtual void DrawLocked(SpriteBatch spriteBatch, Vector2 canvasOffset, float zoom, bool hovered, bool selected)
-        {
-            if (!string.IsNullOrWhiteSpace(_lockedTexturePath))
+            else if (!unlocked && !completed)
             {
-                _lockedTexture ??= ModContent.Request<Texture2D>(_lockedTexturePath);
-                DrawTexture(spriteBatch, _lockedTexture.Value, canvasOffset, zoom, Color.White);
-                return;
+                DrawLocked(spriteBatch, canvasViewOffset, zoom, hovered, selected);
             }
 
-            _completedTexture ??= ModContent.Request<Texture2D>(_completedTexturePath);
-            DrawOutline(spriteBatch, canvasOffset, zoom, Color.Black);
-            DrawTexture(spriteBatch, _completedTexture.Value, canvasOffset, zoom, Color.Black);
-        }
-
-        protected virtual void DrawIncomplete(SpriteBatch spriteBatch, Vector2 canvasOffset, float zoom, bool hovered, bool selected)
-        {
-            if (selected)
-                DrawOutline(spriteBatch, canvasOffset, zoom, Color.Yellow);
-
-            else if (hovered && HasInfoPage)
-                DrawOutline(spriteBatch, canvasOffset, zoom, Color.LightGray);
+            else if (!completed)
+            {
+                DrawIncomplete(spriteBatch, canvasViewOffset, zoom, hovered, selected);
+            }
 
             else
-                DrawOutline(spriteBatch, canvasOffset, zoom, Color.Gray);
-
-
-            if (!string.IsNullOrWhiteSpace(_incompleteTexturePath))
             {
-                _incompleteTexture ??= ModContent.Request<Texture2D>(_incompleteTexturePath);
-                DrawTexture(spriteBatch, _incompleteTexture.Value, canvasOffset, zoom, Color.White);
-                return;
+                DrawCompleted(spriteBatch, canvasViewOffset, zoom, hovered, selected);
             }
-
-            _completedTexture ??= ModContent.Request<Texture2D>(_completedTexturePath);
-            Effect grayscale = QuestAssets.Grayscale;
-
-            spriteBatch.GetDrawParameters(out var blend, out var sampler, out var depth, out var raster, out var effect, out var matrix);
-            spriteBatch.End();
-
-            spriteBatch.Begin(SpriteSortMode.Deferred, blend, sampler, depth, raster, grayscale, matrix);
-            DrawTexture(spriteBatch, _completedTexture.Value, canvasOffset, zoom, Color.White);
-            spriteBatch.End();
-
-            spriteBatch.Begin(SpriteSortMode.Deferred, blend, sampler, depth, raster, effect, matrix);
         }
 
-        protected virtual void DrawCompleted(SpriteBatch spriteBatch, Vector2 canvasOffset, float zoom, bool hovered, bool selected)
+        if (selected)
         {
-            if (selected)
-                DrawOutline(spriteBatch, canvasOffset, zoom, Color.Yellow);
-
-            else if (hovered && HasInfoPage)
-                DrawOutline(spriteBatch, canvasOffset, zoom, Color.LightGray);
-
-            else
-                DrawOutline(spriteBatch, canvasOffset, zoom, new(108, 118, 199, 255));
-
-            _completedTexture ??= ModContent.Request<Texture2D>(_completedTexturePath);
-            DrawTexture(spriteBatch, _completedTexture.Value, canvasOffset, zoom, Color.White);
+            _showNotification = false;
         }
 
-        protected void DrawTexture(SpriteBatch spriteBatch, Texture2D texture, Vector2 canvasOffset, float zoom, Color color)
+        Quest.PostTextureDraw(spriteBatch, CanvasPosition, canvasViewOffset, zoom, unlocked, selected, hovered);
+
+        if (ShowNotification)
         {
-            Vector2 drawPos = (CanvasPosition - canvasOffset) * zoom;
-            spriteBatch.Draw(texture, drawPos, null, color, 0f, texture.Size() * 0.5f, zoom, SpriteEffects.None, 0f);
+            Quest.DrawNotification(spriteBatch, (CanvasPosition - canvasViewOffset + new Vector2(20f)) * zoom, zoom, unlocked, hovered);
+        }
+    }
+
+    protected virtual void DrawOutline(SpriteBatch spriteBatch, Vector2 canvasOffset, float zoom, Color color)
+    {
+        _outlineTexture ??= ModContent.Request<Texture2D>(_outlineTexturePath);
+        DrawTexture(spriteBatch, _outlineTexture.Value, canvasOffset, zoom, color);
+    }
+
+    protected virtual void DrawLocked(SpriteBatch spriteBatch, Vector2 canvasOffset, float zoom, bool hovered, bool selected)
+    {
+        if (!string.IsNullOrWhiteSpace(_lockedTexturePath))
+        {
+            _lockedTexture ??= ModContent.Request<Texture2D>(_lockedTexturePath);
+            DrawTexture(spriteBatch, _lockedTexture.Value, canvasOffset, zoom, Color.White);
+            return;
         }
 
-        public override void Update()
-        {
-            if (_showNotification.HasValue)
-                return;
+        _completedTexture ??= ModContent.Request<Texture2D>(_completedTexturePath);
+        DrawOutline(spriteBatch, canvasOffset, zoom, Color.Black);
+        DrawTexture(spriteBatch, _completedTexture.Value, canvasOffset, zoom, Color.Black);
+    }
 
-            _showNotification = !Unlocked();
+    protected virtual void DrawIncomplete(SpriteBatch spriteBatch, Vector2 canvasOffset, float zoom, bool hovered, bool selected)
+    {
+        if (selected)
+        {
+            DrawOutline(spriteBatch, canvasOffset, zoom, Color.Yellow);
         }
 
-        public override void OverrideIconDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate iconDraw)
+        else if (hovered && HasInfoPage)
         {
-            // Don't draw the notification if something else is already changing the draw method
-            if (!ShowNotification || drawPriority > 0)
-                return;
-
-            var normalIcon = iconDraw;
-            iconDraw = (spriteBatch, texture, center, scale, hovered) =>
-            {
-                normalIcon(spriteBatch, texture, center, scale, hovered);
-                Vector2 bottomRight = center + (texture.Size() * 0.45f * scale);
-
-                texture = QuestAssets.NotificationMark;
-                spriteBatch.Draw(texture, bottomRight, null, Color.White, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
-            };
+            DrawOutline(spriteBatch, canvasOffset, zoom, Color.LightGray);
         }
 
-        public override void DrawDesignerIcon(SpriteBatch spriteBatch, Rectangle iconArea) => DrawSimpleIcon(spriteBatch, QuestAssets.MediumQuest, iconArea);
-
-        public override void DrawPlacementPreview(SpriteBatch spriteBatch, Vector2 mousePosition, Vector2 canvasViewOffset, float zoom)
+        else
         {
-            Texture2D texture = _completedTexture?.Value ?? DefaultAsset.Value;
-            Vector2 drawPos = (mousePosition - canvasViewOffset) * zoom;
-            spriteBatch.Draw(texture, drawPos, null, Color.White with { A = 220 }, 0f, texture.Size() * 0.5f, zoom, SpriteEffects.None, 0f);
+            DrawOutline(spriteBatch, canvasOffset, zoom, Color.Gray);
         }
 
-        public override bool PlaceOnCanvas(QuestChapter chapter, Vector2 mousePosition, Vector2 canvasViewOffset)
+        if (!string.IsNullOrWhiteSpace(_incompleteTexturePath))
         {
-            CanvasPosition = mousePosition;
-            return true;
+            _incompleteTexture ??= ModContent.Request<Texture2D>(_incompleteTexturePath);
+            DrawTexture(spriteBatch, _incompleteTexture.Value, canvasOffset, zoom, Color.White);
+            return;
         }
 
-        public override bool HasInfoPage => true;
+        _completedTexture ??= ModContent.Request<Texture2D>(_completedTexturePath);
+        Effect grayscale = QuestAssets.Grayscale;
 
-        public override void DrawInfoPage(SpriteBatch spriteBatch, Vector2 mousePosition, ref Action updateAction)
+        spriteBatch.GetDrawParameters(out var blend, out var sampler, out var depth, out var raster, out var effect, out var matrix);
+        spriteBatch.End();
+
+        spriteBatch.Begin(SpriteSortMode.Deferred, blend, sampler, depth, raster, grayscale, matrix);
+        DrawTexture(spriteBatch, _completedTexture.Value, canvasOffset, zoom, Color.White);
+        spriteBatch.End();
+
+        spriteBatch.Begin(SpriteSortMode.Deferred, blend, sampler, depth, raster, effect, matrix);
+    }
+
+    protected virtual void DrawCompleted(SpriteBatch spriteBatch, Vector2 canvasOffset, float zoom, bool hovered, bool selected)
+    {
+        if (selected)
         {
-            // Only fetch once
-            var quest = Quest;
+            DrawOutline(spriteBatch, canvasOffset, zoom, Color.Yellow);
+        }
 
-            // Custom info page drawing, if overridden
-            if (quest.DrawCustomInfoPage(spriteBatch, mousePosition, ref updateAction))
-                return;
+        else if (hovered && HasInfoPage)
+        {
+            DrawOutline(spriteBatch, canvasOffset, zoom, Color.LightGray);
+        }
 
-            // Get info parameters
-            quest.MakeSimpleInfoPage(out var title, out var contents, out var texture);
-            Rectangle titleArea = new(8, 10, 430, 64);
-            Rectangle contentArea = new(8, 80, 430, 450);
-            TextSnippet snippet = null;
+        else
+        {
+            DrawOutline(spriteBatch, canvasOffset, zoom, new Color(108, 118, 199, 255));
+        }
 
-            // Title:
+        _completedTexture ??= ModContent.Request<Texture2D>(_completedTexturePath);
+        DrawTexture(spriteBatch, _completedTexture.Value, canvasOffset, zoom, Color.White);
+    }
 
-            if (title is null)
-                goto Contents;
+    protected void DrawTexture(SpriteBatch spriteBatch, Texture2D texture, Vector2 canvasOffset, float zoom, Color color)
+    {
+        var drawPos = (CanvasPosition - canvasOffset) * zoom;
+        spriteBatch.Draw(texture, drawPos, null, color, 0f, texture.Size() * 0.5f, zoom, SpriteEffects.None, 0f);
+    }
 
-            Rectangle underline = titleArea.CookieCutter(new(0f, 0.6f), new(1f, 0.05f));
-            spriteBatch.DrawRectangle(underline, Color.Gray, fill: true);
+    public override void Update()
+    {
+        if (_showNotification.HasValue)
+        {
+            return;
+        }
 
-            spriteBatch.DrawOutlinedStringInRectangle(titleArea.CookieCutter(new(0f, 0.25f), Vector2.One), FontAssets.DeathText.Value, Color.White, Color.Black, title, stroke: 2.3f, clipBounds: false, alignment: Utilities.TextAlignment.Left);
+        _showNotification = !Unlocked();
+    }
+
+    public override void OverrideIconDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate iconDraw)
+    {
+        // Don't draw the notification if something else is already changing the draw method
+        if (!ShowNotification || drawPriority > 0)
+        {
+            return;
+        }
+
+        var normalIcon = iconDraw;
+
+        iconDraw = (spriteBatch, texture, center, scale, hovered) =>
+        {
+            normalIcon(spriteBatch, texture, center, scale, hovered);
+            var bottomRight = center + texture.Size() * 0.45f * scale;
+
+            texture = QuestAssets.NotificationMark;
+            spriteBatch.Draw(texture, bottomRight, null, Color.White, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
+        };
+    }
+
+    public override void DrawDesignerIcon(SpriteBatch spriteBatch, Rectangle iconArea) => DrawSimpleIcon(spriteBatch, QuestAssets.MediumQuest, iconArea);
+
+    public override void DrawPlacementPreview(SpriteBatch spriteBatch, Vector2 mousePosition, Vector2 canvasViewOffset, float zoom)
+    {
+        var texture = _completedTexture?.Value ?? DefaultAsset.Value;
+        var drawPos = (mousePosition - canvasViewOffset) * zoom;
+        spriteBatch.Draw(texture, drawPos, null, Color.White with { A = 220 }, 0f, texture.Size() * 0.5f, zoom, SpriteEffects.None, 0f);
+    }
+
+    public override bool PlaceOnCanvas(QuestChapter chapter, Vector2 mousePosition, Vector2 canvasViewOffset)
+    {
+        CanvasPosition = mousePosition;
+        return true;
+    }
+
+    public override bool HasInfoPage => true;
+
+    public override void DrawInfoPage(SpriteBatch spriteBatch, Vector2 mousePosition, ref Action updateAction)
+    {
+        // Only fetch once
+        var quest = Quest;
+
+        // Custom info page drawing, if overridden
+        if (quest.DrawCustomInfoPage(spriteBatch, mousePosition, ref updateAction))
+        {
+            return;
+        }
+
+        // Get info parameters
+        quest.MakeSimpleInfoPage(out var title, out var contents, out var texture);
+        Rectangle titleArea = new(8, 10, 430, 64);
+        Rectangle contentArea = new(8, 80, 430, 450);
+        TextSnippet snippet = null;
+
+        // Title:
+
+        if (title is null)
+        {
+            goto Contents;
+        }
+
+        var underline = titleArea.CookieCutter(new Vector2(0f, 0.6f), new Vector2(1f, 0.05f));
+        spriteBatch.DrawRectangle(underline, Color.Gray, fill: true);
+
+        spriteBatch.DrawOutlinedStringInRectangle
+            (titleArea.CookieCutter(new Vector2(0f, 0.25f), Vector2.One), FontAssets.DeathText.Value, Color.White, Color.Black, title, 2.3f, clipBounds: false, alignment: TextAlignment.Left);
 
         Contents:
 
-            if (contents is null)
-                goto Texture;
+        if (contents is null)
+        {
+            goto Texture;
+        }
 
-            const float scale = 0.5f;
+        const float scale = 0.5f;
 
-            //spriteBatch.DrawOutlinedStringInRectangle(contentArea, FontAssets.DeathText.Value, Color.White, Color.Black, contents, stroke: 1.5f, maxScale: 0.5f, alignment: Utilities.TextAlignment.Left);
-            spriteBatch.DrawParagraphText(FontAssets.DeathText.Value, contentArea.Location.ToVector2(), contents, scale, (int)(contentArea.Width / scale), 50f, mousePosition, out snippet, stroke: 1.8f);
+        //spriteBatch.DrawOutlinedStringInRectangle(contentArea, FontAssets.DeathText.Value, Color.White, Color.Black, contents, stroke: 1.5f, maxScale: 0.5f, alignment: Utilities.TextAlignment.Left);
+        spriteBatch.DrawParagraphText(FontAssets.DeathText.Value, contentArea.Location.ToVector2(), contents, scale, (int)(contentArea.Width / scale), 50f, mousePosition, out snippet, 1.8f);
 
         Texture:
 
-            if (texture is null)
-                goto Snippet;
+        if (texture is null)
+        {
+            goto Snippet;
+        }
 
-            Vector2 origin = new(texture.Width, 0f);
-            spriteBatch.GetDrawParameters(out var blend, out var sampler, out var depth, out var raster, out var effect, out var matrix);
+        Vector2 origin = new(texture.Width, 0f);
+        spriteBatch.GetDrawParameters(out var blend, out var sampler, out var depth, out var raster, out var effect, out var matrix);
 
-            if (!quest.Completed)
-            {
-                spriteBatch.End();
-                spriteBatch.Begin(SpriteSortMode.Immediate, blend, sampler, depth, raster, QuestAssets.Grayscale, matrix);
-            }
+        if (!quest.Completed)
+        {
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Immediate, blend, sampler, depth, raster, QuestAssets.Grayscale, matrix);
+        }
 
-            spriteBatch.Draw(texture, contentArea.TopRight(), null, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
+        spriteBatch.Draw(texture, contentArea.TopRight(), null, Color.White, 0f, origin, 1f, SpriteEffects.None, 0f);
 
-            if (!quest.Completed)
-            {
-                spriteBatch.End();
-                spriteBatch.Begin(SpriteSortMode.Immediate, blend, sampler, depth, raster, effect, matrix);
-            }
+        if (!quest.Completed)
+        {
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Immediate, blend, sampler, depth, raster, effect, matrix);
+        }
 
         Snippet:
 
-            if (snippet is null)
-                return;
-
-            var oldAction = updateAction;
-            updateAction = () =>
-            {
-                oldAction?.Invoke();
-                snippet.OnHover();
-
-                if (Main.mouseLeft && Main.mouseLeftRelease)
-                    snippet.OnClick();
-            };
-
-            //spriteBatch.DrawRectangle(contentArea, Color.Black);
-        }
-
-        public override void OnDelete() => this.DeleteConnections();
-
-        public class QuestChecker : IMemberConverter<string>
+        if (snippet is null)
         {
-            public string Convert(string input) => input;
-            public bool TryParse(string input, out string result)
-            {
-                result = input;
-                return QuestManager.TryGetQuest(input, out _);
-            }
+            return;
         }
 
-        public class TextureCheckerEmptyAllowed : IMemberConverter<string>
+        var oldAction = updateAction;
+
+        updateAction = () =>
         {
-            public string Convert(string input) => input;
-            public bool TryParse(string input, out string result)
-            {
-                result = input;
-                return string.IsNullOrWhiteSpace(input) || ModContent.FileExists($"{input}.rawimg");
-            }
-        }
+            oldAction?.Invoke();
+            snippet.OnHover();
 
+            if (Main.mouseLeft && Main.mouseLeftRelease)
+            {
+                snippet.OnClick();
+            }
+        };
+
+        //spriteBatch.DrawRectangle(contentArea, Color.Black);
+    }
+
+    public override void OnDelete() => this.DeleteConnections();
+
+    public class QuestChecker : IMemberConverter<string>
+    {
+        public string Convert(string input) => input;
+
+        public bool TryParse(string input, out string result)
+        {
+            result = input;
+            return QuestManager.TryGetQuest(input, out _);
+        }
+    }
+
+    public class TextureCheckerEmptyAllowed : IMemberConverter<string>
+    {
+        public string Convert(string input) => input;
+
+        public bool TryParse(string input, out string result)
+        {
+            result = input;
+            return string.IsNullOrWhiteSpace(input) || ModContent.FileExists($"{input}.rawimg");
+        }
     }
 }

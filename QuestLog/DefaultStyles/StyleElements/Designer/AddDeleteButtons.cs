@@ -6,232 +6,275 @@ using SDL2;
 using Terraria.Audio;
 using Terraria.Localization;
 
-namespace QuestBooks.QuestLog.DefaultStyles
+namespace QuestBooks.QuestLog.DefaultStyles;
+
+public partial class BasicQuestLogStyle
 {
-    public partial class BasicQuestLogStyle
+    private void HandleAddDeleteButtons(Rectangle books, Rectangle chapters, Rectangle questArea)
     {
-        private void HandleAddDeleteButtons(Rectangle books, Rectangle chapters, Rectangle questArea)
+        if (SelectedElement is not null)
         {
-            if (SelectedElement is not null)
-                return;
+            return;
+        }
 
-            // Rectangles for adding and deleting
-            Rectangle addBook = books.CookieCutter(new(0, -1.05f), new(0.25f, 0.05f));
-            Rectangle addChapter = chapters.CookieCutter(new(0, -1.05f), new(0.25f, 0.05f));
-            Rectangle deleteBook = books.CookieCutter(new(0.85f, 1.05f), new(0.15f, 0.035f));
-            Rectangle deleteChapter = chapters.CookieCutter(new(-0.84f, 1.05f), new(0.15f, 0.035f));
+        // Rectangles for adding and deleting
+        var addBook = books.CookieCutter(new Vector2(0, -1.05f), new Vector2(0.25f, 0.05f));
+        var addChapter = chapters.CookieCutter(new Vector2(0, -1.05f), new Vector2(0.25f, 0.05f));
+        var deleteBook = books.CookieCutter(new Vector2(0.85f, 1.05f), new Vector2(0.15f, 0.035f));
+        var deleteChapter = chapters.CookieCutter(new Vector2(-0.84f, 1.05f), new Vector2(0.15f, 0.035f));
 
-            bool addBookHovered = false;
-            bool addChapterHovered = false;
-            bool deleteBookHovered = false;
-            bool deleteChapterHovered = false;
+        var addBookHovered = false;
+        var addChapterHovered = false;
+        var deleteBookHovered = false;
+        var deleteChapterHovered = false;
 
-            if (addBook.Contains(MouseCanvas))
+        if (addBook.Contains(MouseCanvas))
+        {
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.AddBook");
+            addBookHovered = true;
+
+            // Add new questbook with placeholder localization key
+            if (LeftMouseJustReleased)
             {
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.AddBook");
-                addBookHovered = true;
+                TabBook newBook = new() { NameKey = $"Mods.{QuestBooksMod.DesignerMod.Name}.QuestBooks.Book{QuestManager.QuestBooks.Count}.Name" };
+                QuestManager.QuestBooks.Add(newBook);
+                SoundEngine.PlaySound(SoundID.MenuTick);
 
-                // Add new questbook with placeholder localization key
-                if (LeftMouseJustReleased)
-                {
-                    TabBook newBook = new() { NameKey = $"Mods.{QuestBooksMod.DesignerMod.Name}.QuestBooks.Book{QuestManager.QuestBooks.Count}.Name" };
-                    QuestManager.QuestBooks.Add(newBook);
-                    SoundEngine.PlaySound(SoundID.MenuTick);
-
-                    AddHistory(() =>
+                AddHistory
+                (
+                    () =>
                     {
                         QuestManager.QuestBooks.Remove(newBook);
+
                         if (newBook == SelectedBook)
+                        {
                             SelectBook(null);
-                    }, () =>
-                    {
-                        QuestManager.QuestBooks.Add(newBook);
-                    });
-                }
+                        }
+                    },
+                    () => { QuestManager.QuestBooks.Add(newBook); }
+                );
             }
+        }
 
-            else if (addChapter.Contains(MouseCanvas))
+        else if (addChapter.Contains(MouseCanvas))
+        {
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.AddChapter");
+            addChapterHovered = true;
+
+            // Add new chapter with placeholder localization key
+            if (LeftMouseJustReleased && SelectedBook is not null)
             {
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.AddChapter");
-                addChapterHovered = true;
+                var bookIndex = QuestManager.QuestBooks.Contains(SelectedBook) ? QuestManager.QuestBooks.IndexOf(SelectedBook) : 0;
+                ScrollChapter newLine = new() { NameKey = $"Mods.{QuestBooksMod.DesignerMod.Name}.QuestBooks.Book{bookIndex}.Chapter{SelectedBook.Chapters.Count}" };
+                var book = SelectedBook;
+                book.Chapters.Add(newLine);
+                SoundEngine.PlaySound(SoundID.MenuTick);
 
-                // Add new chapter with placeholder localization key
-                if (LeftMouseJustReleased && SelectedBook is not null)
-                {
-                    int bookIndex = QuestManager.QuestBooks.Contains(SelectedBook) ? QuestManager.QuestBooks.IndexOf(SelectedBook) : 0;
-                    ScrollChapter newLine = new() { NameKey = $"Mods.{QuestBooksMod.DesignerMod.Name}.QuestBooks.Book{bookIndex}.Chapter{SelectedBook.Chapters.Count}" };
-                    var book = SelectedBook;
-                    book.Chapters.Add(newLine);
-                    SoundEngine.PlaySound(SoundID.MenuTick);
-
-                    AddHistory(() =>
+                AddHistory
+                (
+                    () =>
                     {
                         book.Chapters.Remove(newLine);
+
                         if (SelectedChapter == newLine)
-                            SelectChapter(null);
-                    }, () =>
-                    {
-                        book.Chapters.Add(newLine);
-                    });
-                }
-            }
-
-            else if (deleteBook.Contains(MouseCanvas))
-            {
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.DeleteBook");
-                deleteBookHovered = true;
-
-                if (LeftMouseJustReleased && SelectedBook is not null)
-                {
-                    // Display a pop up to make sure the user wants to delete the book
-                    SDL.SDL_MessageBoxData message = new()
-                    {
-                        window = Main.instance.Window.Handle,
-                        title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteBookTitle"),
-                        message = Language.GetText("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteBookMessage").Format(SelectedBook.DisplayName),
-                        flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
-                        numbuttons = 2,
-                        buttons = [
-                            new SDL.SDL_MessageBoxButtonData()
-                            {
-                                buttonid = 2,
-                                flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-                                text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
-                            },
-                            new SDL.SDL_MessageBoxButtonData()
-                            {
-                                buttonid = 1,
-                                flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-                                text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
-                            }
-                        ]
-                    };
-
-                    SoundEngine.PlaySound(SoundID.MenuOpen);
-                    int result = SDL.SDL_ShowMessageBox(ref message, out int buttonId);
-
-                    // If okay...
-                    if (result == 0 && buttonId == 1)
-                    {
-                        var book = SelectedBook;
-                        QuestManager.QuestBooks.Remove(book);
-                        SelectBook(null);
-                        SoundEngine.PlaySound(SoundID.MenuTick);
-
-                        AddHistory(() =>
                         {
-                            QuestManager.QuestBooks.Add(book);
-                        }, () =>
+                            SelectChapter(null);
+                        }
+                    },
+                    () => { book.Chapters.Add(newLine); }
+                );
+            }
+        }
+
+        else if (deleteBook.Contains(MouseCanvas))
+        {
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.DeleteBook");
+            deleteBookHovered = true;
+
+            if (LeftMouseJustReleased && SelectedBook is not null)
+            {
+                // Display a pop up to make sure the user wants to delete the book
+                SDL.SDL_MessageBoxData message = new()
+                {
+                    window = Main.instance.Window.Handle,
+                    title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteBookTitle"),
+                    message = Language.GetText("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteBookMessage").Format(SelectedBook.DisplayName),
+                    flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
+                    numbuttons = 2,
+                    buttons =
+                    [
+                        new SDL.SDL_MessageBoxButtonData
+                        {
+                            buttonid = 2,
+                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
+                        },
+                        new SDL.SDL_MessageBoxButtonData
+                        {
+                            buttonid = 1,
+                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
+                        }
+                    ]
+                };
+
+                SoundEngine.PlaySound(SoundID.MenuOpen);
+                var result = SDL.SDL_ShowMessageBox(ref message, out var buttonId);
+
+                // If okay...
+                if (result == 0 && buttonId == 1)
+                {
+                    var book = SelectedBook;
+                    QuestManager.QuestBooks.Remove(book);
+                    SelectBook(null);
+                    SoundEngine.PlaySound(SoundID.MenuTick);
+
+                    AddHistory
+                    (
+                        () => { QuestManager.QuestBooks.Add(book); },
+                        () =>
                         {
                             QuestManager.QuestBooks.Remove(book);
-                            if (book == SelectedBook)
-                                SelectBook(null);
-                        });
-                    }
 
-                    else
-                        SoundEngine.PlaySound(SoundID.MenuClose);
+                            if (book == SelectedBook)
+                            {
+                                SelectBook(null);
+                            }
+                        }
+                    );
+                }
+
+                else
+                {
+                    SoundEngine.PlaySound(SoundID.MenuClose);
                 }
             }
+        }
 
-            else if (deleteChapter.Contains(MouseCanvas))
+        else if (deleteChapter.Contains(MouseCanvas))
+        {
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.DeleteChapter");
+            deleteChapterHovered = true;
+
+            if (LeftMouseJustReleased && (SelectedBook?.Chapters.Contains(SelectedChapter) ?? false))
             {
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.DeleteChapter");
-                deleteChapterHovered = true;
-
-                if (LeftMouseJustReleased && (SelectedBook?.Chapters.Contains(SelectedChapter) ?? false))
+                // Display a pop up to make sure the user wants to delete the chapter
+                SDL.SDL_MessageBoxData message = new()
                 {
-                    // Display a pop up to make sure the user wants to delete the chapter
-                    SDL.SDL_MessageBoxData message = new()
-                    {
-                        window = Main.instance.Window.Handle,
-                        title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteChapterTitle"),
-                        message = Language.GetText("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteChapterMessage").Format(SelectedChapter.DisplayName),
-                        flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
-                        numbuttons = 2,
-                        buttons = [
-                            new SDL.SDL_MessageBoxButtonData()
-                            {
-                                buttonid = 2,
-                                flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-                                text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
-                            },
-                            new SDL.SDL_MessageBoxButtonData()
-                            {
-                                buttonid = 1,
-                                flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-                                text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
-                            }
-                        ]
-                    };
-
-                    SoundEngine.PlaySound(SoundID.MenuOpen);
-                    int result = SDL.SDL_ShowMessageBox(ref message, out int buttonId);
-
-                    // If okay...
-                    if (result == 0 && buttonId == 1)
-                    {
-                        var book = SelectedBook;
-                        var chapter = SelectedChapter;
-
-                        book.Chapters.Remove(chapter);
-                        SelectChapter(null);
-
-                        SoundEngine.PlaySound(SoundID.MenuTick);
-
-                        AddHistory(() =>
+                    window = Main.instance.Window.Handle,
+                    title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteChapterTitle"),
+                    message = Language.GetText("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteChapterMessage").Format(SelectedChapter.DisplayName),
+                    flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
+                    numbuttons = 2,
+                    buttons =
+                    [
+                        new SDL.SDL_MessageBoxButtonData
                         {
-                            book.Chapters.Add(chapter);
-                        }, () =>
+                            buttonid = 2,
+                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
+                        },
+                        new SDL.SDL_MessageBoxButtonData
+                        {
+                            buttonid = 1,
+                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
+                        }
+                    ]
+                };
+
+                SoundEngine.PlaySound(SoundID.MenuOpen);
+                var result = SDL.SDL_ShowMessageBox(ref message, out var buttonId);
+
+                // If okay...
+                if (result == 0 && buttonId == 1)
+                {
+                    var book = SelectedBook;
+                    var chapter = SelectedChapter;
+
+                    book.Chapters.Remove(chapter);
+                    SelectChapter(null);
+
+                    SoundEngine.PlaySound(SoundID.MenuTick);
+
+                    AddHistory
+                    (
+                        () => { book.Chapters.Add(chapter); },
+                        () =>
                         {
                             book.Chapters.Remove(chapter);
-                            if (chapter == SelectedChapter)
-                                SelectChapter(null);
-                        });
-                    }
 
-                    else
-                        SoundEngine.PlaySound(SoundID.MenuClose);
+                            if (chapter == SelectedChapter)
+                            {
+                                SelectChapter(null);
+                            }
+                        }
+                    );
+                }
+
+                else
+                {
+                    SoundEngine.PlaySound(SoundID.MenuClose);
                 }
             }
+        }
 
-            DrawTasks.Add(sb =>
+        DrawTasks.Add
+        (sb =>
             {
                 Texture2D addButton = QuestAssets.AddButton;
                 Texture2D addHovered = QuestAssets.AddButtonHovered;
                 Texture2D deleteButton = QuestAssets.DeleteButton;
                 Texture2D deleteHovered = QuestAssets.DeleteButtonHovered;
 
-                float addScale = addBook.Width / (float)addButton.Width;
-                float deleteScale = deleteBook.Width / (float)deleteButton.Width;
+                var addScale = addBook.Width / (float)addButton.Width;
+                var deleteScale = deleteBook.Width / (float)deleteButton.Width;
 
                 if (addBookHovered)
+                {
                     sb.Draw(addHovered, addBook.Center(), null, Color.White, 0f, addHovered.Size() * 0.5f, addScale, SpriteEffects.None, 0f);
+                }
                 else
+                {
                     sb.Draw(addButton, addBook.Center(), null, Color.White, 0f, addButton.Size() * 0.5f, addScale, SpriteEffects.None, 0f);
+                }
 
                 if (SelectedBook is not null)
                 {
                     if (deleteBookHovered)
+                    {
                         sb.Draw(deleteHovered, deleteBook.Center(), null, Color.White, 0f, deleteHovered.Size() * 0.5f, deleteScale, SpriteEffects.None, 0f);
+                    }
                     else
+                    {
                         sb.Draw(deleteButton, deleteBook.Center(), null, Color.White, 0f, deleteButton.Size() * 0.5f, deleteScale, SpriteEffects.None, 0f);
+                    }
 
                     if (addChapterHovered)
+                    {
                         sb.Draw(addHovered, addChapter.Center(), null, Color.White, 0f, addHovered.Size() * 0.5f, addScale, SpriteEffects.None, 0f);
+                    }
                     else
+                    {
                         sb.Draw(addButton, addChapter.Center(), null, Color.White, 0f, addButton.Size() * 0.5f, addScale, SpriteEffects.None, 0f);
+                    }
 
                     if (SelectedBook.Chapters.Contains(SelectedChapter))
                     {
                         if (deleteChapterHovered)
+                        {
                             sb.Draw(deleteHovered, deleteChapter.Center(), null, Color.White, 0f, deleteHovered.Size() * 0.5f, deleteScale, SpriteEffects.None, 0f);
+                        }
                         else
+                        {
                             sb.Draw(deleteButton, deleteChapter.Center(), null, Color.White, 0f, deleteButton.Size() * 0.5f, deleteScale, SpriteEffects.None, 0f);
+                        }
                     }
 
                     else
+                    {
                         sb.Draw(deleteButton, deleteChapter.Center(), null, Color.White * 0.5f, 0f, deleteButton.Size() * 0.5f, deleteScale, SpriteEffects.None, 0f);
+                    }
                 }
 
                 else
@@ -240,7 +283,7 @@ namespace QuestBooks.QuestLog.DefaultStyles
                     sb.Draw(deleteButton, deleteBook.Center(), null, Color.White * 0.5f, 0f, deleteButton.Size() * 0.5f, deleteScale, SpriteEffects.None, 0f);
                     sb.Draw(deleteButton, deleteChapter.Center(), null, Color.White * 0.5f, 0f, deleteButton.Size() * 0.5f, deleteScale, SpriteEffects.None, 0f);
                 }
-            });
-        }
+            }
+        );
     }
 }

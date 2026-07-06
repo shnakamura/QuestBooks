@@ -9,7 +9,8 @@ public class CraftHardmodeOrePickaxes : VanillaQuest
     {
         HardmodePickaxes = ItemID.Sets.Factory.CreateNamedSet("HardmodePickaxes")
             .Description("Pickaxes that are (intended to be) hardmode exclusive")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 ItemID.CobaltPickaxe,
                 ItemID.PalladiumPickaxe,
                 ItemID.MythrilPickaxe,

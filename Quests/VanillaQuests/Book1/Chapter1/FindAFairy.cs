@@ -10,8 +10,12 @@ public class FindAFairy : VanillaQuest
     public override bool CheckCompletion()
     {
         foreach (var npc in Main.ActiveNPCs)
+        {
             if (npc.DistanceSQ(Main.LocalPlayer.Center) < Distance * Distance && (npc.type == NPCID.FairyCritterBlue || npc.type == NPCID.FairyCritterGreen || npc.type == NPCID.FairyCritterPink))
+            {
                 return true;
+            }
+        }
 
         return false;
     }

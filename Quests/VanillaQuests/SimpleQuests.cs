@@ -1,13 +1,12 @@
 ﻿namespace QuestBooks.Quests.VanillaQuests;
 
 /// <summary>
-/// Intended for internal QuestBooks use.<br/>
-/// Shorthands the localization category based on namespace instead of <c>QuestBooks</c>.
+///     Intended for internal QuestBooks use.<br />
+///     Shorthands the localization category based on namespace instead of <c>QuestBooks</c>.
 /// </summary>
-
 public abstract class VanillaQuest : Quest
 {
-    private string _localizationCategory = null;
+    private string _localizationCategory;
 
     public override string TextureCategory => $"{Mod.Name}/Assets/Textures/Quests/InfoPages";
 
@@ -22,14 +21,18 @@ public abstract class VanillaQuest : Quest
 }
 
 /// <summary>
-/// Intended for internal QuestBooks use.<br/>
-/// Acts as a quest that is marked as completed once it has been opened.
+///     Intended for internal QuestBooks use.<br />
+///     Acts as a quest that is marked as completed once it has been opened.
 /// </summary>
 public abstract class InfoQuest : VanillaQuest
 {
     public override QuestType QuestType => QuestType.Player;
 
-    public bool Read { get; set; } = false;
+    public bool Read
+    {
+        get;
+        set;
+    }
 
     public override void MakeSimpleInfoPage(out string title, out string contents, out Texture2D texture)
     {

@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using Terraria.GameContent;
+﻿using Terraria.GameContent;
 
 namespace QuestBooks.Quests.VanillaQuests.Book4.Chapter1;
 
@@ -18,7 +17,9 @@ public class InteractTownNPCMaxHappiness : VanillaQuest
             var settings = Main.ShopHelper.GetShoppingSettings(Main.LocalPlayer, npc);
 
             if (settings.PriceAdjustment >= ShopHelper.MaxHappinessAchievementPriceMultiplier)
+            {
                 return;
+            }
 
             QuestBooksMod.MarkComplete<InteractTownNPCMaxHappiness>();
         }

@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
 
 public class FishInHoney : VanillaQuest
 {
@@ -15,7 +13,9 @@ public class FishInHoney : VanillaQuest
         public override void AI(Projectile projectile)
         {
             if (!projectile.honeyWet)
+            {
                 return;
+            }
 
             QuestBooksMod.MarkComplete<FishInHoney>();
         }

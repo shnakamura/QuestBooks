@@ -1,7 +1,6 @@
-﻿namespace QuestBooks.Quests.VanillaQuests.OtherBook.Bosses
+﻿namespace QuestBooks.Quests.VanillaQuests.OtherBook.Bosses;
+
+public class QueenBeeDefeated : VanillaQuest
 {
-    public class QueenBeeDefeated : VanillaQuest
-    {
-        public override bool CheckCompletion() => NPC.downedQueenBee;
-    }
+    public override bool CheckCompletion() => NPC.downedQueenBee;
 }

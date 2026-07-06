@@ -9,7 +9,8 @@ public class CraftSink : VanillaQuest
     {
         Sinks = ItemID.Sets.Factory.CreateNamedSet("Sinks")
             .Description("All sink furniture items")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 ItemID.WoodenSink,
                 ItemID.EbonwoodSink,
                 ItemID.RichMahoganySink,

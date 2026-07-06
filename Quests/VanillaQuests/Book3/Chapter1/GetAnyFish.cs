@@ -8,5 +8,5 @@ public class GetAnyFish : VanillaQuest
 
     public override bool CheckCompletion() => false;
 
-    public class GetAnyFishCheck() : CatchFishHook<GetAnyFish>;
+    public class GetAnyFishCheck : CatchFishHook<GetAnyFish>;
 }

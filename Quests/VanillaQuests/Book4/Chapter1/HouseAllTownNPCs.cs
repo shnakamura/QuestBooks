@@ -2,7 +2,8 @@
 
 public class HouseAllTownNPCs : VanillaQuest
 {
-    public override bool CheckCompletion() => AllNPCs(
+    public override bool CheckCompletion() => AllNPCs
+    (
         NPCID.Guide,
         NPCID.Merchant,
         NPCID.Nurse,

@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.VanillaQuests.Book4.Chapter2;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book4.Chapter2;
 
 public class BuildPlatforms : VanillaQuest
 {
@@ -21,7 +19,9 @@ public class BuildPlatforms : VanillaQuest
         public override void PlaceInWorld(int i, int j, int type, Item item)
         {
             if (!TileID.Sets.Platforms[type])
+            {
                 return;
+            }
 
             for (var k = 1; k <= Tolerance; k++)
             {
@@ -29,7 +29,9 @@ public class BuildPlatforms : VanillaQuest
                 var below = CountRow(i, j - k);
 
                 if (above < Target || below < Target)
+                {
                     continue;
+                }
 
                 QuestBooksMod.MarkComplete<BuildPlatforms>();
             }
@@ -44,9 +46,13 @@ public class BuildPlatforms : VanillaQuest
                 var tile = Framing.GetTileSafely(x + direction * i, y);
 
                 if (TileID.Sets.Platforms[tile.TileType])
+                {
                     count++;
+                }
                 else
+                {
                     break;
+                }
             }
 
             return count;

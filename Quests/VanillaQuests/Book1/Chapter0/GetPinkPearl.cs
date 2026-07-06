@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using Terraria.DataStructures;
+﻿using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
 
@@ -16,7 +15,9 @@ public class GetPinkPearl : VanillaQuest
         public override void OnSpawn(Item item, IEntitySource source)
         {
             if (source is not EntitySource_ItemUse usage || usage.Item.type != ItemID.Oyster)
+            {
                 return;
+            }
 
             QuestBooksMod.MarkComplete<GetPinkPearl>();
         }

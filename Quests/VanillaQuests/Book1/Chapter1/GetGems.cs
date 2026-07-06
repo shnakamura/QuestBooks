@@ -1,6 +1,4 @@
-﻿using QuestBooks.Utilities;
-
-namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
 
 [ReinitializeDuringResizeArrays]
 public class GetGems : VanillaQuest
@@ -9,7 +7,8 @@ public class GetGems : VanillaQuest
     {
         Gems = ItemID.Sets.Factory.CreateNamedSet("Gems")
             .Description("All types of gems")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 ItemID.Diamond,
                 ItemID.Amber,
                 ItemID.Ruby,

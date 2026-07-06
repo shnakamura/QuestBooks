@@ -9,7 +9,8 @@ public class MineHardmodeOre : VanillaQuest
     {
         HardmodeOres = TileID.Sets.Factory.CreateNamedSet("HardmodeOres")
             .Description("Hardmode ore tiles")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 TileID.Cobalt,
                 TileID.Palladium,
                 TileID.Mythril,

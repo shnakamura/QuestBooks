@@ -1,10 +1,10 @@
-﻿using Humanizer;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using Humanizer;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace QuestBooks.Utilities;
 
@@ -12,29 +12,26 @@ namespace QuestBooks.Utilities;
 public class JsonTypeResolverFix : ISerializationBinder
 {
     /* -----------------------------------
-     * 
+     *
      * This is the EXACT same as the normal serialization binder,
      * except it calls Assembly.Load() all the time.
-     * 
+     *
      * Using the default logic does not work due to duplicate ASMs.
-     * 
+     *
      * ----------------------------------- */
-    public static JsonSerializerSettings Settings
+    public static JsonSerializerSettings Settings => new()
     {
-        get => new()
-        {
-            TypeNameHandling = TypeNameHandling.All,
-            SerializationBinder = new JsonTypeResolverFix(),
-            PreserveReferencesHandling = PreserveReferencesHandling.All,
-            ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
-            MaxDepth = null
-        };
-    }
+        TypeNameHandling = TypeNameHandling.All,
+        SerializationBinder = new JsonTypeResolverFix(),
+        PreserveReferencesHandling = PreserveReferencesHandling.All,
+        ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+        MaxDepth = null
+    };
 
     private readonly ThreadSafeStore<StructMultiKey<string?, string>, Type> _typeCache;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="JsonTypeResolverFix"/> class.
+    ///     Initializes a new instance of the <see cref="JsonTypeResolverFix" /> class.
     /// </summary>
     public JsonTypeResolverFix()
     {
@@ -43,13 +40,13 @@ public class JsonTypeResolverFix : ISerializationBinder
 
     private Type GetTypeFromTypeNameKey(StructMultiKey<string?, string> typeNameKey)
     {
-        string? assemblyName = typeNameKey.Value1;
-        string typeName = typeNameKey.Value2;
+        var assemblyName = typeNameKey.Value1;
+        var typeName = typeNameKey.Value2;
 
         if (assemblyName != null)
         {
-            Assembly assembly = Assembly.Load(assemblyName) ?? throw new JsonSerializationException("Could not load assembly '{0}'.".FormatWith(CultureInfo.InvariantCulture, assemblyName));
-            Type? type = assembly.GetType(typeName);
+            var assembly = Assembly.Load(assemblyName) ?? throw new JsonSerializationException("Could not load assembly '{0}'.".FormatWith(CultureInfo.InvariantCulture, assemblyName));
+            var type = assembly.GetType(typeName);
 
             if (type == null)
             {
@@ -75,29 +72,31 @@ public class JsonTypeResolverFix : ISerializationBinder
 
             return type;
         }
-        else
-        {
-            return Type.GetType(typeName)!;
-        }
+
+        return Type.GetType(typeName)!;
     }
 
     private Type? GetGenericTypeFromTypeName(string typeName, Assembly assembly)
     {
         Type? type = null;
-        int openBracketIndex = typeName.IndexOf('[');
+        var openBracketIndex = typeName.IndexOf('[');
+
         if (openBracketIndex >= 0)
         {
-            string genericTypeDefName = typeName.Substring(0, openBracketIndex);
-            Type? genericTypeDef = assembly.GetType(genericTypeDefName);
+            var genericTypeDefName = typeName.Substring(0, openBracketIndex);
+            var genericTypeDef = assembly.GetType(genericTypeDefName);
+
             if (genericTypeDef != null)
             {
-                List<Type> genericTypeArguments = new List<Type>();
-                int scope = 0;
-                int typeArgStartIndex = 0;
-                int endIndex = typeName.Length - 1;
-                for (int i = openBracketIndex + 1; i < endIndex; ++i)
+                var genericTypeArguments = new List<Type>();
+                var scope = 0;
+                var typeArgStartIndex = 0;
+                var endIndex = typeName.Length - 1;
+
+                for (var i = openBracketIndex + 1; i < endIndex; ++i)
                 {
-                    char current = typeName[i];
+                    var current = typeName[i];
+
                     switch (current)
                     {
                         case '[':
@@ -105,17 +104,20 @@ public class JsonTypeResolverFix : ISerializationBinder
                             {
                                 typeArgStartIndex = i + 1;
                             }
+
                             ++scope;
                             break;
                         case ']':
                             --scope;
+
                             if (scope == 0)
                             {
-                                string typeArgAssemblyQualifiedName = typeName.Substring(typeArgStartIndex, i - typeArgStartIndex);
+                                var typeArgAssemblyQualifiedName = typeName.Substring(typeArgStartIndex, i - typeArgStartIndex);
 
-                                StructMultiKey<string?, string> typeNameKey = SplitFullyQualifiedTypeName(typeArgAssemblyQualifiedName);
+                                var typeNameKey = SplitFullyQualifiedTypeName(typeArgAssemblyQualifiedName);
                                 genericTypeArguments.Add(GetTypeByName(typeNameKey));
                             }
+
                             break;
                     }
                 }
@@ -127,30 +129,24 @@ public class JsonTypeResolverFix : ISerializationBinder
         return type;
     }
 
-    private Type GetTypeByName(StructMultiKey<string?, string> typeNameKey)
-    {
-        return _typeCache.Get(typeNameKey)!;
-    }
+    private Type GetTypeByName(StructMultiKey<string?, string> typeNameKey) => _typeCache.Get(typeNameKey)!;
 
     /// <summary>
-    /// When overridden in a derived class, controls the binding of a serialized object to a type.
+    ///     When overridden in a derived class, controls the binding of a serialized object to a type.
     /// </summary>
-    /// <param name="assemblyName">Specifies the <see cref="Assembly"/> name of the serialized object.</param>
-    /// <param name="typeName">Specifies the <see cref="System.Type"/> name of the serialized object.</param>
+    /// <param name="assemblyName">Specifies the <see cref="Assembly" /> name of the serialized object.</param>
+    /// <param name="typeName">Specifies the <see cref="System.Type" /> name of the serialized object.</param>
     /// <returns>
-    /// The type of the object the formatter creates a new instance of.
+    ///     The type of the object the formatter creates a new instance of.
     /// </returns>
-    public Type BindToType(string? assemblyName, string typeName)
-    {
-        return GetTypeByName(new StructMultiKey<string?, string>(assemblyName, typeName));
-    }
+    public Type BindToType(string? assemblyName, string typeName) => GetTypeByName(new StructMultiKey<string?, string>(assemblyName, typeName));
 
     /// <summary>
-    /// When overridden in a derived class, controls the binding of a serialized object to a type.
+    ///     When overridden in a derived class, controls the binding of a serialized object to a type.
     /// </summary>
     /// <param name="serializedType">The type of the object the formatter creates a new instance of.</param>
-    /// <param name="assemblyName">Specifies the <see cref="Assembly"/> name of the serialized object.</param>
-    /// <param name="typeName">Specifies the <see cref="System.Type"/> name of the serialized object.</param>
+    /// <param name="assemblyName">Specifies the <see cref="Assembly" /> name of the serialized object.</param>
+    /// <param name="typeName">Specifies the <see cref="System.Type" /> name of the serialized object.</param>
     public void BindToName(Type serializedType, out string? assemblyName, out string? typeName)
     {
         assemblyName = serializedType.GetTypeInfo().Assembly.FullName;
@@ -158,6 +154,7 @@ public class JsonTypeResolverFix : ISerializationBinder
     }
 
     #region Normally Internal Types
+
     private class ThreadSafeStore<TKey, TValue> where TKey : notnull
     {
         private readonly ConcurrentDictionary<TKey, TValue> _concurrentStore;
@@ -166,16 +163,13 @@ public class JsonTypeResolverFix : ISerializationBinder
 
         public ThreadSafeStore(Func<TKey, TValue> creator)
         {
-            ArgumentNullException.ThrowIfNull(creator, nameof(creator));
+            ArgumentNullException.ThrowIfNull(creator);
 
             _creator = creator;
             _concurrentStore = new ConcurrentDictionary<TKey, TValue>();
         }
 
-        public TValue? Get(TKey key)
-        {
-            return _concurrentStore.GetOrAdd(key, _creator);
-        }
+        public TValue? Get(TKey key) => _concurrentStore.GetOrAdd(key, _creator);
     }
 
     private readonly struct StructMultiKey<T1, T2>(T1 v1, T2 v2) : IEquatable<StructMultiKey<T1, T2>>
@@ -183,10 +177,7 @@ public class JsonTypeResolverFix : ISerializationBinder
         public readonly T1 Value1 = v1;
         public readonly T2 Value2 = v2;
 
-        public override int GetHashCode()
-        {
-            return (Value1?.GetHashCode() ?? 0) ^ (Value2?.GetHashCode() ?? 0);
-        }
+        public override int GetHashCode() => (Value1?.GetHashCode() ?? 0) ^ (Value2?.GetHashCode() ?? 0);
 
         public override bool Equals(object? obj)
         {
@@ -198,15 +189,12 @@ public class JsonTypeResolverFix : ISerializationBinder
             return Equals(key);
         }
 
-        public bool Equals(StructMultiKey<T1, T2> other)
-        {
-            return (Equals(Value1, other.Value1) && Equals(Value2, other.Value2));
-        }
+        public bool Equals(StructMultiKey<T1, T2> other) => Equals(Value1, other.Value1) && Equals(Value2, other.Value2);
     }
 
     private static StructMultiKey<string?, string> SplitFullyQualifiedTypeName(string fullyQualifiedTypeName)
     {
-        int? assemblyDelimiterIndex = GetAssemblyDelimiterIndex(fullyQualifiedTypeName);
+        var assemblyDelimiterIndex = GetAssemblyDelimiterIndex(fullyQualifiedTypeName);
 
         string typeName;
         string? assemblyName;
@@ -229,10 +217,12 @@ public class JsonTypeResolverFix : ISerializationBinder
     {
         // we need to get the first comma following all surrounded in brackets because of generic types
         // e.g. System.Collections.Generic.Dictionary`2[[System.String, mscorlib,Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-        int scope = 0;
-        for (int i = 0; i < fullyQualifiedTypeName.Length; i++)
+        var scope = 0;
+
+        for (var i = 0; i < fullyQualifiedTypeName.Length; i++)
         {
-            char current = fullyQualifiedTypeName[i];
+            var current = fullyQualifiedTypeName[i];
+
             switch (current)
             {
                 case '[':
@@ -246,6 +236,7 @@ public class JsonTypeResolverFix : ISerializationBinder
                     {
                         return i;
                     }
+
                     break;
             }
         }
@@ -255,4 +246,3 @@ public class JsonTypeResolverFix : ISerializationBinder
 
     #endregion
 }
-#nullable disable

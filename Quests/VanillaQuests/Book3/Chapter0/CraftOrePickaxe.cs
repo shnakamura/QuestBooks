@@ -9,7 +9,8 @@ public class CraftOrePickaxe : VanillaQuest
     {
         OrePickaxes = ItemID.Sets.Factory.CreateNamedSet("OrePickaxes")
             .Description("Pickaxes that are crafted from ores")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 ItemID.TinPickaxe,
                 ItemID.IronPickaxe,
                 ItemID.LeadPickaxe,

@@ -9,7 +9,8 @@ public class DefeatWeatherMiniboss : VanillaQuest
     {
         WeatherMinibossTypes = NPCID.Sets.Factory.CreateNamedSet("WeatherMinibosses")
             .Description("Minibosses that only spawn during weather events")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 NPCID.SandElemental,
                 NPCID.IceGolem
             );

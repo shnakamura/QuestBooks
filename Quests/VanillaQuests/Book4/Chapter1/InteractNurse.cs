@@ -18,7 +18,11 @@ public class InteractNurse : VanillaQuest
     /// <summary>
     ///     The amount of coins the player has spent at the nurse so far.
     /// </summary>
-    public int CoinsSpent { get; private set; }
+    public int CoinsSpent
+    {
+        get;
+        private set;
+    }
 
     public override QuestType QuestType => QuestType.Player;
 
@@ -35,12 +39,16 @@ public class InteractNurse : VanillaQuest
             var quest = QuestManager.GetQuest<InteractNurse>();
 
             if (quest.Completed)
+            {
                 return;
+            }
 
             quest.CoinsSpent += price;
 
             if (quest.CoinsSpent < CoinsTarget)
+            {
                 return;
+            }
 
             QuestBooksMod.MarkComplete<InteractNurse>();
         }

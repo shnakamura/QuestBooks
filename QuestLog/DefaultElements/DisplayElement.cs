@@ -2,110 +2,134 @@
 using QuestBooks.Systems;
 using ReLogic.Content;
 
-namespace QuestBooks.QuestLog.DefaultElements
+namespace QuestBooks.QuestLog.DefaultElements;
+
+/// <summary>
+///     A simple canvas element that contains a texture to display and scale.
+/// </summary>
+[ElementTooltip("DisplayElement")]
+public class DisplayElement : QuestLogElement
 {
-    /// <summary>
-    /// A simple canvas element that contains a texture to display and scale.
-    /// </summary>
-    [ElementTooltip("DisplayElement")]
-    public class DisplayElement : QuestLogElement
+    // Used when the texture is not found or has not been assigned yet.
+    private const string DefaultTexture = "QuestBooks/Assets/Textures/Elements/QuestionMark";
+    private const string DefaultOutline = "QuestBooks/Assets/Textures/Elements/QuestionMarkOutline";
+    private static readonly Asset<Texture2D> DefaultAsset = Main.dedServ ? null : ModContent.Request<Texture2D>(DefaultTexture);
+    private static readonly Asset<Texture2D> DefaultOutlineAsset = Main.dedServ ? null : ModContent.Request<Texture2D>(DefaultOutline);
+
+    // Concise autoproperties coming in C# 13....
+    [JsonProperty]
+    private string _texturePath = DefaultTexture;
+
+    [JsonIgnore]
+    private Asset<Texture2D> _texture;
+
+    [JsonIgnore]
+    [UseConverter(typeof(TextureChecker))]
+    [ElementTooltip("DisplayTexture")]
+    public string TexturePath
     {
-        // Used when the texture is not found or has not been assigned yet.
-        private const string DefaultTexture = "QuestBooks/Assets/Textures/Elements/QuestionMark";
-        private const string DefaultOutline = "QuestBooks/Assets/Textures/Elements/QuestionMarkOutline";
-        private static readonly Asset<Texture2D> DefaultAsset = Main.dedServ ? null : ModContent.Request<Texture2D>(DefaultTexture);
-        private static readonly Asset<Texture2D> DefaultOutlineAsset = Main.dedServ ? null : ModContent.Request<Texture2D>(DefaultOutline);
-
-        // Concise autoproperties coming in C# 13....
-        [JsonProperty]
-        private string _texturePath = DefaultTexture;
-
-        [JsonIgnore]
-        private Asset<Texture2D> _texture = null;
-
-        [JsonIgnore]
-        [UseConverter(typeof(TextureChecker))]
-        [ElementTooltip("DisplayTexture")]
-        public string TexturePath
+        // Because of our custom converter, this will only ever be
+        // set if the texture path is valid
+        get => _texturePath;
+        set
         {
-            // Because of our custom converter, this will only ever be
-            // set if the texture path is valid
-            get => _texturePath;
-            set { _texturePath = value; _texture = null; }
+            _texturePath = value;
+            _texture = null;
         }
+    }
 
-        /// <summary>
-        /// The position within the canvas to display this element.
-        /// </summary>
-        public Vector2 CanvasPosition { get; set; }
+    /// <summary>
+    ///     The position within the canvas to display this element.
+    /// </summary>
+    public Vector2 CanvasPosition
+    {
+        get;
+        set;
+    }
 
-        [ElementTooltip("DisplayScale")]
-        public float Scale { get; set; } = 1f;
+    [ElementTooltip("DisplayScale")]
+    public float Scale
+    {
+        get;
+        set;
+    } = 1f;
 
-        [UseConverter(typeof(AngleConverter))]
-        [ElementTooltip("DisplayRotation")]
-        public float Rotation { get; set; } = 0f;
+    [UseConverter(typeof(AngleConverter))]
+    [ElementTooltip("DisplayRotation")]
+    public float Rotation
+    {
+        get;
+        set;
+    } = 0f;
 
-        [ElementTooltip("DrawLayer")]
-        public float Layer { get; set; } = 0.5f;
+    [ElementTooltip("DrawLayer")]
+    public float Layer
+    {
+        get;
+        set;
+    } = 0.5f;
 
-        public override float DrawPriority => Layer;
+    public override float DrawPriority => Layer;
 
-        public override bool IsHovered(Vector2 mousePosition, Vector2 canvasViewOffset, float zoom, ref string mouseTooltip)
+    public override bool IsHovered(Vector2 mousePosition, Vector2 canvasViewOffset, float zoom, ref string mouseTooltip)
+    {
+        // mousePosition is already in logical canvas coordinates (zoom factored out)
+        _texture ??= ModContent.Request<Texture2D>(_texturePath);
+        return QuestLogDrawer.ActiveStyle.UseDesigner && CenteredRectangle(CanvasPosition, _texture.Size() * Scale).Contains(mousePosition.ToPoint());
+    }
+
+    public override void DrawToCanvas(SpriteBatch spriteBatch, Vector2 canvasViewOffset, float zoom, bool selected, bool hovered)
+    {
+        _texture ??= ModContent.Request<Texture2D>(_texturePath);
+        var texture = _texture.Value;
+        var drawPos = (CanvasPosition - canvasViewOffset) * zoom;
+        var scaledScale = Scale * zoom;
+
+        if (texture == DefaultAsset.Value)
         {
-            // mousePosition is already in logical canvas coordinates (zoom factored out)
-            _texture ??= ModContent.Request<Texture2D>(_texturePath);
-            return QuestLogDrawer.ActiveStyle.UseDesigner && CenteredRectangle(CanvasPosition, _texture.Size() * Scale).Contains(mousePosition.ToPoint());
-        }
+            var outline = DefaultOutlineAsset.Value;
 
-        public override void DrawToCanvas(SpriteBatch spriteBatch, Vector2 canvasViewOffset, float zoom, bool selected, bool hovered)
-        {
-            _texture ??= ModContent.Request<Texture2D>(_texturePath);
-            Texture2D texture = _texture.Value;
-            Vector2 drawPos = (CanvasPosition - canvasViewOffset) * zoom;
-            float scaledScale = Scale * zoom;
-
-            if (texture == DefaultAsset.Value)
+            if (selected)
             {
-                Texture2D outline = DefaultOutlineAsset.Value;
-
-                if (selected)
-                    spriteBatch.Draw(outline, drawPos, null, Color.Yellow, Rotation, outline.Size() * 0.5f, scaledScale, SpriteEffects.None, 0f);
-
-                else if (hovered)
-                    spriteBatch.Draw(outline, drawPos, null, Color.White, Rotation, outline.Size() * 0.5f, scaledScale, SpriteEffects.None, 0f);
+                spriteBatch.Draw(outline, drawPos, null, Color.Yellow, Rotation, outline.Size() * 0.5f, scaledScale, SpriteEffects.None, 0f);
             }
 
-            spriteBatch.Draw(texture, drawPos, null, Color.White, Rotation, texture.Size() * 0.5f, scaledScale, SpriteEffects.None, 0f);
-        }
-
-        public override bool PlaceOnCanvas(QuestChapter chapter, Vector2 mousePosition, Vector2 canvasViewOffset)
-        {
-            CanvasPosition = mousePosition;
-            return true;
-        }
-
-        public override void DrawPlacementPreview(SpriteBatch spriteBatch, Vector2 mousePosition, Vector2 canvasViewOffset, float zoom)
-        {
-            if (_texture is null || _texture.Value is null)
+            else if (hovered)
             {
-                base.DrawPlacementPreview(spriteBatch, mousePosition, canvasViewOffset, zoom);
-                return;
+                spriteBatch.Draw(outline, drawPos, null, Color.White, Rotation, outline.Size() * 0.5f, scaledScale, SpriteEffects.None, 0f);
             }
-
-            Texture2D texture = _texture.Value;
-            Vector2 drawPos = (mousePosition - canvasViewOffset) * zoom;
-            spriteBatch.Draw(texture, drawPos, null, Color.White with { A = 180 }, 0f, texture.Size() * 0.5f, Scale * zoom, SpriteEffects.None, 0f);
         }
 
-        public class TextureChecker : IMemberConverter<string>
+        spriteBatch.Draw(texture, drawPos, null, Color.White, Rotation, texture.Size() * 0.5f, scaledScale, SpriteEffects.None, 0f);
+    }
+
+    public override bool PlaceOnCanvas(QuestChapter chapter, Vector2 mousePosition, Vector2 canvasViewOffset)
+    {
+        CanvasPosition = mousePosition;
+        return true;
+    }
+
+    public override void DrawPlacementPreview(SpriteBatch spriteBatch, Vector2 mousePosition, Vector2 canvasViewOffset, float zoom)
+    {
+        if (_texture is null || _texture.Value is null)
         {
-            public string Convert(string input) => input;
-            public bool TryParse(string input, out string result)
-            {
-                result = input.Replace('\\', '/');
-                return ModContent.FileExists($"{result}.rawimg");
-            }
+            base.DrawPlacementPreview(spriteBatch, mousePosition, canvasViewOffset, zoom);
+            return;
+        }
+
+        var texture = _texture.Value;
+        var drawPos = (mousePosition - canvasViewOffset) * zoom;
+        spriteBatch.Draw(texture, drawPos, null, Color.White with { A = 180 }, 0f, texture.Size() * 0.5f, Scale * zoom, SpriteEffects.None, 0f);
+    }
+
+    public class TextureChecker : IMemberConverter<string>
+    {
+        public string Convert(string input) => input;
+
+        public bool TryParse(string input, out string result)
+        {
+            result = input.Replace('\\', '/');
+            return ModContent.FileExists($"{result}.rawimg");
         }
     }
 }

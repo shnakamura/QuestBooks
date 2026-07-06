@@ -13,10 +13,14 @@ public class CraftAnyGear : VanillaQuest
         public static bool MatchItem(Item item)
         {
             if (item.pick > 0 || item.hammer > 0 || item.axe > 0)
+            {
                 return false;
+            }
 
             if (item.defense <= 0 && item.damage <= 0)
+            {
                 return false;
+            }
 
             return true;
         }

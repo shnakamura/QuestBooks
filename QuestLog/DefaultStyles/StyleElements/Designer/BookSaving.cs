@@ -1,131 +1,138 @@
-﻿using QuestBooks.Assets;
+﻿using System.Collections.Generic;
+using System.IO;
+using QuestBooks.Assets;
 using QuestBooks.Systems;
 using SDL2;
-using System.Collections.Generic;
-using System.IO;
 using Terraria.Localization;
 
-namespace QuestBooks.QuestLog.DefaultStyles
+namespace QuestBooks.QuestLog.DefaultStyles;
+
+public partial class BasicQuestLogStyle
 {
-    public partial class BasicQuestLogStyle
+    private void HandleSaveLoadButtons()
     {
-        private void HandleSaveLoadButtons()
+        var saveBook = LogArea.CookieCutter(new Vector2(-1.06f, -0.94f), new Vector2(0.05f, 0.05f));
+        var loadBook = saveBook.CookieCutter(new Vector2(0f, 2.5f), Vector2.One);
+
+        var saveBookHovered = false;
+        var loadBookHovered = false;
+
+        if (saveBook.Contains(MouseCanvas))
         {
-            Rectangle saveBook = LogArea.CookieCutter(new(-1.06f, -0.94f), new(0.05f, 0.05f));
-            Rectangle loadBook = saveBook.CookieCutter(new(0f, 2.5f), Vector2.One);
+            LockMouse();
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.SaveLog");
+            saveBookHovered = true;
 
-            bool saveBookHovered = false;
-            bool loadBookHovered = false;
-
-            if (saveBook.Contains(MouseCanvas))
+            if (LeftMouseJustReleased)
             {
-                LockMouse();
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.SaveLog");
-                saveBookHovered = true;
+                var file = nativefiledialog.NFD_SaveDialog("json", null, out var path);
 
-                if (LeftMouseJustReleased)
+                if (file == nativefiledialog.nfdresult_t.NFD_OKAY)
                 {
-                    var file = nativefiledialog.NFD_SaveDialog("json", null, out string path);
-
-                    if (file == nativefiledialog.nfdresult_t.NFD_OKAY)
+                    if (Path.GetExtension(path) != ".json")
                     {
-                        if (Path.GetExtension(path) != ".json")
-                        {
-                            path += ".json";
-                            if (File.Exists(path))
-                            {
-                                SDL.SDL_MessageBoxData message = new()
-                                {
-                                    window = Main.instance.Window.Handle,
-                                    title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.FileExistsTitle"),
-                                    message = Language.GetText("Mods.QuestBooks.Tooltips.Designer.FileExistsMessage").Format(path),
-                                    flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
-                                    numbuttons = 2,
-                                    buttons = [
-                                        new SDL.SDL_MessageBoxButtonData()
-                                        {
-                                            buttonid = 2,
-                                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-                                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No"),
-                                        },
-                                        new SDL.SDL_MessageBoxButtonData()
-                                        {
-                                            buttonid = 1,
-                                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-                                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes"),
-                                        }
-                                    ]
-                                };
+                        path += ".json";
 
-                                int result = SDL.SDL_ShowMessageBox(ref message, out int buttonid);
-                                if (result != 0 || buttonid != 1)
-                                    path = null;
+                        if (File.Exists(path))
+                        {
+                            SDL.SDL_MessageBoxData message = new()
+                            {
+                                window = Main.instance.Window.Handle,
+                                title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.FileExistsTitle"),
+                                message = Language.GetText("Mods.QuestBooks.Tooltips.Designer.FileExistsMessage").Format(path),
+                                flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
+                                numbuttons = 2,
+                                buttons =
+                                [
+                                    new SDL.SDL_MessageBoxButtonData
+                                    {
+                                        buttonid = 2,
+                                        flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                                        text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
+                                    },
+                                    new SDL.SDL_MessageBoxButtonData
+                                    {
+                                        buttonid = 1,
+                                        flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+                                        text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
+                                    }
+                                ]
+                            };
+
+                            var result = SDL.SDL_ShowMessageBox(ref message, out var buttonid);
+
+                            if (result != 0 || buttonid != 1)
+                            {
+                                path = null;
                             }
                         }
+                    }
 
-                        if (path is not null)
-                        {
-                            QuestLoader.SaveQuestLog(QuestManager.QuestBooks, path);
-                            Main.NewText(Language.GetTextValue("Mods.QuestBooks.ChatMessages.Designer.QuestLogExported"));
-                        }
+                    if (path is not null)
+                    {
+                        QuestLoader.SaveQuestLog(QuestManager.QuestBooks, path);
+                        Main.NewText(Language.GetTextValue("Mods.QuestBooks.ChatMessages.Designer.QuestLogExported"));
                     }
                 }
             }
+        }
 
-            else if (loadBook.Contains(MouseCanvas))
+        else if (loadBook.Contains(MouseCanvas))
+        {
+            LockMouse();
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.LoadLog");
+            loadBookHovered = true;
+
+            if (LeftMouseJustReleased)
             {
-                LockMouse();
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.LoadLog");
-                loadBookHovered = true;
-
-                if (LeftMouseJustReleased)
+                // Show the user a message to ensure they want to overwrite data
+                SDL.SDL_MessageBoxData message = new()
                 {
-                    // Show the user a message to ensure they want to overwrite data
-                    SDL.SDL_MessageBoxData message = new()
-                    {
-                        window = Main.instance.Window.Handle,
-                        title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmLoadLogTitle"),
-                        message = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmLoadLogMessage"),
-                        flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
-                        numbuttons = 2,
-                        buttons = [
-                            new SDL.SDL_MessageBoxButtonData()
-                            {
-                                buttonid = 2,
-                                flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-                                text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
-                            },
-                            new SDL.SDL_MessageBoxButtonData()
-                            {
-                                buttonid = 1,
-                                flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-                                text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
-                            }
-                        ]
-                    };
-
-                    int result = SDL.SDL_ShowMessageBox(ref message, out int buttonId);
-
-                    // If okay...
-                    if (result == 0 && buttonId == 1)
-                    {
-                        var file = nativefiledialog.NFD_OpenDialog("json", null, out string path);
-                        List<QuestBook> questLog = null;
-
-                        if (file == nativefiledialog.nfdresult_t.NFD_OKAY)
+                    window = Main.instance.Window.Handle,
+                    title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmLoadLogTitle"),
+                    message = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmLoadLogMessage"),
+                    flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
+                    numbuttons = 2,
+                    buttons =
+                    [
+                        new SDL.SDL_MessageBoxButtonData
                         {
-                            try
-                            {
-                                questLog = QuestLoader.LoadQuestLog(path);
-                                Main.NewText(Language.GetTextValue("Mods.QuestBooks.ChatMessages.Designer.QuestLogImported"));
-                            }
-                            catch
-                            {
-                                Main.NewText(Language.GetText("Mods.QuestBooks.ChatMessages.Designer.ParseError").Format(file));
-                            }
+                            buttonid = 2,
+                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
+                        },
+                        new SDL.SDL_MessageBoxButtonData
+                        {
+                            buttonid = 1,
+                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
                         }
+                    ]
+                };
 
-                        DrawTasks.Add(_ =>
+                var result = SDL.SDL_ShowMessageBox(ref message, out var buttonId);
+
+                // If okay...
+                if (result == 0 && buttonId == 1)
+                {
+                    var file = nativefiledialog.NFD_OpenDialog("json", null, out var path);
+                    List<QuestBook> questLog = null;
+
+                    if (file == nativefiledialog.nfdresult_t.NFD_OKAY)
+                    {
+                        try
+                        {
+                            questLog = QuestLoader.LoadQuestLog(path);
+                            Main.NewText(Language.GetTextValue("Mods.QuestBooks.ChatMessages.Designer.QuestLogImported"));
+                        }
+                        catch
+                        {
+                            Main.NewText(Language.GetText("Mods.QuestBooks.ChatMessages.Designer.ParseError").Format(file));
+                        }
+                    }
+
+                    DrawTasks.Add
+                    (_ =>
                         {
                             SelectedBook = null;
                             SelectedChapter = null;
@@ -138,20 +145,22 @@ namespace QuestBooks.QuestLog.DefaultStyles
                             QuestManager.QuestLogs.Remove("Editor");
                             QuestManager.QuestLogs.Add("Editor", questLog);
                             QuestManager.SelectQuestLog("Editor");
-                        });
-                    }
+                        }
+                    );
                 }
             }
+        }
 
-            DrawTasks.Add(sb =>
+        DrawTasks.Add
+        (sb =>
             {
                 Texture2D texture = saveBookHovered ? QuestAssets.ExportButtonHovered : QuestAssets.ExportButton;
-                float scale = saveBook.Width / (float)QuestAssets.ExportButton.Asset.Width;
+                var scale = saveBook.Width / (float)QuestAssets.ExportButton.Asset.Width;
                 sb.Draw(texture, saveBook.Center(), null, Color.White, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
 
                 texture = loadBookHovered ? QuestAssets.ImportButtonHovered : QuestAssets.ImportButton;
                 sb.Draw(texture, loadBook.Center(), null, Color.White, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
-            });
-        }
+            }
+        );
     }
 }

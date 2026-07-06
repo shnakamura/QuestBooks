@@ -1,26 +1,25 @@
 ﻿using Terraria.Audio;
 
-namespace QuestBooks.Commands
+namespace QuestBooks.Commands;
+
+internal class ToggleDesigner : QuestBooksCommand
 {
-    internal class ToggleDesigner : QuestBooksCommand
+    public override string Command => "toggledesigner";
+
+    public override void Run(CommandCaller caller, string[] args)
     {
-        public override string Command => "toggledesigner";
-
-        public override void Run(CommandCaller caller, string[] args)
+        if (QuestBooksMod.DesignerEnabled)
         {
-            if (QuestBooksMod.DesignerEnabled)
-            {
-                QuestBooksMod.DesignerEnabled = false;
-                SoundEngine.PlaySound(SoundID.Unlock);
-            }
-
-            else
-            {
-                QuestBooksMod.EnableDesigner(Mod);
-                SoundEngine.PlaySound(SoundID.Item47);
-            }
-
-            caller.Reply(this.GetLocalization("Success").Format(QuestBooksMod.DesignerEnabled));
+            QuestBooksMod.DesignerEnabled = false;
+            SoundEngine.PlaySound(SoundID.Unlock);
         }
+
+        else
+        {
+            QuestBooksMod.EnableDesigner(Mod);
+            SoundEngine.PlaySound(SoundID.Item47);
+        }
+
+        caller.Reply(this.GetLocalization("Success").Format(QuestBooksMod.DesignerEnabled));
     }
 }

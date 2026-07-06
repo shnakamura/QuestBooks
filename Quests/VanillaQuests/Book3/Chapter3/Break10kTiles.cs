@@ -10,15 +10,23 @@ public class Break10kTiles : VanillaQuest
     /// </summary>
     public const int TargetTiles = 10000;
 
-    public int TilesBroken { get; private set; }
+    public int TilesBroken
+    {
+        get;
+        private set;
+    }
 
     public override QuestType QuestType => QuestType.Player;
 
     public override bool CheckCompletion() => TilesBroken >= TargetTiles;
 
-    public sealed class KillAnyTileCheck() : KillTileHook((_, _, _) =>
-    {
-        if (QuestManager.TryGetQuest<Break10kTiles>(out var quest))
-            quest.TilesBroken++;
-    });
+    public sealed class KillAnyTileCheck() : KillTileHook
+    ((_, _, _) =>
+        {
+            if (QuestManager.TryGetQuest<Break10kTiles>(out var quest))
+            {
+                quest.TilesBroken++;
+            }
+        }
+    );
 }

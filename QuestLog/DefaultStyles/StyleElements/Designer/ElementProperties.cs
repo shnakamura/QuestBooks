@@ -1,601 +1,671 @@
-﻿using QuestBooks.Assets;
-using SDL2;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Xna.Framework.Input;
+using QuestBooks.Assets;
+using QuestBooks.Utilities;
+using SDL2;
 using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.Localization;
 
-namespace QuestBooks.QuestLog.DefaultStyles
+namespace QuestBooks.QuestLog.DefaultStyles;
+
+public partial class BasicQuestLogStyle
 {
-    public partial class BasicQuestLogStyle
+    private QuestLogElement lastElement;
+    private bool previewElementInfo;
+
+    private static object MemberHash(MemberInfo memberInfo) => memberInfo is FieldInfo field ? field.FieldHandle : memberInfo;
+
+    private static readonly object[] defaultMembers = typeof(QuestLogElement)
+        .GetProperties()
+        .Concat(typeof(QuestLogElement).GetFields().Cast<MemberInfo>())
+        .Select(MemberHash)
+        .ToArray();
+
+    private readonly Dictionary<Type, Dictionary<MemberInfo, MemberBundle>> elementTypeMembers = [];
+    private readonly Dictionary<MemberBundle, Rectangle> memberBoxes = [];
+    private MemberInfo selectedMember;
+    private bool memberValueAccepted;
+    private int memberScrollOffset;
+    private bool holdingPaste;
+    private bool holdingMove;
+
+    private class MemberBundle(MemberInfo memberInfo, string value, string tooltip, Func<string> getter, Func<string, bool> setter, object converter)
     {
-        private QuestLogElement lastElement = null;
-        private bool previewElementInfo = false;
+        public readonly MemberInfo MemberInfo = memberInfo;
+        public string Value = value;
+        public readonly string Tooltip = tooltip;
+        public readonly Func<string> Getter = getter;
+        public readonly Func<string, bool> Setter = setter;
+        public readonly object Converter = converter;
+    }
 
-        private static object MemberHash(MemberInfo memberInfo) => memberInfo is FieldInfo field ? field.FieldHandle : memberInfo;
+    private void HandleElementProperties(Rectangle area, Vector2 mousePosition)
+    {
+        var mouseCanvas = mousePosition.ToPoint();
 
-        private static readonly object[] defaultMembers = typeof(QuestLogElement)
-            .GetProperties().Cast<MemberInfo>().Concat(typeof(QuestLogElement).GetFields().Cast<MemberInfo>())
-            .Select(MemberHash).ToArray();
-
-        private readonly Dictionary<Type, Dictionary<MemberInfo, MemberBundle>> elementTypeMembers = [];
-        private readonly Dictionary<MemberBundle, Rectangle> memberBoxes = [];
-        private MemberInfo selectedMember = null;
-        private bool memberValueAccepted = false;
-        private int memberScrollOffset = 0;
-        private bool holdingPaste = false;
-        private bool holdingMove = false;
-
-        private class MemberBundle(MemberInfo memberInfo, string value, string tooltip, Func<string> getter, Func<string, bool> setter, object converter)
+        if (previewElementInfo)
         {
-            public MemberInfo MemberInfo = memberInfo;
-            public string Value = value;
-            public string Tooltip = tooltip;
-            public Func<string> Getter = getter;
-            public Func<string, bool> Setter = setter;
-            public object Converter = converter;
-        }
-
-        private void HandleElementProperties(Rectangle area, Vector2 mousePosition)
-        {
-            Point mouseCanvas = mousePosition.ToPoint();
-
-            if (previewElementInfo)
-            {
-                DrawTasks.Add(sb =>
+            DrawTasks.Add
+            (sb =>
                 {
                     Action layerAction = null;
                     SelectedElement.DrawInfoPage(sb, mousePosition, ref layerAction);
                     ExtraInferfaceLayerMods.Add(layerAction);
-                });
+                }
+            );
 
-                goto DrawPreviewButton;
-            }
+            goto DrawPreviewButton;
+        }
 
-            Rectangle elementProperties = area.CookieCutter(new(0f, 0.05f), new(0.95f, 0.8f));
-            Rectangle deleteElement = elementProperties.CookieCutter(new(-0.9f, 1.075f), new(0.1f, 0.06f));
-            Rectangle moveElement = deleteElement.CookieCutter(new(3.5f, 0f), Vector2.One);
-            Rectangle propertyTitle = elementProperties.CookieCutter(new(-0.13f, -1.06f), new(0.85f, 0.1f));
+        var elementProperties = area.CookieCutter(new Vector2(0f, 0.05f), new Vector2(0.95f, 0.8f));
+        var deleteElement = elementProperties.CookieCutter(new Vector2(-0.9f, 1.075f), new Vector2(0.1f, 0.06f));
+        var moveElement = deleteElement.CookieCutter(new Vector2(3.5f, 0f), Vector2.One);
+        var propertyTitle = elementProperties.CookieCutter(new Vector2(-0.13f, -1.06f), new Vector2(0.85f, 0.1f));
 
-            bool deleteElementHovered = false;
-            bool moveElementHovered = false;
+        var deleteElementHovered = false;
+        var moveElementHovered = false;
 
-            if (deleteElement.Contains(mouseCanvas))
+        if (deleteElement.Contains(mouseCanvas))
+        {
+            deleteElementHovered = true;
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.DeleteElement");
+
+            if (LeftMouseJustReleased)
             {
-                deleteElementHovered = true;
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.DeleteElement");
-
-                if (LeftMouseJustReleased)
+                // Display a pop up to make sure the user wants to delete the book
+                SDL.SDL_MessageBoxData message = new()
                 {
-                    // Display a pop up to make sure the user wants to delete the book
-                    SDL.SDL_MessageBoxData message = new()
-                    {
-                        window = Main.instance.Window.Handle,
-                        title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteElementTitle"),
-                        message = Language.GetText("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteElementMessage").Format(SelectedElement.GetType().Name),
-                        flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
-                        numbuttons = 2,
-                        buttons = [
-                            new SDL.SDL_MessageBoxButtonData()
-                            {
-                                buttonid = 2,
-                                flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-                                text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
-                            },
-                            new SDL.SDL_MessageBoxButtonData()
-                            {
-                                buttonid = 1,
-                                flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-                                text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
-                            }
-                        ]
-                    };
+                    window = Main.instance.Window.Handle,
+                    title = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteElementTitle"),
+                    message = Language.GetText("Mods.QuestBooks.Tooltips.Designer.ConfirmDeleteElementMessage").Format(SelectedElement.GetType().Name),
+                    flags = SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_WARNING,
+                    numbuttons = 2,
+                    buttons =
+                    [
+                        new SDL.SDL_MessageBoxButtonData
+                        {
+                            buttonid = 2,
+                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.No")
+                        },
+                        new SDL.SDL_MessageBoxButtonData
+                        {
+                            buttonid = 1,
+                            flags = SDL.SDL_MessageBoxButtonFlags.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+                            text = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.Yes")
+                        }
+                    ]
+                };
 
-                    SoundEngine.PlaySound(SoundID.MenuOpen);
-                    int result = SDL.SDL_ShowMessageBox(ref message, out int buttonId);
+                SoundEngine.PlaySound(SoundID.MenuOpen);
+                var result = SDL.SDL_ShowMessageBox(ref message, out var buttonId);
 
-                    // If okay...
-                    if (result == 0 && buttonId == 1)
-                    {
-                        var chapter = SelectedChapter;
-                        var element = SelectedElement;
+                // If okay...
+                if (result == 0 && buttonId == 1)
+                {
+                    var chapter = SelectedChapter;
+                    var element = SelectedElement;
 
-                        chapter.Elements.Remove(element);
-                        element.OnDelete();
-                        SortedElements = null;
-                        SelectedElement = null;
-                        questInfoSwipeOffset = -questInfoTarget.Height;
-                        SoundEngine.PlaySound(SoundID.MenuTick);
+                    chapter.Elements.Remove(element);
+                    element.OnDelete();
+                    SortedElements = null;
+                    SelectedElement = null;
+                    questInfoSwipeOffset = -questInfoTarget.Height;
+                    SoundEngine.PlaySound(SoundID.MenuTick);
 
-                        AddHistory(() =>
+                    AddHistory
+                    (
+                        () =>
                         {
                             chapter.Elements.Add(element);
                             SortedElements = null;
-                        }, () =>
+                        },
+                        () =>
                         {
                             chapter.Elements.Remove(element);
                             element.OnDelete();
-                        });
+                        }
+                    );
 
-                        return;
-                    }
-
-                    else
-                        SoundEngine.PlaySound(SoundID.MenuClose);
-                }
-            }
-
-            if (moveElement.Contains(mouseCanvas))
-            {
-                moveElementHovered = true;
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.MoveElement");
-
-                if (LeftMouseJustReleased)
-                {
-                    if (placingElement == SelectedElement)
-                        return;
-
-                    placingElement = SelectedElement;
-                    SelectedChapter.Elements.Remove(SelectedElement);
-                    SortedElements = null;
-                    SoundEngine.PlaySound(SoundID.MenuTick);
                     return;
                 }
-            }
 
-            bool TryGetCanvasPosition(QuestLogElement element, out MemberInfo member)
+                SoundEngine.PlaySound(SoundID.MenuClose);
+            }
+        }
+
+        if (moveElement.Contains(mouseCanvas))
+        {
+            moveElementHovered = true;
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.MoveElement");
+
+            if (LeftMouseJustReleased)
             {
-                var property = element.GetType().GetProperty("CanvasPosition", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-                if (property is not null && property.CanRead && property.CanWrite && property.PropertyType == typeof(Vector2))
+                if (placingElement == SelectedElement)
                 {
-                    member = property;
-                    return true;
+                    return;
                 }
 
-                var field = element.GetType().GetField("CanvasPosition", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-                if (field is not null && field.FieldType == typeof(Vector2))
-                {
-                    member = field;
-                    return true;
-                }
-
-                member = null;
-                return false;
+                placingElement = SelectedElement;
+                SelectedChapter.Elements.Remove(SelectedElement);
+                SortedElements = null;
+                SoundEngine.PlaySound(SoundID.MenuTick);
+                return;
             }
+        }
 
-            Vector2 CanvasPosition(QuestLogElement element, MemberInfo member) => member is PropertyInfo property ? (Vector2)property.GetValue(element) : (Vector2)(member as FieldInfo).GetValue(element);
+        bool TryGetCanvasPosition(QuestLogElement element, out MemberInfo member)
+        {
+            var property = element.GetType().GetProperty("CanvasPosition", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-            void SetCanvasPosition(QuestLogElement element, MemberInfo member, Vector2 value)
+            if (property is not null && property.CanRead && property.CanWrite && property.PropertyType == typeof(Vector2))
             {
-                if (member is PropertyInfo property)
-                    property.SetValue(element, value);
-
-                else
-                    (member as FieldInfo).SetValue(element, value);
+                member = property;
+                return true;
             }
 
-            if (SelectedElement is not null)
+            var field = element.GetType().GetField("CanvasPosition", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (field is not null && field.FieldType == typeof(Vector2))
             {
-                if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Left))
-                {
-                    if (!holdingMove && TryGetCanvasPosition(SelectedElement, out var member))
-                    {
-                        Vector2 direction = new(-1f, 0f);
-
-                        if (Main.keyState.PressingShift())
-                            direction *= gridSize;
-
-                        SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
-                        AddHistory(() =>
-                        {
-                            SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) - direction);
-                        }, () =>
-                        {
-                            SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
-                        });
-                    }
-
-                    holdingMove = true;
-                }
-
-                else if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Right))
-                {
-                    if (!holdingMove && TryGetCanvasPosition(SelectedElement, out var member))
-                    {
-                        Vector2 direction = new(1f, 0f);
-
-                        if (Main.keyState.PressingShift())
-                            direction *= gridSize;
-
-                        SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
-                        AddHistory(() =>
-                        {
-                            SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) - direction);
-                        }, () =>
-                        {
-                            SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
-                        });
-                    }
-
-                    holdingMove = true;
-                }
-
-                else if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Up))
-                {
-                    if (!holdingMove && TryGetCanvasPosition(SelectedElement, out var member))
-                    {
-                        Vector2 direction = new(0f, -1f);
-
-                        if (Main.keyState.PressingShift())
-                            direction *= gridSize;
-
-                        SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
-                        AddHistory(() =>
-                        {
-                            SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) - direction);
-                        }, () =>
-                        {
-                            SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
-                        });
-                    }
-
-                    holdingMove = true;
-                }
-
-                else if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Down))
-                {
-                    if (!holdingMove && TryGetCanvasPosition(SelectedElement, out var member))
-                    {
-                        Vector2 direction = new(0f, 1f);
-
-                        if (Main.keyState.PressingShift())
-                            direction *= gridSize;
-
-                        SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
-                        AddHistory(() =>
-                        {
-                            SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) - direction);
-                        }, () =>
-                        {
-                            SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
-                        });
-                    }
-
-                    holdingMove = true;
-                }
-
-                else
-                    holdingMove = false;
+                member = field;
+                return true;
             }
 
-            DrawTasks.Add(sb =>
+            member = null;
+            return false;
+        }
+
+        Vector2 CanvasPosition(QuestLogElement element, MemberInfo member)
+        {
+            return member is PropertyInfo property ? (Vector2)property.GetValue(element) : (Vector2)(member as FieldInfo).GetValue(element);
+        }
+
+        void SetCanvasPosition(QuestLogElement element, MemberInfo member, Vector2 value)
+        {
+            if (member is PropertyInfo property)
+            {
+                property.SetValue(element, value);
+            }
+
+            else
+            {
+                (member as FieldInfo).SetValue(element, value);
+            }
+        }
+
+        if (SelectedElement is not null)
+        {
+            if (Main.keyState.IsKeyDown(Keys.Left))
+            {
+                if (!holdingMove && TryGetCanvasPosition(SelectedElement, out var member))
+                {
+                    Vector2 direction = new(-1f, 0f);
+
+                    if (Main.keyState.PressingShift())
+                    {
+                        direction *= gridSize;
+                    }
+
+                    SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
+
+                    AddHistory
+                    (
+                        () => { SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) - direction); },
+                        () => { SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction); }
+                    );
+                }
+
+                holdingMove = true;
+            }
+
+            else if (Main.keyState.IsKeyDown(Keys.Right))
+            {
+                if (!holdingMove && TryGetCanvasPosition(SelectedElement, out var member))
+                {
+                    Vector2 direction = new(1f, 0f);
+
+                    if (Main.keyState.PressingShift())
+                    {
+                        direction *= gridSize;
+                    }
+
+                    SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
+
+                    AddHistory
+                    (
+                        () => { SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) - direction); },
+                        () => { SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction); }
+                    );
+                }
+
+                holdingMove = true;
+            }
+
+            else if (Main.keyState.IsKeyDown(Keys.Up))
+            {
+                if (!holdingMove && TryGetCanvasPosition(SelectedElement, out var member))
+                {
+                    Vector2 direction = new(0f, -1f);
+
+                    if (Main.keyState.PressingShift())
+                    {
+                        direction *= gridSize;
+                    }
+
+                    SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
+
+                    AddHistory
+                    (
+                        () => { SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) - direction); },
+                        () => { SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction); }
+                    );
+                }
+
+                holdingMove = true;
+            }
+
+            else if (Main.keyState.IsKeyDown(Keys.Down))
+            {
+                if (!holdingMove && TryGetCanvasPosition(SelectedElement, out var member))
+                {
+                    Vector2 direction = new(0f, 1f);
+
+                    if (Main.keyState.PressingShift())
+                    {
+                        direction *= gridSize;
+                    }
+
+                    SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction);
+
+                    AddHistory
+                    (
+                        () => { SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) - direction); },
+                        () => { SetCanvasPosition(SelectedElement, member, CanvasPosition(SelectedElement, member) + direction); }
+                    );
+                }
+
+                holdingMove = true;
+            }
+
+            else
+            {
+                holdingMove = false;
+            }
+        }
+
+        DrawTasks.Add
+        (sb =>
             {
                 Texture2D texture = deleteElementHovered ? QuestAssets.DeleteButtonHovered : QuestAssets.DeleteButton;
                 sb.Draw(texture, deleteElement.Center(), null, Color.White, 0f, texture.Size() * 0.5f, 1f, SpriteEffects.None, 0f);
 
                 texture = moveElementHovered ? QuestAssets.MoveButtonHovered : QuestAssets.MoveButton;
                 sb.Draw(texture, moveElement.Center(), null, Color.White, 0f, texture.Size() * 0.5f, 1f, SpriteEffects.None, 0f);
-            });
+            }
+        );
 
-            //AddRectangle(elementProperties, Color.Red);            
-            DrawTasks.Add(sb => sb.DrawOutlinedStringInRectangle(propertyTitle, FontAssets.DeathText.Value, Color.White, Color.Black, "Element Properties:", alignment: Utilities.TextAlignment.Left, clipBounds: false));
+        //AddRectangle(elementProperties, Color.Red);            
+        DrawTasks.Add
+            (sb => sb.DrawOutlinedStringInRectangle(propertyTitle, FontAssets.DeathText.Value, Color.White, Color.Black, "Element Properties:", alignment: TextAlignment.Left, clipBounds: false));
 
-            // Alright, there's a lot going on here...
-            var elementType = SelectedElement.GetType();
-            Dictionary<MemberInfo, MemberBundle> members = [];
+        // Alright, there's a lot going on here...
+        var elementType = SelectedElement.GetType();
+        Dictionary<MemberInfo, MemberBundle> members = [];
 
-            if (!elementTypeMembers.TryGetValue(elementType, out members))
+        if (!elementTypeMembers.TryGetValue(elementType, out members))
+        {
+            // Set up a collection for this element type's members
+            elementTypeMembers.Add(elementType, []);
+            var ignoredAttribute = typeof(QuestLogElement.HideInDesignerAttribute);
+
+            // Get all public instanced properties and fields
+            var properties = elementType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            var fields = elementType.GetFields(BindingFlags.Instance | BindingFlags.Public);
+
+            // Get all members not implemented by the default ChapterElement class
+            var memberInfos = properties.Where(x => x.CanWrite)
+                .Concat(fields.Cast<MemberInfo>())
+                .Where(x => !defaultMembers.Contains(MemberHash(x)))
+                .Where(x => Attribute.GetCustomAttribute(x, ignoredAttribute) is null);
+
+            foreach (var memberInfo in memberInfos)
             {
-                // Set up a collection for this element type's members
-                elementTypeMembers.Add(elementType, []);
-                var ignoredAttribute = typeof(QuestLogElement.HideInDesignerAttribute);
-
-                // Get all public instanced properties and fields
-                var properties = elementType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-                var fields = elementType.GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-                // Get all members not implemented by the default ChapterElement class
-                IEnumerable<MemberInfo> memberInfos = properties.Where(x => x.CanWrite).Cast<MemberInfo>().Concat(fields.Cast<MemberInfo>())
-                    .Where(x => !defaultMembers.Contains(MemberHash(x)))
-                    .Where(x => Attribute.GetCustomAttribute(x, ignoredAttribute) is null);
-
-                foreach (var memberInfo in memberInfos)
-                {
-                    // Check if the element has been tagged to use a custom converter
-                    QuestLogElement.UseConverterAttribute attribute = Attribute
+                // Check if the element has been tagged to use a custom converter
+                var attribute = Attribute
                         .GetCustomAttribute(memberInfo, typeof(QuestLogElement.UseConverterAttribute))
-                        as QuestLogElement.UseConverterAttribute;
+                    as QuestLogElement.UseConverterAttribute;
 
-                    // These act as simplified get-set methods regardless of whether
-                    // the member is a field or property
-                    Func<object> getter;
-                    Action<object> setter;
-                    Type memberType;
+                // These act as simplified get-set methods regardless of whether
+                // the member is a field or property
+                Func<object> getter;
+                Action<object> setter;
+                Type memberType;
 
-                    if (memberInfo is FieldInfo field)
-                    {
-                        getter = () => field.GetValue(SelectedElement);
-                        setter = (value) => field.SetValue(SelectedElement, value);
-                        memberType = field.FieldType;
-                    }
-                    else
-                    {
-                        PropertyInfo property = memberInfo as PropertyInfo;
-                        getter = () => property.GetValue(SelectedElement);
-                        setter = (value) => property.SetValue(SelectedElement, value);
-                        memberType = property.PropertyType;
-                    }
-
-                    // First check for an attributed converter,
-                    // then check if we have a default converter for the type
-                    var converterType = (attribute is not null && attribute.PropertyConverterType.IsAssignableTo(
-                        typeof(QuestLogElement.IMemberConverter<>).MakeGenericType(memberType))) ?
-                        attribute.PropertyConverterType :
-                        QuestLogElement.DefaultConverters.GetValueOrDefault(memberType, null);
-
-                    // If no converter works, skip over
-                    if (converterType is null)
-                        continue;
-
-                    // Get the converter
-                    var converter = Activator.CreateInstance(converterType);
-
-                    // Get the conversion methods
-                    MethodInfo toString = converterType.GetMethod("Convert", BindingFlags.Instance | BindingFlags.Public, [memberType]);
-                    MethodInfo fromString = converterType.GetMethod("TryParse", BindingFlags.Instance | BindingFlags.Public, [typeof(string), memberType.MakeByRefType()]);
-
-                    // The getter is used to initially populate fields
-                    string elementGetter() => (string)toString.Invoke(converter, [getter()]);
-
-                    // The setter wraps in a TryParse so that we know whether it worked
-                    bool elementSetter(string value)
-                    {
-                        object[] param = [value, default];
-
-                        if ((bool)fromString.Invoke(converter, param))
-                        {
-                            setter(param[1]);
-                            return true;
-                        }
-
-                        return false;
-                    }
-
-                    string tooltipKey = Attribute.GetCustomAttribute(memberInfo, typeof(TooltipAttribute)) is TooltipAttribute tooltip ?
-                        tooltip.LocalizationKey :
-                        null;
-
-                    // Set up the member modification methods
-                    elementTypeMembers[elementType].Add(memberInfo, new(memberInfo, "", tooltipKey, elementGetter, elementSetter, converter));
-                }
-
-                // Re-get the members now that they've been added
-                members = elementTypeMembers[elementType];
-            }
-
-            // Re-populate values if switching elements and reset the scroll position
-            if (SelectedElement != lastElement)
-            {
-                foreach (MemberBundle bundle in members.Values)
+                if (memberInfo is FieldInfo field)
                 {
-                    var field = bundle.Converter.GetType().GetField("CallingElement", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    getter = () => field.GetValue(SelectedElement);
+                    setter = value => field.SetValue(SelectedElement, value);
+                    memberType = field.FieldType;
+                }
+                else
+                {
+                    var property = memberInfo as PropertyInfo;
+                    getter = () => property.GetValue(SelectedElement);
+                    setter = value => property.SetValue(SelectedElement, value);
+                    memberType = property.PropertyType;
+                }
 
-                    if (field is not null && field.FieldType == typeof(QuestLogElement))
-                        field.SetValue(bundle.Converter, SelectedElement);
+                // First check for an attributed converter,
+                // then check if we have a default converter for the type
+                var converterType = attribute is not null
+                                    && attribute.PropertyConverterType.IsAssignableTo
+                                    (
+                                        typeof(QuestLogElement.IMemberConverter<>).MakeGenericType(memberType)
+                                    )
+                    ? attribute.PropertyConverterType
+                    : QuestLogElement.DefaultConverters.GetValueOrDefault(memberType, null);
 
-                    else
+                // If no converter works, skip over
+                if (converterType is null)
+                {
+                    continue;
+                }
+
+                // Get the converter
+                var converter = Activator.CreateInstance(converterType);
+
+                // Get the conversion methods
+                var toString = converterType.GetMethod("Convert", BindingFlags.Instance | BindingFlags.Public, [memberType]);
+                var fromString = converterType.GetMethod("TryParse", BindingFlags.Instance | BindingFlags.Public, [typeof(string), memberType.MakeByRefType()]);
+
+                // The getter is used to initially populate fields
+                string elementGetter()
+                {
+                    return (string)toString.Invoke(converter, [getter()]);
+                }
+
+                // The setter wraps in a TryParse so that we know whether it worked
+                bool elementSetter(string value)
+                {
+                    object[] param = [value, default];
+
+                    if ((bool)fromString.Invoke(converter, param))
                     {
-                        var property = bundle.Converter.GetType().GetProperty("CallingElement", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-                        if (property is not null && property.PropertyType == typeof(QuestLogElement) && property.CanWrite)
-                            property.SetValue(bundle.Converter, SelectedElement);
+                        setter(param[1]);
+                        return true;
                     }
 
-                    bundle.Value = bundle.Getter();
+                    return false;
                 }
 
-                memberScrollOffset = 0;
+                var tooltipKey = Attribute.GetCustomAttribute(memberInfo, typeof(TooltipAttribute)) is TooltipAttribute tooltip ? tooltip.LocalizationKey : null;
+
+                // Set up the member modification methods
+                elementTypeMembers[elementType].Add(memberInfo, new MemberBundle(memberInfo, string.Empty, tooltipKey, elementGetter, elementSetter, converter));
             }
 
-            // Clear the current boxes
-            lastElement = SelectedElement;
-            memberBoxes.Clear();
+            // Re-get the members now that they've been added
+            members = elementTypeMembers[elementType];
+        }
 
-            // Add boxes for each modifiable member
-            Rectangle memberBox = elementProperties.CreateScaledMargin(0.01f).CookieCutter(new(0f, -0.88f), new(1f, 0.1f));
-            foreach (MemberInfo member in members.Keys)
+        // Re-populate values if switching elements and reset the scroll position
+        if (SelectedElement != lastElement)
+        {
+            foreach (var bundle in members.Values)
             {
-                memberBoxes.Add(members[member], memberBox);
-                memberBox = memberBox.CookieCutter(new(0f, 2.25f), Vector2.One);
-            }
+                var field = bundle.Converter.GetType().GetField("CallingElement", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            // Scroll if applicable
-            if (elementProperties.Contains(mouseCanvas))
-            {
-                int data = PlayerInput.ScrollWheelDeltaForUI;
-
-                if (data != 0)
+                if (field is not null && field.FieldType == typeof(QuestLogElement))
                 {
-                    int scrollAmount = data / 6;
-                    int initialOffset = memberScrollOffset;
-                    memberScrollOffset += scrollAmount;
-
-                    Rectangle lastBox = memberBoxes.Values.Last();
-                    int minScrollValue = -(lastBox.Bottom - (elementProperties.Height + elementProperties.Y));
-
-                    memberScrollOffset = minScrollValue < 0 ? int.Clamp(memberScrollOffset, minScrollValue, 0) : 0;
+                    field.SetValue(bundle.Converter, SelectedElement);
                 }
+
+                else
+                {
+                    var property = bundle.Converter.GetType().GetProperty("CallingElement", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+                    if (property is not null && property.PropertyType == typeof(QuestLogElement) && property.CanWrite)
+                    {
+                        property.SetValue(bundle.Converter, SelectedElement);
+                    }
+                }
+
+                bundle.Value = bundle.Getter();
             }
 
-            DrawTasks.Add(sb =>
+            memberScrollOffset = 0;
+        }
+
+        // Clear the current boxes
+        lastElement = SelectedElement;
+        memberBoxes.Clear();
+
+        // Add boxes for each modifiable member
+        var memberBox = elementProperties.CreateScaledMargin(0.01f).CookieCutter(new Vector2(0f, -0.88f), new Vector2(1f, 0.1f));
+
+        foreach (var member in members.Keys)
+        {
+            memberBoxes.Add(members[member], memberBox);
+            memberBox = memberBox.CookieCutter(new Vector2(0f, 2.25f), Vector2.One);
+        }
+
+        // Scroll if applicable
+        if (elementProperties.Contains(mouseCanvas))
+        {
+            var data = PlayerInput.ScrollWheelDeltaForUI;
+
+            if (data != 0)
+            {
+                var scrollAmount = data / 6;
+                var initialOffset = memberScrollOffset;
+                memberScrollOffset += scrollAmount;
+
+                var lastBox = memberBoxes.Values.Last();
+                var minScrollValue = -(lastBox.Bottom - (elementProperties.Height + elementProperties.Y));
+
+                memberScrollOffset = minScrollValue < 0 ? int.Clamp(memberScrollOffset, minScrollValue, 0) : 0;
+            }
+        }
+
+        DrawTasks.Add
+        (sb =>
             {
                 sb.GetDrawParameters(out var blend, out var sampler, out var depth, out var raster, out var effect, out var matrix);
                 sb.End();
 
                 // We use a transformation matrix here so we need to be careful
-                Rectangle scissor = new(
+                Rectangle scissor = new
+                (
                     (int)(elementProperties.X * TargetScale),
                     (int)(elementProperties.Y * TargetScale),
                     (int)(elementProperties.Width * TargetScale),
-                    (int)(elementProperties.Height * TargetScale));
+                    (int)(elementProperties.Height * TargetScale)
+                );
 
                 // Scissor out the member area
                 sb.GraphicsDevice.ScissorRectangle = scissor;
                 raster.ScissorTestEnable = true;
 
                 sb.Begin(SpriteSortMode.Deferred, blend, sampler, depth, raster, effect, matrix);
-            });
+            }
+        );
 
-            // Used for selected members to flash red/yellow
-            float colorLerp = (float)(Main.timeForVisualEffects % 60);
+        // Used for selected members to flash red/yellow
+        var colorLerp = (float)(Main.timeForVisualEffects % 60);
 
-            if (colorLerp > 30)
-                colorLerp -= (colorLerp % 30) * 2;
+        if (colorLerp > 30)
+        {
+            colorLerp -= colorLerp % 30 * 2;
+        }
 
-            colorLerp /= 30f;
+        colorLerp /= 30f;
 
-            // Return on enter or escape
-            if (selectedMember is not null)
+        // Return on enter or escape
+        if (selectedMember is not null)
+        {
+            CancelChat = true;
+
+            if (Main.keyState.IsKeyDown(Keys.Enter) || Main.keyState.IsKeyDown(Keys.Escape))
             {
-                CancelChat = true;
-                if (Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Enter) || Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
-                    selectedMember = null;
+                selectedMember = null;
+            }
+        }
+
+        foreach (var (bundle, box) in memberBoxes)
+        {
+            // Apply scroll offset
+            box.Offset(0, memberScrollOffset);
+
+            // Designated area for value and name
+            var typeArea = box.CookieCutter(new Vector2(0.3f, 0f), new Vector2(0.7f, 1f));
+            var memberArea = box.CookieCutter(new Vector2(-0.72f, 0f), new Vector2(0.28f, 1f));
+
+            // Draw the name
+            AddRectangle(typeArea, Color.Gray * 0.6f, fill: true);
+
+            DrawTasks.Add
+            (sb => sb.DrawOutlinedStringInRectangle
+                (
+                    memberArea.CookieCutter(new Vector2(0f, 0.25f), Vector2.One),
+                    FontAssets.DeathText.Value,
+                    Color.White,
+                    Color.Black,
+                    $"{bundle.MemberInfo.Name}:",
+                    alignment: TextAlignment.Left,
+                    clipBounds: false
+                )
+            );
+
+            // Self explanatory
+            var selected = bundle.MemberInfo == selectedMember;
+
+            if (memberArea.Contains(mouseCanvas))
+            {
+                if (bundle.Tooltip is not null)
+                {
+                    MouseTooltip = Language.GetTextValue(bundle.Tooltip);
+                }
             }
 
-            foreach (var (bundle, box) in memberBoxes)
+            if (typeArea.Contains(mouseCanvas))
             {
-                // Apply scroll offset
-                box.Offset(0, memberScrollOffset);
-
-                // Designated area for value and name
-                Rectangle typeArea = box.CookieCutter(new(0.3f, 0f), new(0.7f, 1f));
-                Rectangle memberArea = box.CookieCutter(new(-0.72f, 0f), new(0.28f, 1f));
-
-                // Draw the name
-                AddRectangle(typeArea, Color.Gray * 0.6f, fill: true);
-                DrawTasks.Add(sb => sb.DrawOutlinedStringInRectangle(
-                    memberArea.CookieCutter(new(0f, 0.25f), Vector2.One),
-                    FontAssets.DeathText.Value,
-                    Color.White, Color.Black,
-                    $"{bundle.MemberInfo.Name}:",
-                    alignment: Utilities.TextAlignment.Left,
-                    clipBounds: false));
-
-                // Self explanatory
-                bool selected = bundle.MemberInfo == selectedMember;
-
-                if (memberArea.Contains(mouseCanvas))
+                // If we clicked a new member, start editing it
+                // If we clicked the same one, stop editing it
+                if (LeftMouseJustReleased)
                 {
-                    if (bundle.Tooltip is not null)
-                        MouseTooltip = Language.GetTextValue(bundle.Tooltip);
+                    var member = selected ? null : bundle.MemberInfo;
+                    selectedMember = member;
+                    memberValueAccepted = true;
+                    selected = member is not null;
+                    SoundEngine.PlaySound(SoundID.MenuTick);
                 }
+            }
 
-                if (typeArea.Contains(mouseCanvas))
-                {
-                    // If we clicked a new member, start editing it
-                    // If we clicked the same one, stop editing it
-                    if (LeftMouseJustReleased)
+            // If we were editing and clicked somewhere else, stop editing
+            else if (selected && LeftMouseJustReleased)
+            {
+                selectedMember = null;
+                selected = false;
+            }
+
+            // Modify the selected member
+            if (selected)
+            {
+                DrawTasks.Add
+                (_ =>
                     {
-                        MemberInfo member = selected ? null : bundle.MemberInfo;
-                        selectedMember = member;
-                        memberValueAccepted = true;
-                        selected = member is not null;
-                        SoundEngine.PlaySound(SoundID.MenuTick);
+                        PlayerInput.WritingText = true;
+                        Main.instance.HandleIME();
                     }
-                }
+                );
 
-                // If we were editing and clicked somewhere else, stop editing
-                else if (selected && LeftMouseJustReleased)
+                var value = bundle.Value;
+                var pasting = Main.keyState.PressingControl() && Main.keyState.IsKeyDown(Keys.V);
+
+                var newValue = Main.GetInputText(pasting && !holdingPaste ? string.Empty : value);
+                holdingPaste = pasting;
+
+                // Only do parsing on new values (every frame would be ridiculous)
+                if (value != newValue)
                 {
-                    selectedMember = null;
-                    selected = false;
+                    SoundEngine.PlaySound(SoundID.MenuTick);
+                    memberValueAccepted = bundle.Setter(newValue);
+                    bundle.Value = newValue;
                 }
 
-                // Modify the selected member
-                if (selected)
-                {
-                    DrawTasks.Add(_ =>
-                     {
-                         PlayerInput.WritingText = true;
-                         Main.instance.HandleIME();
-                     });
+                // Yellow for OK, red for invalid
+                var boxColor = memberValueAccepted ? Color.Yellow : Color.Red;
+                AddRectangle(typeArea, Color.Lerp(Color.Black, boxColor, colorLerp));
+            }
 
-                    string value = bundle.Value;
-                    bool pasting = Main.keyState.PressingControl() && Main.keyState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.V);
+            // Hovering
+            else if (typeArea.Contains(mouseCanvas))
+            {
+                AddRectangle(typeArea, Color.LightGray);
+            }
 
-                    string newValue = Main.GetInputText(pasting && !holdingPaste ? "" : value);
-                    holdingPaste = pasting;
+            // Standard
+            else
+            {
+                AddRectangle(typeArea, Color.Black);
+            }
 
-                    // Only do parsing on new values (every frame would be ridiculous)
-                    if (value != newValue)
-                    {
-                        SoundEngine.PlaySound(SoundID.MenuTick);
-                        memberValueAccepted = bundle.Setter(newValue);
-                        bundle.Value = newValue;
-                    }
-
-                    // Yellow for OK, red for invalid
-                    Color boxColor = memberValueAccepted ? Color.Yellow : Color.Red;
-                    AddRectangle(typeArea, Color.Lerp(Color.Black, boxColor, colorLerp));
-                }
-
-                // Hovering
-                else if (typeArea.Contains(mouseCanvas))
-                    AddRectangle(typeArea, Color.LightGray);
-
-                // Standard
-                else
-                    AddRectangle(typeArea, Color.Black);
-
-                // Draw the element value
-                DrawTasks.Add(sb => sb.DrawOutlinedStringInRectangle(
-                    typeArea.CreateScaledMargin(0.01f).CookieCutter(new(0f, 0.25f), Vector2.One),
+            // Draw the element value
+            DrawTasks.Add
+            (sb => sb.DrawOutlinedStringInRectangle
+                (
+                    typeArea.CreateScaledMargin(0.01f).CookieCutter(new Vector2(0f, 0.25f), Vector2.One),
                     FontAssets.DeathText.Value,
-                    Color.White, Color.Black,
+                    Color.White,
+                    Color.Black,
                     bundle.Value,
                     clipBounds: true,
                     minimumScale: 0.4f,
-                    alignment: Utilities.TextAlignment.Right,
-                    offset: new(-2f, 0f)));
-            }
+                    alignment: TextAlignment.Right,
+                    offset: new Vector2(-2f, 0f)
+                )
+            );
+        }
 
-            DrawTasks.Add(sb =>
+        DrawTasks.Add
+        (sb =>
             {
                 sb.GetDrawParameters(out var blend, out var sampler, out var depth, out var raster, out var effect, out var matrix);
                 sb.End();
 
                 // Undo our rectangle
-                sb.GraphicsDevice.ScissorRectangle = new(0, 0, Main.screenWidth, Main.screenHeight);
+                sb.GraphicsDevice.ScissorRectangle = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
                 raster.ScissorTestEnable = false;
 
                 sb.Begin(SpriteSortMode.Deferred, blend, sampler, depth, raster, effect, matrix);
-            });
+            }
+        );
 
         DrawPreviewButton:
 
-            Rectangle previewToggle = area.CookieCutter(new(0.82f, -0.87f), new(0.125f, 0.075f));
-            bool previewHovered = false;
+        var previewToggle = area.CookieCutter(new Vector2(0.82f, -0.87f), new Vector2(0.125f, 0.075f));
+        var previewHovered = false;
 
-            if (previewToggle.Contains(mouseCanvas))
+        if (previewToggle.Contains(mouseCanvas))
+        {
+            MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.TogglePreview");
+            previewHovered = true;
+
+            if (LeftMouseJustReleased)
             {
-                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.TogglePreview");
-                previewHovered = true;
-
-                if (LeftMouseJustReleased)
-                    previewElementInfo = !previewElementInfo;
+                previewElementInfo = !previewElementInfo;
             }
-
-            Texture2D texture =
-                previewElementInfo ?
-                previewHovered ? QuestAssets.TogglePropertiesHovered : QuestAssets.ToggleProperties :
-                previewHovered ? QuestAssets.TogglePreviewHovered : QuestAssets.TogglePreview;
-
-            DrawTasks.Add(sb => sb.Draw(texture, previewToggle.Center(), null, Color.White, 0f, texture.Size() * 0.5f, 1f, SpriteEffects.None, 0f));
         }
+
+        Texture2D texture =
+            previewElementInfo ? previewHovered ? QuestAssets.TogglePropertiesHovered : QuestAssets.ToggleProperties :
+            previewHovered ? QuestAssets.TogglePreviewHovered : QuestAssets.TogglePreview;
+
+        DrawTasks.Add(sb => sb.Draw(texture, previewToggle.Center(), null, Color.White, 0f, texture.Size() * 0.5f, 1f, SpriteEffects.None, 0f));
     }
 }

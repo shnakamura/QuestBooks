@@ -6,9 +6,17 @@ namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
 
 public class KillMarriage : VanillaQuest
 {
-    public bool GroomKilled { get; private set; }
+    public bool GroomKilled
+    {
+        get;
+        private set;
+    }
 
-    public bool BrideKilled { get; private set; }
+    public bool BrideKilled
+    {
+        get;
+        private set;
+    }
 
     public override bool CheckCompletion() => GroomKilled && BrideKilled;
 

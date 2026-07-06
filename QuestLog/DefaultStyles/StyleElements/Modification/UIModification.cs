@@ -2,141 +2,160 @@
 using Terraria.Audio;
 using Terraria.Localization;
 
-namespace QuestBooks.QuestLog.DefaultStyles
+namespace QuestBooks.QuestLog.DefaultStyles;
+
+public partial class BasicQuestLogStyle
 {
-    public partial class BasicQuestLogStyle
+    // The scale to draw to the render targets
+    protected float TargetScale
     {
-        // The scale to draw to the render targets
-        protected float TargetScale { get; set; } = 1f;
+        get;
+        set;
+    } = 1f;
 
-        private Vector2? cachedMouseClick = null;
-        private bool canvasMoving = false;
-        private bool canvasResizing = false;
+    private Vector2? cachedMouseClick;
+    private bool canvasMoving;
+    private bool canvasResizing;
 
-        private void UpdateDesignerToggle()
+    private void UpdateDesignerToggle()
+    {
+        if (QuestBooksMod.DesignerEnabled)
         {
-            if (QuestBooksMod.DesignerEnabled)
+            var designerToggle = LogArea.CookieCutter(new Vector2(0.94f, -1.08f), new Vector2(0.05f, 0.06f));
+            var designerHovered = false;
+
+            if (designerToggle.Contains(MouseCanvas))
             {
-                Rectangle designerToggle = LogArea.CookieCutter(new(0.94f, -1.08f), new(0.05f, 0.06f));
-                bool designerHovered = false;
+                MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ToggleDesigner");
+                LockMouse();
+                designerHovered = true;
 
-                if (designerToggle.Contains(MouseCanvas))
+                if (LeftMouseJustPressed)
                 {
-                    MouseTooltip = Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.ToggleDesigner");
-                    LockMouse();
-                    designerHovered = true;
-
-                    if (LeftMouseJustPressed)
-                    {
-                        UseDesigner = !UseDesigner;
-                        SelectedElement = null;
-                        SoundEngine.PlaySound(UseDesigner ? SoundID.Item28 : SoundID.Item78);
-                    }
+                    UseDesigner = !UseDesigner;
+                    SelectedElement = null;
+                    SoundEngine.PlaySound(UseDesigner ? SoundID.Item28 : SoundID.Item78);
                 }
+            }
 
-                DrawTasks.Add(sb =>
+            DrawTasks.Add
+            (sb =>
                 {
                     Texture2D texture = designerHovered ? QuestAssets.ToggleDesignerHovered : QuestAssets.ToggleDesigner;
-                    float scale = designerToggle.Width / (float)texture.Width;
+                    var scale = designerToggle.Width / (float)texture.Width;
                     sb.Draw(texture, designerToggle.Center(), null, Color.White, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
-                });
+                }
+            );
+        }
+    }
+
+    private void UpdateCanvasMovement(Vector2 halfRealScreen, Vector2 logSize)
+    {
+        var moveTab = LogArea.CookieCutter(new Vector2(0f, 0f), new Vector2(0.059f, 1f));
+
+        if ((moveTab.Contains(MouseCanvas) || canvasMoving) && !canvasResizing)
+        {
+            // Reset the position if right clicked.
+            if (RightMouseJustPressed && !canvasResizing)
+            {
+                LogPositionOffset = Vector2.Zero;
+                canvasMoving = false;
+                cachedMouseClick = null;
+                JustMoved = true;
+                return;
+            }
+
+            if (LeftMouseJustReleased && canvasMoving)
+            {
+                JustMoved = true;
+            }
+
+            if (!LeftMouseHeld || (!canvasMoving && !LeftMouseJustPressed))
+            {
+                canvasMoving = false;
+                cachedMouseClick = null;
+                return;
+            }
+
+            canvasMoving = true;
+
+            if (!cachedMouseClick.HasValue)
+            {
+                cachedMouseClick = ScaledMousePos;
+            }
+
+            else
+            {
+                // Move the canvas based on mouse movement and re-size the log area to match.
+                var mouseMovement = ScaledMousePos - cachedMouseClick.Value;
+                cachedMouseClick = ScaledMousePos;
+                LogPositionOffset += mouseMovement / halfRealScreen;
+
+                LogArea = CenteredRectangle(halfRealScreen + LogPositionOffset * halfRealScreen, logSize);
             }
         }
+    }
 
-        private void UpdateCanvasMovement(Vector2 halfRealScreen, Vector2 logSize)
+    private void UpdateCanvasResizing(Vector2 halfRealScreen)
+    {
+        var resizeTab = LogArea.CookieCutter(new Vector2(1.01f, 1.02f), new Vector2(0.062f, 0.09f));
+
+        if ((resizeTab.Contains(MouseCanvas) || canvasResizing) && !canvasMoving)
         {
-            Rectangle moveTab = LogArea.CookieCutter(new(0f, 0f), new(0.059f, 1f));
-            if ((moveTab.Contains(MouseCanvas) || canvasMoving) && !canvasResizing)
+            LockMouse();
+
+            // Reset the scale on right click.
+            if (RightMouseJustPressed)
             {
-                // Reset the position if right clicked.
-                if (RightMouseJustPressed && !canvasResizing)
-                {
-                    LogPositionOffset = Vector2.Zero;
-                    canvasMoving = false;
-                    cachedMouseClick = null;
-                    JustMoved = true;
-                    return;
-                }
-
-                if (LeftMouseJustReleased && canvasMoving)
-                    JustMoved = true;
-
-                if (!LeftMouseHeld || (!canvasMoving && !LeftMouseJustPressed))
-                {
-                    canvasMoving = false;
-                    cachedMouseClick = null;
-                    return;
-                }
-
-                canvasMoving = true;
-
-                if (!cachedMouseClick.HasValue)
-                    cachedMouseClick = ScaledMousePos;
-
-                else
-                {
-                    // Move the canvas based on mouse movement and re-size the log area to match.
-                    Vector2 mouseMovement = ScaledMousePos - cachedMouseClick.Value;
-                    cachedMouseClick = ScaledMousePos;
-                    LogPositionOffset += mouseMovement / halfRealScreen;
-
-                    LogArea = CenteredRectangle(halfRealScreen + (LogPositionOffset * halfRealScreen), logSize);
-                }
+                LogScale = 1f;
+                canvasResizing = false;
+                wantsRetarget = true;
+                JustMoved = true;
+                goto PostResize;
             }
-        }
 
-        private void UpdateCanvasResizing(Vector2 halfRealScreen)
-        {
-            Rectangle resizeTab = LogArea.CookieCutter(new(1.01f, 1.02f), new(0.062f, 0.09f));
-            if ((resizeTab.Contains(MouseCanvas) || canvasResizing) && !canvasMoving)
+            if (LeftMouseJustReleased && canvasResizing)
             {
-                LockMouse();
+                JustMoved = true;
+            }
 
-                // Reset the scale on right click.
-                if (RightMouseJustPressed)
+            if (!LeftMouseHeld || (!canvasResizing && !LeftMouseJustPressed))
+            {
+                if (canvasResizing)
                 {
-                    LogScale = 1f;
-                    canvasResizing = false;
                     wantsRetarget = true;
-                    JustMoved = true;
-                    goto PostResize;
                 }
 
-                if (LeftMouseJustReleased && canvasResizing)
-                    JustMoved = true;
-
-                if (!LeftMouseHeld || (!canvasResizing && !LeftMouseJustPressed))
-                {
-                    if (canvasResizing)
-                        wantsRetarget = true;
-
-                    canvasResizing = false;
-                    goto PostResize;
-                }
-
-                canvasResizing = true;
-
-                Vector2 areaLineAngle = LogArea.BottomRight() - LogArea.Center();
-                Vector2 mouseLineAngle = areaLineAngle.RotatedBy(-MathHelper.PiOver2);
-
-                Vector2 intersection = GetPointOfIntersection(LogArea.Center(), areaLineAngle, ScaledMousePos, mouseLineAngle);
-
-                if (intersection.X < LogArea.Center().X)
-                    goto PostResize;
-
-                Vector2 defaultLogSize = QuestAssets.QuestLogCanvas.Asset.Size();
-                float scale = (intersection - LogArea.Center()).Length() / (defaultLogSize * 0.5f).Length();
-
-                // Clamped scale
-                if (scale is >= 0.4f and <= 2f)
-                    LogScale = scale;
-
-                Vector2 logSize = QuestAssets.QuestLogCanvas.Asset.Size() * LogScale;
-                LogArea = CenteredRectangle(halfRealScreen + (LogPositionOffset * halfRealScreen), logSize);
+                canvasResizing = false;
+                goto PostResize;
             }
+
+            canvasResizing = true;
+
+            var areaLineAngle = LogArea.BottomRight() - LogArea.Center();
+            var mouseLineAngle = areaLineAngle.RotatedBy(-MathHelper.PiOver2);
+
+            var intersection = GetPointOfIntersection(LogArea.Center(), areaLineAngle, ScaledMousePos, mouseLineAngle);
+
+            if (intersection.X < LogArea.Center().X)
+            {
+                goto PostResize;
+            }
+
+            var defaultLogSize = QuestAssets.QuestLogCanvas.Asset.Size();
+            var scale = (intersection - LogArea.Center()).Length() / (defaultLogSize * 0.5f).Length();
+
+            // Clamped scale
+            if (scale is >= 0.4f and <= 2f)
+            {
+                LogScale = scale;
+            }
+
+            var logSize = QuestAssets.QuestLogCanvas.Asset.Size() * LogScale;
+            LogArea = CenteredRectangle(halfRealScreen + LogPositionOffset * halfRealScreen, logSize);
+        }
 
         PostResize:
-            DrawTasks.Add(sb => sb.Draw(QuestAssets.ResizeIndicator, LogArea.BottomRight(), null, Color.White, 0f, QuestAssets.ResizeIndicator.Asset.Size() * 0.5f, LogScale, SpriteEffects.None, 0f));
-        }
+        DrawTasks.Add(sb => sb.Draw(QuestAssets.ResizeIndicator, LogArea.BottomRight(), null, Color.White, 0f, QuestAssets.ResizeIndicator.Asset.Size() * 0.5f, LogScale, SpriteEffects.None, 0f));
     }
 }

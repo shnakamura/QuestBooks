@@ -1,7 +1,6 @@
-﻿namespace QuestBooks.Quests.VanillaQuests.OtherBook.Bosses
+﻿namespace QuestBooks.Quests.VanillaQuests.OtherBook.Bosses;
+
+public class DeerclopsDefeated : VanillaQuest
 {
-    public class DeerclopsDefeated : VanillaQuest
-    {
-        public override bool CheckCompletion() => NPC.downedDeerclops;
-    }
+    public override bool CheckCompletion() => NPC.downedDeerclops;
 }

@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.QuestSystems;
+﻿namespace QuestBooks.Quests.QuestSystems;
 
 public delegate bool LootChestPredicate(int x, int y, int type);
 
@@ -12,17 +10,25 @@ public abstract class LootChestHook : GlobalTile
     ///     Gets the predicate that determines whether this hook should be invoked when a tile is right-clicked.
     /// </summary>
     /// <remarks>
-    ///     If <see langword="null"/>, evaluates as <see langword="true"/>.
+    ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public LootChestPredicate Predicate { get; init; }
+    public LootChestPredicate Predicate
+    {
+        get;
+        init;
+    }
 
     /// <summary>
     ///     Gets the callback that is invoked when a tile is right-clicked and the predicate matches.
     /// </summary>
-    public LootChestCallback Callback { get; init; }
+    public LootChestCallback Callback
+    {
+        get;
+        init;
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="LootChestHook"/> class with the specified predicate and callback.
+    ///     Initializes a new instance of the <see cref="LootChestHook" /> class with the specified predicate and callback.
     /// </summary>
     /// <param name="predicate">
     ///     The predicate that determines whether this hook should be invoked when a tile is right-clicked.
@@ -31,7 +37,7 @@ public abstract class LootChestHook : GlobalTile
     ///     The callback that is invoked when a tile is right-clicked and the predicate matches.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="callback"/> is <see langword="null"/>.
+    ///     <paramref name="callback" /> is <see langword="null" />.
     /// </exception>
     public LootChestHook(LootChestPredicate predicate, LootChestCallback callback)
     {
@@ -42,19 +48,23 @@ public abstract class LootChestHook : GlobalTile
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="LootChestHook"/> class with the specified callback.
+    ///     Initializes a new instance of the <see cref="LootChestHook" /> class with the specified callback.
     /// </summary>
     /// <param name="callback">
     ///     The callback that is invoked when a tile is right-clicked and the predicate matches.
     /// </param>
-    public LootChestHook(LootChestCallback callback) : this(null, callback) { }
+    public LootChestHook(LootChestCallback callback) : this(null, callback)
+    {
+    }
 
     public override void RightClick(int i, int j, int type)
     {
         var matches = Predicate?.Invoke(i, j, type) ?? true;
 
         if (!matches)
+        {
             return;
+        }
 
         Callback.Invoke(i, j, type);
     }
@@ -64,15 +74,17 @@ public abstract class LootChestHook<TQuest> : LootChestHook
     where TQuest : Quest
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="LootChestHook{TQuest}"/> class with the specified predicate.
+    ///     Initializes a new instance of the <see cref="LootChestHook{TQuest}" /> class with the specified predicate.
     /// </summary>
     /// <param name="predicate">
     ///     The predicate that determines whether this hook should be invoked when a tile is right-clicked.
     /// </param>
-    public LootChestHook(LootChestPredicate predicate) : base(predicate, Complete) { }
+    public LootChestHook(LootChestPredicate predicate) : base(predicate, Complete)
+    {
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="LootChestHook{TQuest}"/> class with the specified type and frames.
+    ///     Initializes a new instance of the <see cref="LootChestHook{TQuest}" /> class with the specified type and frames.
     /// </summary>
     /// <param name="type">
     ///     The type of the chest tile to match.
@@ -81,10 +93,10 @@ public abstract class LootChestHook<TQuest> : LootChestHook
     ///     The frames of the chest tile to match.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     <paramref name="type"/> is negative or zero.
+    ///     <paramref name="type" /> is negative or zero.
     /// </exception>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="frames"/> is <see langword="null"/>.
+    ///     <paramref name="frames" /> is <see langword="null" />.
     /// </exception>
     public LootChestHook(int type, params int[] frames) : base(Complete)
     {
@@ -95,7 +107,7 @@ public abstract class LootChestHook<TQuest> : LootChestHook
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="LootChestHook{TQuest}"/> class with the specified type and frames.
+    ///     Initializes a new instance of the <see cref="LootChestHook{TQuest}" /> class with the specified type and frames.
     /// </summary>
     /// <param name="getType">
     ///     The function to retrieve the type of the chest tile to match.
@@ -104,10 +116,10 @@ public abstract class LootChestHook<TQuest> : LootChestHook
     ///     The frames of the chest tile to match.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="getType"/> is <see langword="null"/>.
+    ///     <paramref name="getType" /> is <see langword="null" />.
     /// </exception>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="frames"/> is <see langword="null"/>.
+    ///     <paramref name="frames" /> is <see langword="null" />.
     /// </exception>
     public LootChestHook(Func<int> getType, params int[] frames) : base(Complete)
     {

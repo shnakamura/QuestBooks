@@ -9,7 +9,8 @@ public class CraftLunarPickaxe : VanillaQuest
     {
         LunarPickaxes = ItemID.Sets.Factory.CreateNamedSet("LunarPickaxes")
             .Description("Pickaxes that are (intended to be) lunar exclusive")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 ItemID.SolarFlarePickaxe,
                 ItemID.VortexPickaxe,
                 ItemID.NebulaPickaxe,

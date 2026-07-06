@@ -1,216 +1,251 @@
-﻿using Newtonsoft.Json;
-using QuestBooks.Assets;
-using QuestBooks.Quests;
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using QuestBooks.Assets;
+using QuestBooks.Quests;
 using Terraria.GameContent;
 using Terraria.Localization;
 
-namespace QuestBooks.QuestLog
+namespace QuestBooks.QuestLog;
+
+[ExtendsFromMod("QuestBooks")]
+public abstract class QuestLogElement
 {
-    [ExtendsFromMod("QuestBooks")]
-    public abstract class QuestLogElement
+    [JsonIgnore]
+    [HideInDesigner]
+    public bool TemplateInstance
     {
-        [JsonIgnore]
-        [HideInDesigner]
-        public bool TemplateInstance { get; internal set; } = false;
+        get;
+        internal set;
+    } = false;
 
-        [JsonIgnore]
-        public virtual bool HasInfoPage { get => false; }
+    [JsonIgnore]
+    public virtual bool HasInfoPage => false;
 
-        /// <summary>
-        /// Determines the layer this element should draw to.<br/>
-        /// <c>0f</c> is closer to the background, <c>1f</c> the foreground.
-        /// </summary>
-        [JsonIgnore]
-        public virtual float DrawPriority { get => 0.5f; }
+    /// <summary>
+    ///     Determines the layer this element should draw to.<br />
+    ///     <c>0f</c> is closer to the background, <c>1f</c> the foreground.
+    /// </summary>
+    [JsonIgnore]
+    public virtual float DrawPriority => 0.5f;
 
-        /// <summary>
-        /// Indicates whether this element has previously been place on the canvas. For editor use only.
-        /// </summary>
-        //
-        // IMPORTANT:
-        // The default here is true so that the json serializer doesn't need to keep track of this property.
-        // We manually set it to false when constructing new elements for placement.
-        [JsonIgnore]
-        [HideInDesigner]
-        public bool PreviouslyPlaced { get; set; } = true;
+    /// <summary>
+    ///     Indicates whether this element has previously been place on the canvas. For editor use only.
+    /// </summary>
 
-        #region Common Methods
+    //
+    // IMPORTANT:
+    // The default here is true so that the json serializer doesn't need to keep track of this property.
+    // We manually set it to false when constructing new elements for placement.
+    [JsonIgnore]
+    [HideInDesigner]
+    public bool PreviouslyPlaced
+    {
+        get;
+        set;
+    } = true;
 
-        public virtual void Update() { }
+    #region Common Methods
 
-        public virtual bool IsHovered(Vector2 mousePosition, Vector2 canvasViewOffset, float zoom, ref string mouseTooltip) { return false; }
+    public virtual void Update()
+    {
+    }
 
-        public virtual void OnSelect() { }
+    public virtual bool IsHovered(Vector2 mousePosition, Vector2 canvasViewOffset, float zoom, ref string mouseTooltip) => false;
 
-        public virtual bool VisibleOnCanvas() { return true; }
+    public virtual void OnSelect()
+    {
+    }
 
-        public abstract void DrawToCanvas(SpriteBatch spriteBatch, Vector2 canvasViewOffset, float zoom, bool selected, bool hovered);
+    public virtual bool VisibleOnCanvas() => true;
 
-        public virtual void DrawInfoPage(SpriteBatch spriteBatch, Vector2 mousePosition, ref Action layerAction)
+    public abstract void DrawToCanvas(SpriteBatch spriteBatch, Vector2 canvasViewOffset, float zoom, bool selected, bool hovered);
+
+    public virtual void DrawInfoPage(SpriteBatch spriteBatch, Vector2 mousePosition, ref Action layerAction)
+    {
+        Rectangle area = new(10, 0, 420, 540);
+        spriteBatch.DrawOutlinedStringInRectangle(area, FontAssets.DeathText.Value, Color.White, Color.Black, Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.NoInfoPage"), clipBounds: false);
+    }
+
+    /// <summary>
+    ///     Override this to change how the "open quest log" outline is drawn in the inventory.<br />
+    ///     <paramref name="drawPriority" /> is the current draw override priority. If you have something of higher priority, modify both <paramref name="drawPriority" /> and <paramref name="outlineDraw" />.
+    /// </summary>
+    public virtual void OverrideIconOutlineDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate outlineDraw)
+    {
+    }
+
+    /// <summary>
+    ///     Override this to change how the "open quest log" icon is drawn in the inventory.<br />
+    ///     <paramref name="drawPriority" /> is the current draw override priority. If you have something of higher priority, modify both <paramref name="drawPriority" /> and <paramref name="iconDraw" />.
+    /// </summary>
+    public virtual void OverrideIconDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate iconDraw)
+    {
+    }
+
+    #endregion
+
+    #region Designer Methods
+
+    public abstract bool PlaceOnCanvas(QuestChapter chapter, Vector2 mousePosition, Vector2 canvasViewOffset);
+
+    public virtual void DrawPlacementPreview(SpriteBatch spriteBatch, Vector2 mousePosition, Vector2 canvasViewOffset, float zoom)
+    {
+        Texture2D texture = QuestAssets.MissingIcon;
+        var drawPos = (mousePosition - canvasViewOffset) * zoom;
+        spriteBatch.Draw(texture, drawPos, null, Color.White with { A = 180 }, 0f, texture.Size() * 0.5f, zoom, SpriteEffects.None, 0f);
+    }
+
+    public virtual void DrawDesignerIcon(SpriteBatch spriteBatch, Rectangle iconArea) => DrawSimpleIcon(spriteBatch, QuestAssets.MissingIcon, iconArea);
+
+    protected static void DrawSimpleIcon(SpriteBatch spriteBatch, Texture2D texture, Rectangle iconArea)
+    {
+        var scale = MathHelper.Min((float)iconArea.Width / texture.Width, (float)iconArea.Height / texture.Height);
+        spriteBatch.Draw(texture, iconArea.Center.ToVector2(), null, Color.White, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
+    }
+
+    public virtual void OnDelete()
+    {
+    }
+
+    public virtual void OnUndoMove()
+    {
+    }
+
+    #endregion
+
+    #region Designer Attributes
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class HideInDesignerAttribute : Attribute;
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class UseConverterAttribute(Type propertyConverterType) : Attribute
+    {
+        public Type PropertyConverterType
         {
-            Rectangle area = new(10, 0, 420, 540);
-            spriteBatch.DrawOutlinedStringInRectangle(area, FontAssets.DeathText.Value, Color.White, Color.Black, Language.GetTextValue("Mods.QuestBooks.Tooltips.Designer.NoInfoPage"), clipBounds: false);
-        }
+            get;
+            init;
+        } = propertyConverterType;
+    }
 
-        /// <summary>
-        /// Override this to change how the "open quest log" outline is drawn in the inventory.<br/>
-        /// <paramref name="drawPriority"/> is the current draw override priority. If you have something of higher priority, modify both <paramref name="drawPriority"/> and <paramref name="outlineDraw"/>.
-        /// </summary>
-        public virtual void OverrideIconOutlineDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate outlineDraw) { }
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, Inherited = false)]
+    private sealed class NonDefaultAttribute : Attribute;
 
-        /// <summary>
-        /// Override this to change how the "open quest log" icon is drawn in the inventory.<br/>
-        /// <paramref name="drawPriority"/> is the current draw override priority. If you have something of higher priority, modify both <paramref name="drawPriority"/> and <paramref name="iconDraw"/>.
-        /// </summary>
-        public virtual void OverrideIconDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate iconDraw) { }
+    /// <summary>
+    ///     Intended only for QuestBooks internal use. Simplifies the tooltip attribute to only need the last part of the key.
+    /// </summary>
+    internal sealed class ElementTooltipAttribute(string localizationKey) : TooltipAttribute($"Mods.QuestBooks.Tooltips.Elements.{localizationKey}");
 
-        #endregion
+    #endregion
 
-        #region Designer Methods
+    #region Converter Implementation
 
-        public abstract bool PlaceOnCanvas(QuestChapter chapter, Vector2 mousePosition, Vector2 canvasViewOffset);
-
-        public virtual void DrawPlacementPreview(SpriteBatch spriteBatch, Vector2 mousePosition, Vector2 canvasViewOffset, float zoom)
-        {
-            Texture2D texture = QuestAssets.MissingIcon;
-            Vector2 drawPos = (mousePosition - canvasViewOffset) * zoom;
-            spriteBatch.Draw(texture, drawPos, null, Color.White with { A = 180 }, 0f, texture.Size() * 0.5f, zoom, SpriteEffects.None, 0f);
-        }
-
-        public virtual void DrawDesignerIcon(SpriteBatch spriteBatch, Rectangle iconArea) => DrawSimpleIcon(spriteBatch, QuestAssets.MissingIcon, iconArea);
-
-        protected static void DrawSimpleIcon(SpriteBatch spriteBatch, Texture2D texture, Rectangle iconArea)
-        {
-            float scale = MathHelper.Min((float)iconArea.Width / texture.Width, (float)iconArea.Height / texture.Height);
-            spriteBatch.Draw(texture, iconArea.Center.ToVector2(), null, Color.White, 0f, texture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
-        }
-
-        public virtual void OnDelete() { }
-
-        public virtual void OnUndoMove() { }
-
-        #endregion
-
-        #region Designer Attributes
-
-        [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-        public sealed class HideInDesignerAttribute : Attribute;
-
-        [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-        public sealed class UseConverterAttribute(Type propertyConverterType) : Attribute
-        {
-            public Type PropertyConverterType { get; init; } = propertyConverterType;
-        }
-
-        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
-        private sealed class NonDefaultAttribute : Attribute;
-
-        /// <summary>
-        /// Intended only for QuestBooks internal use. Simplifies the tooltip attribute to only need the last part of the key.
-        /// </summary>
-        internal sealed class ElementTooltipAttribute(string localizationKey) : TooltipAttribute($"Mods.QuestBooks.Tooltips.Elements.{localizationKey}");
-
-        #endregion
-
-        #region Converter Implementation
-
-        public static readonly FrozenDictionary<Type, Type> DefaultConverters =
-            typeof(QuestLogElement)
+    public static readonly FrozenDictionary<Type, Type> DefaultConverters =
+        typeof(QuestLogElement)
             .GetNestedTypes()
             .Where(t => t.GetInterfaces().Length != 0)
             .Where(t => Attribute.GetCustomAttribute(t, typeof(NonDefaultAttribute)) is null)
-            .Select(t =>
-            {
-                Type conversionType = t.GetInterfaces()[0].GetGenericArguments()[0];
-                return new KeyValuePair<Type, Type>(conversionType, t);
-            })
+            .Select
+            (t =>
+                {
+                    var conversionType = t.GetInterfaces()[0].GetGenericArguments()[0];
+                    return new KeyValuePair<Type, Type>(conversionType, t);
+                }
+            )
             .ToFrozenDictionary();
 
-        public interface IMemberConverter<T>
-        {
-            public bool TryParse(string input, out T result);
-            public string Convert(T input);
-        }
-
-        #endregion
-
-        #region Default Converters
-
-        public class StringConverter : IMemberConverter<string>
-        {
-            public string Convert(string input) => input;
-            public bool TryParse(string input, out string result)
-            {
-                result = input;
-                return true;
-            }
-        }
-
-        public class IntConverter : IMemberConverter<int>
-        {
-            public string Convert(int input) => input.ToString();
-            public bool TryParse(string input, out int result) => int.TryParse(input, out result);
-        }
-
-        public class FloatConverter : IMemberConverter<float>
-        {
-            public string Convert(float input) => input.ToString();
-            public bool TryParse(string input, out float result) => float.TryParse(input, out result);
-        }
-
-        public class BoolConverter : IMemberConverter<bool>
-        {
-            public string Convert(bool input) => input.ToString();
-            public bool TryParse(string input, out bool result) => bool.TryParse(input, out result);
-        }
-
-        [NonDefault]
-        public class AngleConverter : IMemberConverter<float>
-        {
-            public string Convert(float input) => MathHelper.ToDegrees(input).ToString();
-            public bool TryParse(string input, out float result)
-            {
-                if (!float.TryParse(input, out result))
-                    return false;
-
-                result = MathHelper.ToRadians(result);
-                return true;
-            }
-        }
-
-        [NonDefault]
-        public class Vector2Converter : IMemberConverter<Vector2>
-        {
-            public string Convert(Vector2 input) => $"{input.X},{input.Y}";
-            public bool TryParse(string input, out Vector2 result)
-            {
-                string[] xy = input.Split(',');
-                if (xy.Length != 2)
-                {
-                    result = default;
-                    return false;
-                }
-
-                if (!float.TryParse(xy[0], out float x) || !float.TryParse(xy[1], out float y))
-                {
-                    result = default;
-                    return false;
-                }
-
-                result = new(x, y);
-                return true;
-            }
-        }
-
-        #endregion
+    public interface IMemberConverter<T>
+    {
+        bool TryParse(string input, out T result);
+        string Convert(T input);
     }
 
-    public abstract class QuestElement : QuestLogElement
+    #endregion
+
+    #region Default Converters
+
+    public class StringConverter : IMemberConverter<string>
     {
-        [JsonIgnore]
-        public abstract Quest Quest { get; }
+        public string Convert(string input) => input;
+
+        public bool TryParse(string input, out string result)
+        {
+            result = input;
+            return true;
+        }
+    }
+
+    public class IntConverter : IMemberConverter<int>
+    {
+        public string Convert(int input) => input.ToString();
+        public bool TryParse(string input, out int result) => int.TryParse(input, out result);
+    }
+
+    public class FloatConverter : IMemberConverter<float>
+    {
+        public string Convert(float input) => input.ToString();
+        public bool TryParse(string input, out float result) => float.TryParse(input, out result);
+    }
+
+    public class BoolConverter : IMemberConverter<bool>
+    {
+        public string Convert(bool input) => input.ToString();
+        public bool TryParse(string input, out bool result) => bool.TryParse(input, out result);
+    }
+
+    [NonDefault]
+    public class AngleConverter : IMemberConverter<float>
+    {
+        public string Convert(float input) => MathHelper.ToDegrees(input).ToString();
+
+        public bool TryParse(string input, out float result)
+        {
+            if (!float.TryParse(input, out result))
+            {
+                return false;
+            }
+
+            result = MathHelper.ToRadians(result);
+            return true;
+        }
+    }
+
+    [NonDefault]
+    public class Vector2Converter : IMemberConverter<Vector2>
+    {
+        public string Convert(Vector2 input) => $"{input.X},{input.Y}";
+
+        public bool TryParse(string input, out Vector2 result)
+        {
+            var xy = input.Split(',');
+
+            if (xy.Length != 2)
+            {
+                result = default;
+                return false;
+            }
+
+            if (!float.TryParse(xy[0], out var x) || !float.TryParse(xy[1], out var y))
+            {
+                result = default;
+                return false;
+            }
+
+            result = new Vector2(x, y);
+            return true;
+        }
+    }
+
+    #endregion
+}
+
+public abstract class QuestElement : QuestLogElement
+{
+    [JsonIgnore]
+    public abstract Quest Quest
+    {
+        get;
     }
 }

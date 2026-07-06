@@ -1,6 +1,4 @@
-﻿using QuestBooks.Utilities;
-
-namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
 
 public class GetObsidian : VanillaQuest
 {

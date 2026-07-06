@@ -1,7 +1,4 @@
-﻿using QuestBooks.Systems;
-using QuestBooks.Utilities;
-
-namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
 
 public class GetBeeSet : VanillaQuest
 {
@@ -16,7 +13,9 @@ public class GetBeeSet : VanillaQuest
         public override bool? UseItem(Item item, Player player)
         {
             if (player.HasArmorSet(ItemID.BeeHat, ItemID.BeeBreastplate, ItemID.BeeGreaves))
+            {
                 QuestBooksMod.MarkComplete<GetBeeSet>();
+            }
 
             return true;
         }

@@ -1,143 +1,179 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 using QuestBooks.QuestLog.DefaultChapters;
 using QuestBooks.Quests;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace QuestBooks.QuestLog
+namespace QuestBooks.QuestLog;
+
+[ExtendsFromMod("QuestBooks")]
+public abstract class QuestChapter
 {
-    [ExtendsFromMod("QuestBooks")]
-    public abstract class QuestChapter
+    /// <summary>
+    ///     The collection of <see cref="QuestLogElement" />s to be displayed in the quest log.
+    /// </summary>
+    public abstract List<QuestLogElement> Elements
     {
-        /// <summary>
-        /// The collection of <see cref="QuestLogElement"/>s to be displayed in the quest log.
-        /// </summary>
-        public abstract List<QuestLogElement> Elements { get; set; }
+        get;
+        set;
+    }
 
-        /// <summary>
-        /// The string that will be displayed in the quest log. You should use localization here where applicable.
-        /// </summary>
-        [JsonIgnore]
-        public abstract string DisplayName { get; }
+    /// <summary>
+    ///     The string that will be displayed in the quest log. You should use localization here where applicable.
+    /// </summary>
+    [JsonIgnore]
+    public abstract string DisplayName
+    {
+        get;
+    }
 
-        /// <summary>
-        /// A collection of all quests contained by elements in this quest line.<br/>
-        /// These quests are all the actual implemented instances, and not duplicates or templates - you can access accurate info or methods from them.<br/>
-        /// Pulls from <see cref="Elements"/>.
-        /// </summary>
-        [JsonIgnore]
-        public IEnumerable<Quest> QuestList => Elements.Where(e => e is QuestElement).Cast<QuestElement>().Select(e => e.Quest);
+    /// <summary>
+    ///     A collection of all quests contained by elements in this quest line.<br />
+    ///     These quests are all the actual implemented instances, and not duplicates or templates - you can access accurate info or methods from them.<br />
+    ///     Pulls from <see cref="Elements" />.
+    /// </summary>
+    [JsonIgnore]
+    public IEnumerable<Quest> QuestList => Elements.Where(e => e is QuestElement).Cast<QuestElement>().Select(e => e.Quest);
 
-        /// <summary>
-        /// The completion progress of this quest line.<br/>
-        /// 0f is no quests completed, and 1f is all quests completed.<br/>
-        /// <c>float.NaN</c> is returned for quest lines with no quests in their elements.<br/>
-        /// Pulls from <see cref="QuestList"/>.
-        /// </summary>
-        [JsonIgnore]
-        public virtual float Progress
+    /// <summary>
+    ///     The completion progress of this quest line.<br />
+    ///     0f is no quests completed, and 1f is all quests completed.<br />
+    ///     <c>float.NaN</c> is returned for quest lines with no quests in their elements.<br />
+    ///     Pulls from <see cref="QuestList" />.
+    /// </summary>
+    [JsonIgnore]
+    public virtual float Progress
+    {
+        get
         {
-            get
-            {
-                int applicableCount = 0;
-                float totalComplete = QuestList
-                    .Select(x => { applicableCount++; return x; })
-                    .Where(x => x.Completed)
-                    .Count();
+            var applicableCount = 0;
 
-                return applicableCount > 0 ? totalComplete / applicableCount : float.NaN;
-            }
+            float totalComplete = QuestList
+                .Select
+                (x =>
+                    {
+                        applicableCount++;
+                        return x;
+                    }
+                )
+                .Where(x => x.Completed)
+                .Count();
+
+            return applicableCount > 0 ? totalComplete / applicableCount : float.NaN;
         }
+    }
 
-        /// <summary>
-        /// Whether or not all quests in this questline are complete.<br/>
-        /// Pulls from <see cref="QuestList"/>.
-        /// </summary>
-        [JsonIgnore]
-        public virtual bool Complete => QuestList.All(q => q.Completed);
+    /// <summary>
+    ///     Whether or not all quests in this questline are complete.<br />
+    ///     Pulls from <see cref="QuestList" />.
+    /// </summary>
+    [JsonIgnore]
+    public virtual bool Complete => QuestList.All(q => q.Completed);
 
-        /// <summary>
-        /// Determines whether this quest line should appear in the quest log.<br/>
-        /// Useful for hiding certain chapters until progression goals are met.
-        /// </summary>
-        public virtual bool VisibleInLog() => true;
+    /// <summary>
+    ///     Determines whether this quest line should appear in the quest log.<br />
+    ///     Useful for hiding certain chapters until progression goals are met.
+    /// </summary>
+    public virtual bool VisibleInLog() => true;
 
-        /// <summary>
-        /// Determines whether this quest line should be able to be selected in the quest log.<br/>
-        /// Useful for when you want to display a chapter, but hide its contents until progression goals are met.
-        /// </summary>
-        public virtual bool IsUnlocked() => true;
+    /// <summary>
+    ///     Determines whether this quest line should be able to be selected in the quest log.<br />
+    ///     Useful for when you want to display a chapter, but hide its contents until progression goals are met.
+    /// </summary>
+    public virtual bool IsUnlocked() => true;
 
-        /// <summary>
-        /// Determines whether this quest line should be "draggable" in the log. This value can be modified from the designer.
-        /// </summary>
-        public virtual bool EnableShifting { get; set; } = false;
+    /// <summary>
+    ///     Determines whether this quest line should be "draggable" in the log. This value can be modified from the designer.
+    /// </summary>
+    public virtual bool EnableShifting
+    {
+        get;
+        set;
+    } = false;
 
-        /// <summary>
-        /// Determines the center of the view area to jump to when selecting a draggable chapter.
-        /// </summary>
-        public virtual Vector2 ViewAnchor { get; set; } = Vector2.Zero;
+    /// <summary>
+    ///     Determines the center of the view area to jump to when selecting a draggable chapter.
+    /// </summary>
+    public virtual Vector2 ViewAnchor
+    {
+        get;
+        set;
+    } = Vector2.Zero;
 
-        /// <summary>
-        /// Determines the maximum (bottom right) view window for a draggable chapter.
-        /// </summary>
-        public virtual Vector2 MaxViewPoint { get; set; } = Vector2.Zero;
+    /// <summary>
+    ///     Determines the maximum (bottom right) view window for a draggable chapter.
+    /// </summary>
+    public virtual Vector2 MaxViewPoint
+    {
+        get;
+        set;
+    } = Vector2.Zero;
 
-        /// <summary>
-        /// Determines the minimum (top left) view window for a draggable chapter.
-        /// </summary>
-        public virtual Vector2 MinViewPoint { get; set; } = Vector2.Zero;
+    /// <summary>
+    ///     Determines the minimum (top left) view window for a draggable chapter.
+    /// </summary>
+    public virtual Vector2 MinViewPoint
+    {
+        get;
+        set;
+    } = Vector2.Zero;
 
-        /// <summary>
-        /// Determines the default zoom level for a draggable chapter.
-        /// </summary>
-        public virtual float DefaultZoom { get; set; } = 1f;
+    /// <summary>
+    ///     Determines the default zoom level for a draggable chapter.
+    /// </summary>
+    public virtual float DefaultZoom
+    {
+        get;
+        set;
+    } = 1f;
 
-        public virtual void Update()
+    public virtual void Update()
+    {
+        foreach (var questElement in Elements)
         {
-            foreach (QuestLogElement questElement in Elements)
-                questElement.Update();
+            questElement.Update();
         }
+    }
 
-        /// <summary>
-        /// Performs the default drawing behavior of for this <see cref="ScrollChapter"/>. Assigns colors and calls <see cref="DrawBasicChapter(SpriteBatch, string, Color, Color, Color, Rectangle, float)(SpriteBatch, string, Color, Color, Color, Rectangle, float)"/>.
-        /// </summary>
-        public abstract void Draw(SpriteBatch spriteBatch, Rectangle designatedArea, float scale, bool selected, bool hovered);
+    /// <summary>
+    ///     Performs the default drawing behavior of for this <see cref="ScrollChapter" />. Assigns colors and calls
+    ///     <see cref="DrawBasicChapter(SpriteBatch, string, Color, Color, Color, Rectangle, float)(SpriteBatch, string, Color, Color, Color, Rectangle, float)" />.
+    /// </summary>
+    public abstract void Draw(SpriteBatch spriteBatch, Rectangle designatedArea, float scale, bool selected, bool hovered);
 
-        /// <summary>
-        /// Override this to change how the "open quest log" icon is drawn in the inventory.<br/>
-        /// <paramref name="drawPriority"/> is the current draw override priority. If you have something of higher priority, modify both <paramref name="drawPriority"/> and <paramref name="iconDraw"/>.
-        /// </summary>
-        public virtual void OverrideIconDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate iconDraw)
+    /// <summary>
+    ///     Override this to change how the "open quest log" icon is drawn in the inventory.<br />
+    ///     <paramref name="drawPriority" /> is the current draw override priority. If you have something of higher priority, modify both <paramref name="drawPriority" /> and <paramref name="iconDraw" />.
+    /// </summary>
+    public virtual void OverrideIconDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate iconDraw)
+    {
+        foreach (var element in Elements)
         {
-            foreach (var element in Elements)
-                element.OverrideIconDraw(ref drawPriority, ref iconDraw);
+            element.OverrideIconDraw(ref drawPriority, ref iconDraw);
         }
+    }
 
-        /// <summary>
-        /// Override this to change how the "open quest log" outline is drawn in the inventory.<br/>
-        /// <paramref name="drawPriority"/> is the current draw override priority. If you have something of higher priority, modify both <paramref name="drawPriority"/> and <paramref name="outlineDraw"/>.
-        /// </summary>
-        public virtual void OverrideIconOutlineDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate outlineDraw)
+    /// <summary>
+    ///     Override this to change how the "open quest log" outline is drawn in the inventory.<br />
+    ///     <paramref name="drawPriority" /> is the current draw override priority. If you have something of higher priority, modify both <paramref name="drawPriority" /> and <paramref name="outlineDraw" />.
+    /// </summary>
+    public virtual void OverrideIconOutlineDraw(ref float drawPriority, ref QuestLogStyle.IconDrawDelegate outlineDraw)
+    {
+        foreach (var element in Elements)
         {
-            foreach (var element in Elements)
-                element.OverrideIconOutlineDraw(ref drawPriority, ref outlineDraw);
+            element.OverrideIconOutlineDraw(ref drawPriority, ref outlineDraw);
         }
+    }
 
-        /// <summary>
-        /// Clones the members of this quest book into a new quest line.
-        /// </summary>
-        public virtual void CloneTo(QuestChapter newInstance)
-        {
-            newInstance.Elements.AddRange(Elements);
-        }
+    /// <summary>
+    ///     Clones the members of this quest book into a new quest line.
+    /// </summary>
+    public virtual void CloneTo(QuestChapter newInstance) => newInstance.Elements.AddRange(Elements);
 
-        /// <summary>
-        /// Clones the members of an old quest line into this new quest line.
-        /// </summary>
-        public virtual void CloneFrom(QuestChapter oldInstance)
-        {
-
-        }
+    /// <summary>
+    ///     Clones the members of an old quest line into this new quest line.
+    /// </summary>
+    public virtual void CloneFrom(QuestChapter oldInstance)
+    {
     }
 }

@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.VanillaQuests.Book4.Chapter1;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book4.Chapter1;
 
 public class InteractTaxCollector : VanillaQuest
 {
@@ -21,7 +19,9 @@ public class InteractTaxCollector : VanillaQuest
         orig(self);
 
         if (self.taxMoney < Coins)
+        {
             return;
+        }
 
         QuestBooksMod.MarkComplete<InteractTaxCollector>();
     }

@@ -1,76 +1,88 @@
-﻿using MonoMod.Utils;
-using QuestBooks.Systems.NetCode;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using MonoMod.Utils;
+using QuestBooks.Quests;
+using QuestBooks.Systems.NetCode;
 
-namespace QuestBooks.Systems
+namespace QuestBooks.Systems;
+
+// If the player enters a multiplayer world, they need to send
+// a request to the server to sync up completed world quests.
+internal class QuestSyncPlayer : ModPlayer
 {
-    // If the player enters a multiplayer world, they need to send
-    // a request to the server to sync up completed world quests.
-    internal class QuestSyncPlayer : ModPlayer
+    public override void OnEnterWorld()
     {
-        public override void OnEnterWorld()
+        if (Player.whoAmI != Main.myPlayer || Main.netMode != NetmodeID.MultiplayerClient)
         {
-            if (Player.whoAmI != Main.myPlayer || Main.netMode != NetmodeID.MultiplayerClient)
-                return;
+            return;
+        }
 
-            QuestPacket.Send<QuestSyncRequestPacket>();
+        QuestPacket.Send<QuestSyncRequestPacket>();
+    }
+}
+
+// When the server receives a sync request packet,
+// all it needs to do is send the response packet.
+internal class QuestSyncRequestPacket : QuestPacket
+{
+    public override void HandlePacket(in BinaryReader packet, int sender) => Send<QuestSyncResponsePacket>(toClient: sender);
+}
+
+// The response packet contains all the completed world quests.
+internal class QuestSyncResponsePacket : QuestPacket
+{
+    public override void WritePacket(ModPacket modPacket)
+    {
+        // Write the number of completed quests.
+        modPacket.Write(QuestManager.CompletedQuests.Length);
+
+        // Write each completed quest.
+        foreach (var quest in QuestManager.CompletedQuests)
+        {
+            modPacket.WriteNullTerminatedString(quest);
         }
     }
 
-    // When the server receives a sync request packet,
-    // all it needs to do is send the response packet.
-    internal class QuestSyncRequestPacket : QuestPacket
+    public override void HandlePacket(in BinaryReader packet, int sender)
     {
-        public override void HandlePacket(in BinaryReader packet, int sender) => Send<QuestSyncResponsePacket>(toClient: sender);
-    }
+        // Read the number of completed quests.
+        var questCount = packet.ReadInt32();
+        List<string> completedQuests = [];
 
-    // The response packet contains all the completed world quests.
-    internal class QuestSyncResponsePacket : QuestPacket
-    {
-        public override void WritePacket(ModPacket modPacket)
+        // Read each completed quest.
+        for (var i = 0; i < questCount; i++)
         {
-            // Write the number of completed quests.
-            modPacket.Write(QuestManager.CompletedQuests.Length);
-
-            // Write each completed quest.
-            foreach (var quest in QuestManager.CompletedQuests)
-                modPacket.WriteNullTerminatedString(quest);
+            completedQuests.Add(packet.ReadNullTerminatedString());
         }
 
-        public override void HandlePacket(in BinaryReader packet, int sender)
+        // Mark each completed quest as completed.
+        QuestLoader.LoadCompletedQuests(completedQuests, out var unloaded);
+
+        foreach (var quest in unloaded)
         {
-            // Read the number of completed quests.
-            var questCount = packet.ReadInt32();
-            List<string> completedQuests = [];
-
-            // Read each completed quest.
-            for (int i = 0; i < questCount; i++)
-                completedQuests.Add(packet.ReadNullTerminatedString());
-
-            // Mark each completed quest as completed.
-            QuestLoader.LoadCompletedQuests(completedQuests, out var unloaded);
-
-            foreach (string quest in unloaded)
-                QuestManager.UnloadedCompletedWorldQuests.Add(quest);
+            QuestManager.UnloadedCompletedWorldQuests.Add(quest);
         }
     }
+}
 
-    // This is received on multiplayer clients when a world quest is completed.
-    internal class QuestCompletionPacket : QuestPacket
+// This is received on multiplayer clients when a world quest is completed.
+internal class QuestCompletionPacket : QuestPacket
+{
+    public override void HandlePacket(in BinaryReader packet, int sender)
     {
-        public override void HandlePacket(in BinaryReader packet, int sender)
+        var questName = packet.ReadNullTerminatedString();
+        var quest = QuestManager.GetQuest(questName);
+
+        // Forward world completion packets from server to other clients
+        if (Main.dedServ && quest.QuestType == QuestType.World)
         {
-            string questName = packet.ReadNullTerminatedString();
-            var quest = QuestManager.GetQuest(questName);
+            Send<QuestCompletionPacket>(packet => packet.WriteNullTerminatedString(questName));
+        }
 
-            // Forward world completion packets from server to other clients
-            if (Main.dedServ && quest.QuestType == Quests.QuestType.World)
-                Send<QuestCompletionPacket>(packet => packet.WriteNullTerminatedString(questName));
-
-            // This prevents a packet sending loop between client and server
-            if (!quest.Completed)
-                QuestManager.CompleteQuest(quest);
+        // This prevents a packet sending loop between client and server
+        if (!quest.Completed)
+        {
+            QuestManager.CompleteQuest(quest);
         }
     }
 }

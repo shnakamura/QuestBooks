@@ -1,6 +1,4 @@
-﻿using QuestBooks.Utilities;
-
-namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
 
 public class GetSturdyFossils : VanillaQuest
 {

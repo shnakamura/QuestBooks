@@ -1,6 +1,4 @@
-﻿using QuestBooks.Utilities;
-
-namespace QuestBooks.Quests.VanillaQuests.Book2.Chapter1;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book2.Chapter1;
 
 public class GetPenultimateWings : VanillaQuest
 {

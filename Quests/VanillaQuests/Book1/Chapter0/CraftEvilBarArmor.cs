@@ -16,19 +16,31 @@ public class CraftEvilBarArmor : VanillaQuest
     ///     Gets a value indicating whether the player has crafted the helmet piece of an armor set made
     ///     from an evil bar.
     /// </summary>
-    public bool Head { get; private set; }
+    public bool Head
+    {
+        get;
+        private set;
+    }
 
     /// <summary>
     ///     Gets a value indicating whether the player has crafted the chestplate piece of an armor set
     ///     made from an evil bar.
     /// </summary>
-    public bool Body { get; private set; }
+    public bool Body
+    {
+        get;
+        private set;
+    }
 
     /// <summary>
     ///     Gets a value indicating whether the player has crafted the legging piece of an armor set made
     ///     from an evil bar.
     /// </summary>
-    public bool Legs { get; private set; }
+    public bool Legs
+    {
+        get;
+        private set;
+    }
 
     public override QuestType QuestType => QuestType.Player;
 

@@ -1,5 +1,4 @@
 ﻿using QuestBooks.Quests.QuestSystems;
-using QuestBooks.Systems;
 using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.VanillaQuests.Book2.Chapter2;
@@ -15,7 +14,9 @@ public class UseVortexFragments : VanillaQuest
         private static void OnCraft(Item item, RecipeItemCreationContext context)
         {
             if (!context.Recipe.HasTile(TileID.LunarCraftingStation) || !context.Recipe.HasIngredient(ItemID.FragmentVortex))
+            {
                 return;
+            }
 
             QuestBooksMod.MarkComplete<UseVortexFragments>();
         }

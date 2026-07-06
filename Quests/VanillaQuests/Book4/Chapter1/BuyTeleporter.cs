@@ -6,7 +6,11 @@ namespace QuestBooks.Quests.VanillaQuests.Book4.Chapter1;
 
 public class BuyTeleporter : VanillaQuest
 {
-    public int TeleportersBought { get; set; }
+    public int TeleportersBought
+    {
+        get;
+        set;
+    }
 
     public override bool CheckCompletion() => false;
 

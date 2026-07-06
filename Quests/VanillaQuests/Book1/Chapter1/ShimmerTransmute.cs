@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using Terraria.DataStructures;
+﻿using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
 
@@ -14,7 +13,9 @@ public class ShimmerTransmute : VanillaQuest
         public override void OnSpawn(Item item, IEntitySource source)
         {
             if (source is not EntitySource_Misc misc || misc.Context != "Shimmer")
+            {
                 return;
+            }
 
             QuestBooksMod.MarkComplete<ShimmerTransmute>();
         }

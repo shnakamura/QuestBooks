@@ -9,14 +9,18 @@ public static partial class Utils
     ///     The predicate to test NPCs against.
     /// </param>
     /// <returns>
-    ///     <see langword="true"/> if any NPCs in the world satisfy the specified predicate; otherwise,
-    ///     <see langword="false"/>.
+    ///     <see langword="true" /> if any NPCs in the world satisfy the specified predicate; otherwise,
+    ///     <see langword="false" />.
     /// </returns>
     public static bool AnyNPCs(Func<NPC, bool> predicate)
     {
         foreach (var npc in Main.ActiveNPCs)
+        {
             if (predicate(npc))
+            {
                 return true;
+            }
+        }
 
         return false;
     }
@@ -28,11 +32,11 @@ public static partial class Utils
     ///     The NPC types to check for.
     /// </param>
     /// <returns>
-    ///     <see langword="true"/> if any of the given NPC types are present in the world; otherwise,
-    ///     <see langword="false"/>.
+    ///     <see langword="true" /> if any of the given NPC types are present in the world; otherwise,
+    ///     <see langword="false" />.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     Any of the values in <paramref name="types"/> is negative or zero.
+    ///     Any of the values in <paramref name="types" /> is negative or zero.
     /// </exception>
     public static bool AnyNPCs(params int[] types)
     {
@@ -41,7 +45,9 @@ public static partial class Utils
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(type);
 
             if (NPC.AnyNPCs(type))
+            {
                 return true;
+            }
         }
 
         return false;
@@ -54,11 +60,11 @@ public static partial class Utils
     ///     The NPC types to check for.
     /// </param>
     /// <returns>
-    ///     <see langword="true"/> if all of the given NPC types are present in the world; otherwise,
-    ///     <see langword="false"/>.
+    ///     <see langword="true" /> if all of the given NPC types are present in the world; otherwise,
+    ///     <see langword="false" />.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     Any of the values in <paramref name="types"/> is negative or zero.
+    ///     Any of the values in <paramref name="types" /> is negative or zero.
     /// </exception>
     public static bool AllNPCs(params int[] types)
     {
@@ -67,7 +73,9 @@ public static partial class Utils
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(type);
 
             if (!NPC.AnyNPCs(type))
+            {
                 return false;
+            }
         }
 
         return true;

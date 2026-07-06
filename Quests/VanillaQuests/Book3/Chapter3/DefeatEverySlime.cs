@@ -1,7 +1,7 @@
-﻿using QuestBooks.Quests.QuestSystems;
-using QuestBooks.Systems;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using QuestBooks.Quests.QuestSystems;
+using QuestBooks.Systems;
 using Terraria.ModLoader.IO;
 
 namespace QuestBooks.Quests.VanillaQuests.Book3.Chapter3;
@@ -10,7 +10,8 @@ public class DefeatEverySlime : VanillaQuest
 {
     // Despite the fact that mods may add extra slimes, modded slimes should NOT count
     // towards this quest, and as such do not need to be registered with a set
-    public static readonly int[] AllSlimes = [
+    public static readonly int[] AllSlimes =
+    [
         NPCID.GreenSlime,
         NPCID.BlueSlime,
         NPCID.RedSlime,
@@ -58,9 +59,18 @@ public class DefeatEverySlime : VanillaQuest
     public override bool CheckCompletion() => AllSlimes.All(KilledSlimes.Contains);
 
     public override void SaveProgress(TagCompound tag) => tag[TagKey] = KilledSlimes.ToArray();
-    public override void LoadProgress(TagCompound tag) { foreach (int slimeType in tag.GetIntArray(TagKey)) KilledSlimes.Add(slimeType); }
 
-    public sealed class KillSlimeHook() : KillNPCHook(
+    public override void LoadProgress(TagCompound tag)
+    {
+        foreach (var slimeType in tag.GetIntArray(TagKey))
+        {
+            KilledSlimes.Add(slimeType);
+        }
+    }
+
+    public sealed class KillSlimeHook() : KillNPCHook
+    (
         npc => AllSlimes.Contains(npc.netID),
-        npc => QuestManager.GetQuest<DefeatEverySlime>().KilledSlimes.Add(npc.netID));
+        npc => QuestManager.GetQuest<DefeatEverySlime>().KilledSlimes.Add(npc.netID)
+    );
 }

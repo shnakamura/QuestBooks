@@ -1,7 +1,4 @@
-﻿using QuestBooks.Systems;
-using QuestBooks.Utilities;
-
-namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
 
 public class GetNinjaSet : VanillaQuest
 {
@@ -16,7 +13,9 @@ public class GetNinjaSet : VanillaQuest
         public override bool? UseItem(Item item, Player player)
         {
             if (player.HasArmorSet(ItemID.NinjaHood, ItemID.NinjaShirt, ItemID.NinjaPants))
+            {
                 QuestBooksMod.MarkComplete<GetNinjaSet>();
+            }
 
             return true;
         }

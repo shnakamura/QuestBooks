@@ -1,9 +1,8 @@
 ﻿using Terraria.ModLoader.Config;
 
-namespace QuestBooks.Configs
+namespace QuestBooks.Configs;
+
+internal class QuestLogConfig : ModConfig
 {
-    internal class QuestLogConfig : ModConfig
-    {
-        public override ConfigScope Mode => ConfigScope.ClientSide;
-    }
+    public override ConfigScope Mode => ConfigScope.ClientSide;
 }

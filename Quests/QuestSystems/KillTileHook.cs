@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.QuestSystems;
+﻿namespace QuestBooks.Quests.QuestSystems;
 
 public delegate bool KillTilePredicate(int x, int y, int type);
 
@@ -12,17 +10,25 @@ public abstract class KillTileHook : GlobalTile
     ///     Gets the predicate that determines whether this hook should be invoked when a tile is killed.
     /// </summary>
     /// <remarks>
-    ///     If <see langword="null"/>, evaluates as <see langword="true"/>.
+    ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public KillTilePredicate Predicate { get; init; }
+    public KillTilePredicate Predicate
+    {
+        get;
+        init;
+    }
 
     /// <summary>
     ///     Gets the callback that is invoked when a tile is killed and the predicate matches.
     /// </summary>
-    public KillTileCallback Callback { get; init; }
+    public KillTileCallback Callback
+    {
+        get;
+        init;
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook"/> class with the specified predicate and callback.
+    ///     Initializes a new instance of the <see cref="KillTileHook" /> class with the specified predicate and callback.
     /// </summary>
     /// <param name="predicate">
     ///     The predicate that determines whether this hook should be invoked when a tile is killed.
@@ -31,7 +37,7 @@ public abstract class KillTileHook : GlobalTile
     ///     The callback that is invoked when a tile is killed and the predicate matches.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="callback"/> is <see langword="null"/>.
+    ///     <paramref name="callback" /> is <see langword="null" />.
     /// </exception>
     public KillTileHook(KillTilePredicate predicate, KillTileCallback callback)
     {
@@ -42,7 +48,7 @@ public abstract class KillTileHook : GlobalTile
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook"/> class with the specified callback.
+    ///     Initializes a new instance of the <see cref="KillTileHook" /> class with the specified callback.
     /// </summary>
     /// <param name="callback">
     ///     The callback that is invoked when a tile is killed and the predicate matches.
@@ -50,17 +56,23 @@ public abstract class KillTileHook : GlobalTile
     /// <remarks>
     ///     Checks for any tile killed, regardless of type.
     /// </remarks>
-    public KillTileHook(KillTileCallback callback) : this(null, callback) { }
+    public KillTileHook(KillTileCallback callback) : this(null, callback)
+    {
+    }
 
     public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
     {
         if (fail || effectOnly)
+        {
             return;
+        }
 
         var matches = Predicate?.Invoke(i, j, type) ?? true;
 
         if (!matches)
+        {
             return;
+        }
 
         Callback.Invoke(i, j, type);
     }
@@ -70,29 +82,33 @@ public abstract class KillTileHook<TQuest> : KillTileHook
     where TQuest : Quest
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}"/> class with the specified predicate.
+    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}" /> class with the specified predicate.
     /// </summary>
     /// <param name="predicate">
     ///     The predicate that determines whether this hook should be invoked when a tile is killed.
     /// </param>
-    public KillTileHook(KillTilePredicate predicate) : base(predicate, Complete) { }
+    public KillTileHook(KillTilePredicate predicate) : base(predicate, Complete)
+    {
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}" /> class.
     /// </summary>
     /// <remarks>
     ///     Checks for any tile killed, regardless of type.
     /// </remarks>
-    public KillTileHook() : base(Complete) { }
+    public KillTileHook() : base(Complete)
+    {
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}" /> class.
     /// </summary>
     /// <param name="type">
     ///     The type of the tile that should trigger this hook when killed.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     <paramref name="type"/> is negative or zero.
+    ///     <paramref name="type" /> is negative or zero.
     /// </exception>
     public KillTileHook(int type) : base(Complete)
     {
@@ -101,13 +117,13 @@ public abstract class KillTileHook<TQuest> : KillTileHook
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}" /> class.
     /// </summary>
     /// <param name="set">
     ///     The set of tile types that should trigger this hook when killed.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="set"/> is <see langword="null"/>.
+    ///     <paramref name="set" /> is <see langword="null" />.
     /// </exception>
     public KillTileHook(bool[] set) : base(Complete)
     {
@@ -116,13 +132,13 @@ public abstract class KillTileHook<TQuest> : KillTileHook
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}" /> class.
     /// </summary>
     /// <param name="types">
     ///     The array of tile types that should trigger this hook when killed.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="types"/> is <see langword="null"/>.
+    ///     <paramref name="types" /> is <see langword="null" />.
     /// </exception>
     public KillTileHook(params int[] types) : base(Complete)
     {
@@ -131,13 +147,13 @@ public abstract class KillTileHook<TQuest> : KillTileHook
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}" /> class.
     /// </summary>
     /// <param name="getTileType">
     ///     The function that returns the tile type that should trigger this hook when killed.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="getTileType"/> is <see langword="null"/>.
+    ///     <paramref name="getTileType" /> is <see langword="null" />.
     /// </exception>
     public KillTileHook(Func<int> getTileType) : base(Complete)
     {
@@ -146,13 +162,13 @@ public abstract class KillTileHook<TQuest> : KillTileHook
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest}" /> class.
     /// </summary>
     /// <param name="getTileTypes">
     ///     The functions that return the tile types that should trigger this hook when killed.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="getTileTypes"/> is <see langword="null"/>.
+    ///     <paramref name="getTileTypes" /> is <see langword="null" />.
     /// </exception>
     public KillTileHook(params Func<int>[] getTileTypes) : base(Complete)
     {
@@ -168,7 +184,9 @@ public abstract class KillTileHook<TQuest, TModTile> : KillTileHook<TQuest>
     where TModTile : ModTile
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest, TModTile}"/> class.
+    ///     Initializes a new instance of the <see cref="KillTileHook{TQuest, TModTile}" /> class.
     /// </summary>
-    public KillTileHook() : base(Match<TModTile>) { }
+    public KillTileHook() : base(Match<TModTile>)
+    {
+    }
 }

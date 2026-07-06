@@ -9,7 +9,8 @@ public class CraftCampfire : VanillaQuest
     {
         Campfires = ItemID.Sets.Factory.CreateNamedSet("Campfires")
             .Description("All campfires")
-            .RegisterBoolSet(
+            .RegisterBoolSet
+            (
                 ItemID.Campfire,
                 ItemID.BoneCampfire,
                 ItemID.CoralCampfire,
@@ -26,7 +27,7 @@ public class CraftCampfire : VanillaQuest
                 ItemID.RainbowCampfire,
                 ItemID.ShimmerCampfire,
                 ItemID.UltraBrightCampfire
-        );
+            );
     }
 
     public static readonly bool[] Campfires;

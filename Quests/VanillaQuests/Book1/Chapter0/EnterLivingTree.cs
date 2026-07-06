@@ -20,20 +20,21 @@ public class EnterLivingTree : VanillaQuest
         /// <summary>
         ///     Gets the current count of living tree tiles detected around the player.
         /// </summary>
-        public static int Count { get; private set; }
+        public static int Count
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         ///     Gets a value indicating whether the player is inside the living tree biome.
         /// </summary>
         /// <value>
-        ///     <see langword="true"/> if <see cref="Count"/> is greater than or equal to
-        ///     <see cref="Threshold"/>; otherwise, <see langword="false"/>.
+        ///     <see langword="true" /> if <see cref="Count" /> is greater than or equal to
+        ///     <see cref="Threshold" />; otherwise, <see langword="false" />.
         /// </value>
         public static bool Active => Count >= Threshold;
 
-        public override void TileCountsAvailable(ReadOnlySpan<int> tileCounts)
-        {
-            Count = tileCounts[TileID.LivingMahoganyLeaves] + tileCounts[TileID.LivingMahogany];
-        }
+        public override void TileCountsAvailable(ReadOnlySpan<int> tileCounts) => Count = tileCounts[TileID.LivingMahoganyLeaves] + tileCounts[TileID.LivingMahogany];
     }
 }

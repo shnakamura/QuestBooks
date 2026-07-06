@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using Terraria.DataStructures;
+﻿using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.VanillaQuests.Book0.Chapter0;
 
@@ -14,7 +13,9 @@ public class CraftHammer : VanillaQuest
         public override void OnCreated(Item item, ItemCreationContext context)
         {
             if (context is not RecipeItemCreationContext || item.hammer <= 0)
+            {
                 return;
+            }
 
             QuestBooksMod.CompleteQuest<CraftHammer>();
         }

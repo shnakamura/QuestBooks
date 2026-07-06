@@ -1,6 +1,4 @@
-﻿using QuestBooks.Utilities;
-
-namespace QuestBooks.Quests.VanillaQuests.Book2.Chapter3;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book2.Chapter3;
 
 public class GetSolarSet : VanillaQuest
 {

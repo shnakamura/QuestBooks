@@ -1,98 +1,102 @@
-﻿using QuestBooks.Systems;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using QuestBooks.Systems;
 using Terraria.GameInput;
 
-namespace QuestBooks.QuestLog.DefaultStyles
+namespace QuestBooks.QuestLog.DefaultStyles;
+
+public partial class BasicQuestLogStyle
 {
-    public partial class BasicQuestLogStyle
+    private bool previousBookSwipeDirection;
+    private float previousBookSwipeOffset;
+    private QuestBook previousBook;
+
+    private float realBooksScrollOffset;
+    private float realChaptersScrollOffset;
+
+    private readonly List<(Rectangle area, QuestBook questBook)> bookLibrary = [];
+
+    private void UpdateBooks(Rectangle books, Vector2 scaledMouse)
     {
-        private bool previousBookSwipeDirection = false;
-        private float previousBookSwipeOffset = 0f;
-        private QuestBook previousBook = null;
+        SwitchTargets(booksTarget, LibraryBlending, SamplerState.LinearClamp);
+        DrawTasks.Add(_ => Main.graphics.GraphicsDevice.Clear(Color.Black * 0.08f));
 
-        private float realBooksScrollOffset = 0;
-        private float realChaptersScrollOffset = 0;
-
-        private readonly List<(Rectangle area, QuestBook questBook)> bookLibrary = [];
-        private void UpdateBooks(Rectangle books, Vector2 scaledMouse)
+        // Skip drawing books if none are available
+        if (!QuestManager.QuestBooks.Any())
         {
-            SwitchTargets(booksTarget, LibraryBlending, SamplerState.LinearClamp);
-            DrawTasks.Add(_ => Main.graphics.GraphicsDevice.Clear(Color.Black * 0.08f));
-
-            // Skip drawing books if none are available
-            if (!QuestManager.QuestBooks.Any())
-            {
-                SwitchTargets(null);
-                return;
-            }
-
-            // Cache the mouse position within the books and whether
-            // the book area is being hovered
-            var mouseBooks = scaledMouse.ToPoint();
-            bool hoveringBooks = false;
-
-            // Handle the scrolling of the books area
-            if (books.Contains(mouseBooks))
-            {
-                int data = PlayerInput.ScrollWheelDeltaForUI;
-                hoveringBooks = true;
-
-                if (data != 0)
-                {
-                    int scrollAmount = data / 6;
-                    int initialOffset = booksScrollOffset;
-                    booksScrollOffset += scrollAmount;
-
-                    Rectangle lastBook = bookLibrary[^1].area;
-                    int minScrollValue = -(lastBook.Bottom - (books.Height + books.Y));
-
-                    booksScrollOffset = minScrollValue < 0 ? int.Clamp(booksScrollOffset, minScrollValue, 0) : 0;
-
-                    //if (BooksScrollOffset != initialOffset)
-                    //    SoundEngine.PlaySound(SoundID.MenuTick);
-                }
-            }
-
-            // Smoothly interpolate between the current and next scroll destinations
-            realBooksScrollOffset = MathHelper.Lerp(realBooksScrollOffset, booksScrollOffset, scrollAcceleration);
-
-            // Re-set the books area
-            bookLibrary.Clear();
-
-            // Assign the position of the first book in the library
-            Rectangle book = books.CookieCutter(new(0f, -0.9f), new(1f, 0.1065f));
-
-            // Add each book basing location off of the first one
-            foreach (var questBook in QuestManager.QuestBooks)
-            {
-                if (!questBook.VisibleInLog() && !UseDesigner)
-                    continue;
-
-                bookLibrary.Add((book, questBook));
-                book = book.CookieCutter(new(0f, 2.25f), Vector2.One);
-            }
-
-            // Check for selection of a new book and draw each one
-            foreach (var (rectangle, questBook) in bookLibrary)
-            {
-                rectangle.Offset(0, (int)realBooksScrollOffset);
-                bool hovered = hoveringBooks && rectangle.Contains(mouseBooks) && SelectedElement is null;
-
-                if (hovered && LeftMouseJustReleased && (questBook.IsUnlocked() || UseDesigner) && previousBookSwipeOffset == 0f)
-                {
-                    QuestBook selectedBook = (SelectedBook == questBook) ? null : questBook;
-                    SelectBook(selectedBook);
-                }
-
-                bool selected = SelectedBook == questBook;
-                DrawTasks.Add(sb => questBook.Draw(sb, rectangle, TargetScale, selected, hovered));
-            }
-
             SwitchTargets(null);
+            return;
+        }
 
-            if (!UseDesigner)
-                return;
+        // Cache the mouse position within the books and whether
+        // the book area is being hovered
+        var mouseBooks = scaledMouse.ToPoint();
+        var hoveringBooks = false;
+
+        // Handle the scrolling of the books area
+        if (books.Contains(mouseBooks))
+        {
+            var data = PlayerInput.ScrollWheelDeltaForUI;
+            hoveringBooks = true;
+
+            if (data != 0)
+            {
+                var scrollAmount = data / 6;
+                var initialOffset = booksScrollOffset;
+                booksScrollOffset += scrollAmount;
+
+                var lastBook = bookLibrary[^1].area;
+                var minScrollValue = -(lastBook.Bottom - (books.Height + books.Y));
+
+                booksScrollOffset = minScrollValue < 0 ? int.Clamp(booksScrollOffset, minScrollValue, 0) : 0;
+
+                //if (BooksScrollOffset != initialOffset)
+                //    SoundEngine.PlaySound(SoundID.MenuTick);
+            }
+        }
+
+        // Smoothly interpolate between the current and next scroll destinations
+        realBooksScrollOffset = MathHelper.Lerp(realBooksScrollOffset, booksScrollOffset, scrollAcceleration);
+
+        // Re-set the books area
+        bookLibrary.Clear();
+
+        // Assign the position of the first book in the library
+        var book = books.CookieCutter(new Vector2(0f, -0.9f), new Vector2(1f, 0.1065f));
+
+        // Add each book basing location off of the first one
+        foreach (var questBook in QuestManager.QuestBooks)
+        {
+            if (!questBook.VisibleInLog() && !UseDesigner)
+            {
+                continue;
+            }
+
+            bookLibrary.Add((book, questBook));
+            book = book.CookieCutter(new Vector2(0f, 2.25f), Vector2.One);
+        }
+
+        // Check for selection of a new book and draw each one
+        foreach (var (rectangle, questBook) in bookLibrary)
+        {
+            rectangle.Offset(0, (int)realBooksScrollOffset);
+            var hovered = hoveringBooks && rectangle.Contains(mouseBooks) && SelectedElement is null;
+
+            if (hovered && LeftMouseJustReleased && (questBook.IsUnlocked() || UseDesigner) && previousBookSwipeOffset == 0f)
+            {
+                var selectedBook = SelectedBook == questBook ? null : questBook;
+                SelectBook(selectedBook);
+            }
+
+            var selected = SelectedBook == questBook;
+            DrawTasks.Add(sb => questBook.Draw(sb, rectangle, TargetScale, selected, hovered));
+        }
+
+        SwitchTargets(null);
+
+        if (!UseDesigner)
+        {
+            return;
         }
     }
 }

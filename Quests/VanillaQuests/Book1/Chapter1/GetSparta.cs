@@ -1,7 +1,4 @@
-﻿using QuestBooks.Systems;
-using QuestBooks.Utilities;
-
-namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
+﻿namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter1;
 
 public class GetSparta : VanillaQuest
 {
@@ -16,7 +13,9 @@ public class GetSparta : VanillaQuest
         public override bool? UseItem(Item item, Player player)
         {
             if (player.HasArmorSet(ItemID.GladiatorHelmet, ItemID.GladiatorBreastplate, ItemID.GladiatorLeggings))
+            {
                 QuestBooksMod.MarkComplete<GetSparta>();
+            }
 
             return true;
         }

@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.VanillaQuests.OtherBook.Events;
+﻿namespace QuestBooks.Quests.VanillaQuests.OtherBook.Events;
 
 public class SolarEclipseDefeated : VanillaQuest
 {
@@ -8,15 +6,19 @@ public class SolarEclipseDefeated : VanillaQuest
 
     public class SolarEclipseCheck : ModSystem
     {
-        private bool cachedEclipse = false;
+        private bool cachedEclipse;
 
         public override void PostUpdateTime()
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
                 return;
+            }
 
             if (!Main.eclipse && cachedEclipse)
+            {
                 QuestBooksMod.CompleteQuest<SolarEclipseDefeated>();
+            }
 
             cachedEclipse = Main.eclipse;
         }

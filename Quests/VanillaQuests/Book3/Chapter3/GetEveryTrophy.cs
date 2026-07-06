@@ -8,7 +8,8 @@ public class GetEveryTrophy : VanillaQuest
 {
     // Despite the fact that mods may add extra trophies, modded trophies should NOT count
     // towards this quest, and as such do not need to be registered with a set
-    public static readonly int[] AllTrophies = [
+    public static readonly int[] AllTrophies =
+    [
         ItemID.KingSlimeTrophy,
         ItemID.EyeofCthulhuTrophy,
         ItemID.EaterofWorldsTrophy,
@@ -47,15 +48,28 @@ public class GetEveryTrophy : VanillaQuest
     public override void Update()
     {
         if (Main.dedServ)
+        {
             return;
+        }
 
-        foreach (int trophyType in AllTrophies)
+        foreach (var trophyType in AllTrophies)
+        {
             if (Main.LocalPlayer.inventory.Any(item => item.type == trophyType && item.stack > 0))
+            {
                 CollectedTrophies.Add(trophyType);
+            }
+        }
     }
 
     public override void SaveProgress(TagCompound tag) => tag[TagKey] = CollectedTrophies.ToArray();
-    public override void LoadProgress(TagCompound tag) { foreach (int trophyType in tag.GetIntArray(TagKey)) CollectedTrophies.Add(trophyType); }
+
+    public override void LoadProgress(TagCompound tag)
+    {
+        foreach (var trophyType in tag.GetIntArray(TagKey))
+        {
+            CollectedTrophies.Add(trophyType);
+        }
+    }
 
     public override bool CheckCompletion() => AllTrophies.All(CollectedTrophies.Contains);
 }

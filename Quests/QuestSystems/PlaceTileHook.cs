@@ -1,6 +1,4 @@
-﻿using QuestBooks.Systems;
-
-namespace QuestBooks.Quests.QuestSystems;
+﻿namespace QuestBooks.Quests.QuestSystems;
 
 public delegate bool PlaceTilePredicate(int i, int j, int type, Item item);
 
@@ -12,17 +10,25 @@ public abstract class PlaceTileHook : GlobalTile
     ///     Gets the predicate that determines whether this hook should be invoked when a tile is placed in the world.
     /// </summary>
     /// <remarks>
-    ///     If <see langword="null"/>, evaluates as <see langword="true"/>.
+    ///     If <see langword="null" />, evaluates as <see langword="true" />.
     /// </remarks>
-    public PlaceTilePredicate Predicate { get; init; }
+    public PlaceTilePredicate Predicate
+    {
+        get;
+        init;
+    }
 
     /// <summary>
     ///     Gets the callback that is invoked when a tile is placed in the world and the predicate matches.
     /// </summary>
-    public PlaceTileCallback Callback { get; init; }
+    public PlaceTileCallback Callback
+    {
+        get;
+        init;
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PlaceTileHook"/> class with the specified predicate and callback.
+    ///     Initializes a new instance of the <see cref="PlaceTileHook" /> class with the specified predicate and callback.
     /// </summary>
     /// <param name="predicate">
     ///     The predicate that determines whether this hook should be invoked when a tile is placed in the world.
@@ -31,7 +37,7 @@ public abstract class PlaceTileHook : GlobalTile
     ///     The callback that is invoked when a tile is placed in the world and the predicate matches.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="callback"/> is <see langword="null"/>.
+    ///     <paramref name="callback" /> is <see langword="null" />.
     /// </exception>
     public PlaceTileHook(PlaceTilePredicate predicate, PlaceTileCallback callback)
     {
@@ -42,7 +48,7 @@ public abstract class PlaceTileHook : GlobalTile
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PlaceTileHook"/> class with the specified callback.
+    ///     Initializes a new instance of the <see cref="PlaceTileHook" /> class with the specified callback.
     /// </summary>
     /// <param name="callback">
     ///     The callback that is invoked when a tile is placed in the world and the predicate matches.
@@ -50,7 +56,9 @@ public abstract class PlaceTileHook : GlobalTile
     /// <remarks>
     ///     Checks for any tile placed in the world, regardless of type.
     /// </remarks>
-    public PlaceTileHook(PlaceTileCallback callback) : this(null, callback) { }
+    public PlaceTileHook(PlaceTileCallback callback) : this(null, callback)
+    {
+    }
 
     public override void PlaceInWorld(int i, int j, int type, Item item)
     {
@@ -69,29 +77,33 @@ public abstract class PlaceTileHook<TQuest> : PlaceTileHook
     where TQuest : Quest
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PlaceTileHook{TQuest}"/> class with the specified predicate.
+    ///     Initializes a new instance of the <see cref="PlaceTileHook{TQuest}" /> class with the specified predicate.
     /// </summary>
     /// <param name="predicate">
     ///     The predicate that determines whether this hook should be invoked when a tile is placed in the world.
     /// </param>
-    public PlaceTileHook(PlaceTilePredicate predicate) : base(predicate, Complete) { }
+    public PlaceTileHook(PlaceTilePredicate predicate) : base(predicate, Complete)
+    {
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PlaceTileHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="PlaceTileHook{TQuest}" /> class.
     /// </summary>
     /// <remarks>
     ///     Checks for any tile placed in the world, regardless of type.
     /// </remarks>
-    public PlaceTileHook() : base(Complete) { }
+    public PlaceTileHook() : base(Complete)
+    {
+    }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PlaceTileHook{TQuest}"/> class.
+    ///     Initializes a new instance of the <see cref="PlaceTileHook{TQuest}" /> class.
     /// </summary>
     /// <param name="type">
     ///     The type of the tile that should trigger this hook when placed in the world.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    ///     <paramref name="type"/> is less than or equal to zero.
+    ///     <paramref name="type" /> is less than or equal to zero.
     /// </exception>
     public PlaceTileHook(int type) : base(Complete)
     {
@@ -131,7 +143,9 @@ public abstract class PlaceTileHook<TQuest, TModTile> : PlaceTileHook<TQuest>
     where TModTile : ModTile
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PlaceTileHook{TQuest, TItem}"/> class.
+    ///     Initializes a new instance of the <see cref="PlaceTileHook{TQuest, TItem}" /> class.
     /// </summary>
-    public PlaceTileHook() : base(Match<TModTile>) { }
+    public PlaceTileHook() : base(Match<TModTile>)
+    {
+    }
 }

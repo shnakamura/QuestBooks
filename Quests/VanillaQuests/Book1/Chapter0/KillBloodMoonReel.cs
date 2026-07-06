@@ -1,5 +1,4 @@
-﻿using QuestBooks.Systems;
-using Terraria.DataStructures;
+﻿using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.VanillaQuests.Book1.Chapter0;
 
@@ -17,7 +16,9 @@ public class KillBloodMoonReel : VanillaQuest
         public override void OnSpawn(Item item, IEntitySource source)
         {
             if (source is not EntitySource_Loot loot || loot.Entity is not NPC npc || npc.type != NPCID.EyeballFlyingFish || npc.type != NPCID.ZombieMerman)
+            {
                 return;
+            }
 
             QuestBooksMod.MarkComplete<KillBloodMoonReel>();
         }

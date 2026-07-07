@@ -12,7 +12,7 @@ using Terraria.ModLoader.IO;
 
 namespace QuestBooks.Core.Quests;
 
-internal class QuestLoader : ModSystem
+internal sealed class QuestLoader : ModSystem
 {
     private const string TagKey = "QuestBooks:CompletedQuests";
 

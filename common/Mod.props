@@ -2,7 +2,7 @@
 
     <!-- Bootstrap -->
     <PropertyGroup>
-        <TmlBuildBootstrapFeatures>tomat.environmentmodlist;tomat.enablemod;lolxd87.splashskip;tomat.assethotreloading;ppeb.netcoredbg</TmlBuildBootstrapFeatures>
+        <TmlBuildBootstrapFeatures>tomat.environmentmodlist;tomat.enablemod;lolxd87.splashskip;tomat.assethotreloading</TmlBuildBootstrapFeatures>
     </PropertyGroup>
 
     <!-- Publicizer -->
@@ -10,7 +10,8 @@
         <PublicizerClearCacheOnClean>true</PublicizerClearCacheOnClean>
     </PropertyGroup>
 	<ItemGroup>
-		<Publicize Include="FNA" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+        <Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+        <Publicize Include="FNA" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
         <Publicize Include="ReLogic" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
 	</ItemGroup>
 

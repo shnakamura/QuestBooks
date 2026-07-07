@@ -1,6 +1,6 @@
 ﻿namespace QuestBooks.Utilities;
 
-public static partial class Utils
+public static class MathUtilities
 {
     public static float InverseLerp(float from, float to, float x) => MathHelper.Clamp((x - from) / (to - from), 0f, 1f);
 

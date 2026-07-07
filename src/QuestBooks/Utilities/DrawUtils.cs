@@ -16,32 +16,6 @@ public enum TextAlignment
 
 public static partial class Utils
 {
-    private static readonly FieldInfo blendStateField = typeof(SpriteBatch).GetField("blendState", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo samplerStateField = typeof(SpriteBatch).GetField("samplerState", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo depthStencilStateField = typeof(SpriteBatch).GetField("depthStencilState", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo rasterizerStateField = typeof(SpriteBatch).GetField("rasterizerState", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo customEffectField = typeof(SpriteBatch).GetField("customEffect", BindingFlags.Instance | BindingFlags.NonPublic);
-    private static readonly FieldInfo transformMatrixField = typeof(SpriteBatch).GetField("transformMatrix", BindingFlags.Instance | BindingFlags.NonPublic);
-
-    public static void GetDrawParameters
-    (
-        this SpriteBatch spriteBatch,
-        out BlendState blendState,
-        out SamplerState samplerState,
-        out DepthStencilState depthStencilState,
-        out RasterizerState rasterizerState,
-        out Effect effect,
-        out Matrix matrix
-    )
-    {
-        blendState = (BlendState)blendStateField.GetValue(spriteBatch);
-        samplerState = (SamplerState)samplerStateField.GetValue(spriteBatch);
-        depthStencilState = (DepthStencilState)depthStencilStateField.GetValue(spriteBatch);
-        rasterizerState = (RasterizerState)rasterizerStateField.GetValue(spriteBatch);
-        effect = customEffectField.GetValue(spriteBatch) as Effect; // can be null
-        matrix = (Matrix)transformMatrixField.GetValue(spriteBatch);
-    }
-
     public static void DrawRectangle(this SpriteBatch spriteBatch, Rectangle rectangle, Color color, float stroke = 2f, bool fill = false)
     {
         Texture2D pixel = QuestAssets.MagicPixel;

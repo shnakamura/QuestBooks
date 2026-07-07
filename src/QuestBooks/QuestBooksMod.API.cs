@@ -1,5 +1,4 @@
 ﻿using QuestBooks.Core.Quests;
-using QuestBooks.Quests;
 
 namespace QuestBooks;
 

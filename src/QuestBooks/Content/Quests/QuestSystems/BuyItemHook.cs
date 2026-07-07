@@ -1,4 +1,5 @@
 ﻿using QuestBooks.Core.Quests;
+using QuestBooks.Utilities;
 using Terraria.DataStructures;
 
 namespace QuestBooks.Quests.QuestSystems;
@@ -110,7 +111,8 @@ public abstract class BuyItemHook<TQuest> : BuyItemHook
     public BuyItemHook(int type) : base(Complete)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(type);
-        Predicate = item => Match(item, type);
+        
+        Predicate = item => ContentUtilities.Match(item, type);
     }
 
     /// <summary>
@@ -125,7 +127,8 @@ public abstract class BuyItemHook<TQuest> : BuyItemHook
     public BuyItemHook(bool[] set) : base(Complete)
     {
         ArgumentNullException.ThrowIfNull(set);
-        Predicate = item => Match(item, set);
+        
+        Predicate = item => ContentUtilities.Match(item, set);
     }
 
     /// <summary>
@@ -140,7 +143,8 @@ public abstract class BuyItemHook<TQuest> : BuyItemHook
     public BuyItemHook(params int[] matches) : base(Complete)
     {
         ArgumentNullException.ThrowIfNull(matches);
-        Predicate = item => Match(item, matches);
+        
+        Predicate = item => ContentUtilities.Match(item, matches);
     }
 
     protected static void Complete(Item item, BuyItemCreationContext context) => QuestBooksMod.MarkComplete<TQuest>();
@@ -153,7 +157,5 @@ public abstract class BuyItemHook<TQuest, TModItem> : BuyItemHook<TQuest>
     /// <summary>
     ///     Initializes a new instance of the <see cref="BuyItemHook{TQuest, TModItem}" /> class.
     /// </summary>
-    public BuyItemHook() : base(Match<TModItem>)
-    {
-    }
+    public BuyItemHook() : base(ContentUtilities.Match<TModItem>) { }
 }

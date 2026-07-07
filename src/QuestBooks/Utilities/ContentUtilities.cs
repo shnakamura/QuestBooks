@@ -3,10 +3,8 @@ using Terraria.DataStructures;
 
 namespace QuestBooks.Utilities;
 
-public static partial class Utils
+public static class ContentUtilities
 {
-    #region Item
-
     public static bool Match(Item item, int type) => item.type == type;
 
     public static bool Match(Item item, bool[] set) => set[item.type];
@@ -19,10 +17,6 @@ public static partial class Utils
 
     public static bool Match(Item item, params Func<int>[] getItemTypes) => getItemTypes.Any(f => f() == item.type);
 
-    #endregion
-
-    #region NPC
-
     public static bool Match(NPC npc, int match) => npc.type == match;
 
     public static bool Match(NPC npc, bool[] set) => set[npc.type];
@@ -34,10 +28,6 @@ public static partial class Utils
     public static bool Match(NPC npc, Func<int> getNpcType) => npc.type == getNpcType();
 
     public static bool Match(NPC npc, params Func<int>[] getNpcTypes) => getNpcTypes.Any(f => f() == npc.type);
-
-    #endregion
-
-    #region Tiles/Fishing/Misc
 
     public static bool Match(int type, int match) => type == match;
 
@@ -67,6 +57,4 @@ public static partial class Utils
     ///     Allows shorthand delegate matching access to <see cref="MatchTile{T}(int)" />
     /// </summary>
     public static bool Match<T>(int i, int j, int type, Item item) where T : ModTile => MatchTile<T>(type);
-
-    #endregion
 }

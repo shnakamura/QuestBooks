@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using QuestBooks.Assets;
 using ReLogic.Graphics;
@@ -14,7 +13,7 @@ public enum TextAlignment
     Right
 }
 
-public static partial class Utils
+public static class DrawUtilities
 {
     public static void DrawRectangle(this SpriteBatch spriteBatch, Rectangle rectangle, Color color, float stroke = 2f, bool fill = false)
     {
@@ -27,6 +26,7 @@ public static partial class Utils
         }
 
         var halfStroke = (int)Math.Ceiling(stroke * 0.5f);
+        
         spriteBatch.Draw(pixel, new Rectangle(rectangle.Left - halfStroke, rectangle.Top - halfStroke, rectangle.Width + (int)stroke, (int)stroke), color);
         spriteBatch.Draw(pixel, new Rectangle(rectangle.Left - halfStroke, rectangle.Top - halfStroke, (int)stroke, rectangle.Height + (int)stroke), color);
         spriteBatch.Draw(pixel, new Rectangle(rectangle.Left - halfStroke, rectangle.Bottom - halfStroke, rectangle.Width + (int)stroke, (int)stroke), color);

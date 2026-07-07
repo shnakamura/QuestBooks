@@ -1,0 +1,10 @@
+<Project Sdk="Tomat.Terraria.ModLoader.Sdk/2.1.1">
+    
+    <Import Project="..\..\common\Mod.props"/>
+    
+    <PropertyGroup>
+        <AssemblyName>QuestBooks</AssemblyName>
+        <RootNamespace>QuestBooks</RootNamespace>
+    </PropertyGroup>
+
+</Project>

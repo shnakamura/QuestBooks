@@ -1,0 +1,18 @@
+Common: {
+	Buttons.Close: Close
+	SearchBars.Placeholder: Search...
+}
+
+Testing: {
+	Labels: {
+		TotalProgressOverview: Total Progress Overview
+		ModProgressOverview: Mod Progress Overview
+	}
+
+	ProgressBars: {
+		Mods: Mod Completion
+		Quests: Quest Completion
+	}
+
+	Header: Quest Testing
+}

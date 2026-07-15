@@ -133,7 +133,7 @@ public abstract class CraftItemHook<TQuest> : CraftItemHook
         Predicate = item => Match(item, types);
     }
 
-    protected static void Complete(Item item, RecipeItemCreationContext context) => QuestBooksMod.MarkComplete<TQuest>();
+    protected static void Complete(Item item, RecipeItemCreationContext context) => QuestBooksMod.CompleteQuest<TQuest>();
 }
 
 public abstract class CraftItemHook<TQuest, TModItem> : CraftItemHook<TQuest>

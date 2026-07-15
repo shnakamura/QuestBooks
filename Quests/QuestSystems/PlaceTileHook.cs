@@ -57,9 +57,7 @@ public abstract class PlaceTileHook : GlobalTile
         var matches = Predicate?.Invoke(i, j, type, item) ?? true;
 
         if (!matches)
-        {
             return;
-        }
 
         Callback.Invoke(i, j, type, item);
     }

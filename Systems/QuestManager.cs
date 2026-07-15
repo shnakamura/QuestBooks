@@ -6,6 +6,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using QuestBooks.Common.Testing;
 
 namespace QuestBooks.Systems
 {
@@ -179,6 +180,12 @@ namespace QuestBooks.Systems
 
             quest.Completed = true;
             quest.MarkAsComplete();
+
+            // TODO: An event system could reduce boilerplate drastically and increase API scalability.
+            if (!TestingSystem.Enabled)
+                return;
+            
+            Main.NewText(@$"{quest.Name} was marked as [c/3fe03f:complete]");
         }
 
         internal static void MarkIncomplete(Quest quest)
@@ -220,6 +227,12 @@ namespace QuestBooks.Systems
             }
 
             quest.Completed = false;
+            
+            // TODO: An event system could reduce boilerplate drastically and increase API scalability.
+            if (!TestingSystem.Enabled)
+                return;
+            
+            Main.NewText(@$"{quest.Name} was marked as [c/c92a2a:incomplete]");
         }
     }
 }

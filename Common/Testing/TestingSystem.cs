@@ -2,15 +2,25 @@
 
 namespace QuestBooks.Common.Testing;
 
-[Autoload(Side = ModSide.Client)]
 public sealed class TestingSystem : ModSystem
 {
     private const string Tag = "TestingEnabled";
-    
+
+    private static bool enabled;
+
     /// <summary>
-    ///     Gets or sets a value indicating whether testing is enabled.
+    ///     Gets a value indicating whether testing is enabled.
     /// </summary>
-    public static bool Enabled { get; internal set; }
+    public static bool Enabled
+    {
+        get => enabled;
+        internal set
+        {
+            enabled = value;
+            
+            NetMessage.SendData(MessageID.WorldData);
+        }
+    }
 
     public override void SaveWorldData(TagCompound tag) => tag[Tag] = Enabled;
 

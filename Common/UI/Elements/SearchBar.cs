@@ -1,5 +1,5 @@
-﻿using Terraria.Audio;
-using Terraria.GameContent.UI.Elements;
+﻿using QuestBooks.Common.UI.Components;
+using QuestBooks.Common.UI.Layout;
 using Terraria.Localization;
 using Terraria.UI;
 
@@ -7,55 +7,144 @@ namespace QuestBooks.Common.UI.Elements;
 
 public sealed class SearchBar : UIElement
 {
-    public override void OnInitialize()
+    private sealed class SearchBarSearchButton : ImageButton
     {
-        base.OnInitialize();
+        private readonly TextInputField input;
 
-        var background = new UIPanel(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/PanelBackground"), ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/PanelBorder"))
+        public override string Tooltip => Language.GetTextValue("Mods.QuestBooks.UI.Common.Buttons.Search");
+
+        public SearchBarSearchButton(TextInputField input) : base(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/SearchIcon"))
+        {
+            ArgumentNullException.ThrowIfNull(input);
+            
+            this.input = input;
+        }
+
+        public override void LeftClick(UIMouseEvent evt)
+        {
+            base.LeftClick(evt);
+            
+            input.ToggleWriting();
+        }
+    }
+    
+    private sealed class SearchBarClearButton : ImageButton
+    {
+        private readonly TextInputField input;
+
+        public override string Tooltip => Language.GetTextValue("Mods.QuestBooks.UI.Common.Buttons.Clear");
+
+        public SearchBarClearButton(TextInputField input) : base(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/SearchClearIcon"))
+        {
+            ArgumentNullException.ThrowIfNull(input);
+            
+            this.input = input;
+        }
+
+        public override void LeftClick(UIMouseEvent evt)
+        {
+            base.LeftClick(evt);
+            
+            input.StopWriting(true);
+        }
+    }
+    
+    private readonly TextInputField input;
+    
+    public event TextInputField.TextInputFieldChangeCallback OnChangeContents
+    {
+        add => input.OnChangeContents += value;
+        remove => input.OnChangeContents -= value;
+    }
+
+    public event Action OnStartWriting
+    {
+        add => input.OnStartWriting += value;
+        remove => input.OnStartWriting -= value;
+    }
+    
+    public event Action OnStopWriting
+    {
+        add => input.OnStopWriting += value;
+        remove => input.OnStopWriting -= value;
+    }
+    
+    /// <summary>
+    ///     Gets or sets the capacity of the search bar, in characters.
+    /// </summary>
+    public int Capacity
+    {
+        get => input.Capacity;
+        set => input.Capacity = value;
+    }
+
+    public float Scale
+    {
+        get => input.Scale;
+        set => input.Scale = value;
+    }
+
+    public string Placeholder
+    {
+        get => input.Placeholder;
+        set => input.Placeholder = value;
+    }
+    
+    /// <summary>
+    ///     Gets a value indicating whether the search bar is writing.
+    /// </summary>
+    public bool Writing => input.Writing;
+
+    public SearchBar()
+    {
+        Append(new SettingsPanel
         {
             Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(1f)
-        };
+        });
 
-        Append(background);
-
-        var searchIcon = new Image(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/SearchIcon"))
+        var stack = new JustifiedHorizontalStack
         {
-            Snap = true,
-            HAlign = 0f,
-            VAlign = 0.5f,
-            Left = StyleDimension.FromPixels(8f)
-        };
-
-        Append(searchIcon);
-
-        var inputField = new TextInputField
-        {
-            Placeholder = Language.GetTextValue("Mods.QuestBooks.UI.Common.SearchBars.Placeholder"),
-            Tags = false,
-            Scale = 0.8f,
-            Capacity = 20,
-            HAlign = 0.5f,
-            VAlign = 0.5f,
-            Width = StyleDimension.FromPercent(0.75f),
+            PaddingTop = 8f,
+            PaddingLeft = 8f,
+            PaddingBottom = 8f,
+            PaddingRight = 8f,
+            Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(1f)
         };
         
-        Append(inputField);
-
-        var clearIcon = new Image(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/SearchClearIcon"))
-        { 
-            Snap = true,
-            HAlign = 1f,
-            VAlign = 0.5f,
-            Left = StyleDimension.FromPixels(-8f)
-        };
-
-        clearIcon.OnMouseOver += (_, _) => SoundEngine.PlaySound(in SoundID.MenuTick); 
-        clearIcon.OnMouseOut += (_, _) => SoundEngine.PlaySound(in SoundID.MenuTick);
-
-        clearIcon.OnLeftClick += (_, _) => inputField.StopWriting(true);
+        Append(stack);
         
-        Append(clearIcon);
+        input = new TextInputField
+        {
+            Placeholder = Language.GetTextValue("Mods.QuestBooks.UI.Common.Searches.Placeholder"),
+            Width = StyleDimension.FromPercent(0.9f),
+            Height = StyleDimension.FromPercent(1f),
+            VAlign = 0.5f
+        };
+        
+        stack.Add(new SearchBarSearchButton(input)
+        {
+            VAlign = 0.5f
+        });
+        
+        stack.Add(input);
+        
+        stack.Add(new SearchBarClearButton(input)
+        {
+            VAlign = 0.5f
+        });
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+        
+        if (IsMouseHovering)
+        {
+            return;
+        }
+
+        input?.StopWriting();
     }
 }

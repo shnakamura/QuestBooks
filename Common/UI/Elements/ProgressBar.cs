@@ -1,60 +1,76 @@
-﻿using Terraria.GameContent.UI.Elements;
-using Terraria.ModLoader.UI;
+﻿using ReLogic.Content;
+using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
 namespace QuestBooks.Common.UI.Elements;
 
 public class ProgressBar : UIElement
 {
-    /// <summary>
-    ///     Represents the method that is called when the progress of a <see cref="ProgressBar"/> changes.
-    /// </summary>
-    /// <param name="progress">
-    ///     The new progress value.
-    /// </param>
-    public delegate void ProgressBarChangeCallback(float progress);
+    private sealed class ProgressBarPanel() : UIPanel(BackgroundTexture, BorderTexture)
+    {
+        private static readonly Asset<Texture2D> BackgroundTexture = ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/ProgressBarBackground");
+        
+        private static readonly Asset<Texture2D> BorderTexture = ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/ProgressBarBorder");
+    }
     
+    private sealed class ProgressBarFill() : StretchedImage(FillTexture)
+    {
+        private static readonly Asset<Texture2D> FillTexture = ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/ProgressBarFill");
+    }
+
+    public delegate void ProgressBarChangeCallback(float progress);
+
     /// <summary>
-    ///     Occurs when the progress of the progress bar changes.
+    ///     Raised when the progress of the progress bar is changed.
     /// </summary>
     public event ProgressBarChangeCallback OnChangeProgress;
     
-    private UIPanel background;
-
-    private StretchedImage fill;
+    /// <summary>
+    ///     The background panel of the progress bar.
+    /// </summary>
+    private readonly UIPanel background;
 
     /// <summary>
-    ///     Gets the progress of this progress bar.
+    ///     The fill image of the progress bar.
     /// </summary>
-    public float Progress { get; protected set; }
+    private readonly StretchedImage fill;
 
+    private float progress;
+    
     /// <summary>
-    ///     Gets the color of this progress bar.
+    ///     Gets or sets the tooltip of the progress bar.
     /// </summary>
-    public Color Color { get; init; } = Color.White;
-
+    public virtual string Tooltip { get; set; }
+    
     /// <summary>
-    ///     Gets a value indicating whether a progress tooltip will be displayed when hovering over this progress bar.
+    ///     Gets the progress of the progress bar.
     /// </summary>
-    public bool Hover { get; init; } = true;
-
-    public override void Recalculate()
+    public float Progress
     {
-        base.Recalculate();
-        
-        const float speed = 0.33f;
-
-        var pixels = MathF.Max(MathHelper.SmoothStep(fill.Width.Pixels, background.Width.Pixels * Progress - 4f, speed), 0f);
-        var percent = MathF.Max(MathHelper.SmoothStep(fill.Width.Percent, background.Width.Percent * Progress, speed), 0f);
-        
-        fill.Width.Set(pixels, percent);
+        get => progress;
+        set
+        {
+            progress = Math.Clamp(value, 0f, 1f);
+            
+            OnChangeProgress?.Invoke(progress);
+        }
     }
-
-    public override void OnInitialize()
+    
+    /// <summary>
+    ///     Gets or sets the color of the progress bar.
+    /// </summary>
+    public Color Color
     {
-        base.OnInitialize();
-        
-        background = new UIPanel(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/ProgressBarBackground"), ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/ProgressBarBorder"))
+        get => fill.Color;
+        set => fill.Color = value;
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ProgressBar"/> <see langword="class"/>.
+    /// </summary>
+    public ProgressBar()
+    {
+        background = new ProgressBarPanel
         {
             Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(1f)
@@ -62,12 +78,10 @@ public class ProgressBar : UIElement
         
         Append(background);
 
-        fill = new StretchedImage(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/ProgressBarFill"))
+        fill = new ProgressBarFill
         {
-            Color = Color,
-            HAlign = 0f,
-            VAlign = 0.5f,
             Left = StyleDimension.FromPixels(2f),
+            VAlign = 0.5f,
             Height = StyleDimension.FromPixelsAndPercent(-4f, 1f)
         };
         
@@ -78,47 +92,21 @@ public class ProgressBar : UIElement
     {
         base.Update(gameTime);
         
-        Recalculate();
+        var pixels = MathHelper.SmoothStep(0f, background.Width.Pixels - 4f, Progress);
+        var percent = MathHelper.SmoothStep(0f, background.Width.Percent, Progress);
+        
+        fill.Width.Set(pixels, percent);
     }
 
     protected override void DrawSelf(SpriteBatch spriteBatch)
     {
         base.DrawSelf(spriteBatch);
 
-        if (!IsMouseHovering)
+        if (!IsMouseHovering || string.IsNullOrEmpty(Tooltip))
         {
             return;
         }
         
-        UICommon.TooltipMouseText($"{Progress * 100f:F2}%");
+        Main.instance.MouseText(Tooltip);
     }
-
-    /// <summary>
-    ///     Sets the progress of this progress bar.
-    /// </summary>
-    /// <param name="progress">
-    ///     The progress to set.
-    /// </param>
-    /// <exception cref="ArgumentOutOfRangeException">
-    ///     <paramref name="progress"/> is negative.
-    /// </exception>
-    /// <remarks>
-    ///     Clamped in the range of <c>[0f - 1f]</c>, where <c>0f</c> is empty and <c>1f</c> is full.
-    /// </remarks>
-    public virtual void SetProgress(float progress)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegative(progress);
-        
-        Progress = Math.Clamp(progress, 0f, 1f);
-        
-        OnChangeProgress?.Invoke(Progress);
-    }
-
-    /// <summary>
-    ///     Sets the color of this progress bar.
-    /// </summary>
-    /// <param name="color">
-    ///     The color to set.
-    /// </param>
-    public virtual void SetColor(in Color color) => fill.Color = color;
 }

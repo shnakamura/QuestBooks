@@ -1,33 +1,43 @@
-﻿using Terraria.GameContent.UI.Elements;
+﻿using QuestBooks.Common.UI.Components;
 using Terraria.Localization;
 using Terraria.UI;
 
 namespace QuestBooks.Common.UI.Elements;
 
-public sealed class ProgressCard : UIElement
+public class ProgressCard : UIElement
 {
-    /// <summary>
-    ///     Represents the method that is called when the progress of a <see cref="ProgressCard"/> changes.
-    /// </summary>
-    /// <param name="progress">
-    ///     The new progress value.
-    /// </param>
-    public delegate void ProgressCardChangeCallback(float progress);
+    private readonly ProgressBar progressBar;
     
-    /// <summary>
-    ///     Occurs when the progress of the progress card changes.
-    /// </summary>
-    public event ProgressCardChangeCallback OnChangeProgress;
-    
-    private readonly string text;
+    private readonly Text percentage;
 
-    private ProgressBar progressBar;
+    /// <summary>
+    ///     Gets or sets the tooltip of the progress card.
+    /// </summary>
+    public virtual string Tooltip { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the progress of the progress card.
+    /// </summary>
+    public float Progress
+    {
+        get => progressBar.Progress;
+        set => progressBar.Progress = value;
+    }
     
     /// <summary>
-    ///     Initializes a new instance of the <see cref="ProgressCard"/> class with the specified text.
+    ///     Gets or sets the color of the progress card.
+    /// </summary>
+    public Color Color
+    {
+        get => progressBar.Color;
+        set => progressBar.Color = value;
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ProgressCard"/> <see langword="class"/>.
     /// </summary>
     /// <param name="text">
-    ///     The text displayed by the progress card.
+    ///     The text of the progress card.
     /// </param>
     /// <exception cref="ArgumentException">
     ///     <paramref name="text"/> is <see langword="null"/> or empty.
@@ -35,99 +45,70 @@ public sealed class ProgressCard : UIElement
     public ProgressCard(string text)
     {
         ArgumentException.ThrowIfNullOrEmpty(text);
+        
+        Append(new SettingsPanel
+        {
+            Width = StyleDimension.FromPercent(1f),
+            Height = StyleDimension.FromPercent(1f)
+        });
 
-        this.text = text;
+        Append(new Text(text)
+        {
+            Top = StyleDimension.FromPixels(8f),
+            Left = StyleDimension.FromPixels(8f),
+            Scale = 0.8f
+        });
+        
+        progressBar = new ProgressBar
+        {
+            Top = StyleDimension.FromPixels(-8f),
+            HAlign = 0.5f,
+            VAlign = 1f,
+            Width = StyleDimension.FromPixelsAndPercent(-8f * 2f, 1f),
+            Height = StyleDimension.FromPixels(12f)
+        };
+
+        Append(progressBar);
+        
+        percentage = new Text
+        {
+            Top = StyleDimension.FromPixels(8f),
+            Left = StyleDimension.FromPixels(-8f),
+            HAlign = 1f,
+            VAlign = 0f,
+            Scale = 0.8f
+        };
+
+        Append(percentage);
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="ProgressCard"/> class with the specified localized text.
+    ///     Initializes a new instance of the <see cref="ProgressCard"/> <see langword="class"/>.
     /// </summary>
     /// <param name="text">
-    ///     The localized text displayed by the progress card.
+    ///     The localized text of the progress card.
     /// </param>
     /// <exception cref="ArgumentNullException">
     ///     <paramref name="text"/> is <see langword="null"/>.
     /// </exception>
-    public ProgressCard(LocalizedText text)
+    public ProgressCard(LocalizedText text) : this(text.Value) => ArgumentNullException.ThrowIfNull(text);
+
+    public override void Update(GameTime gameTime)
     {
-        ArgumentNullException.ThrowIfNull(text);
+        base.Update(gameTime);
 
-        this.text = text.Value;
-    }
-    
-    public override void OnInitialize()
-    {
-        base.OnInitialize();
-        
-        var background = new UIPanel(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/PanelBackground"), ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/PanelBorder"))
-        {
-            Width = StyleDimension.FromPercent(1f),
-            Height = StyleDimension.FromPercent(1f)
-        };
-
-        Append(background);
-
-        var label = new UIText(text, 0.8f)
-        {
-            HAlign = 0f,
-            VAlign = 0f,
-            Top = StyleDimension.FromPixels(8f),
-            Left = StyleDimension.FromPixels(8f)
-        };
-        
-        Append(label);
-        
-        progressBar = new ProgressBar
-        {
-            Color = Color.Green,
-            HAlign = 0.5f,
-            VAlign = 1f,
-            Width = StyleDimension.FromPixelsAndPercent(-8f * 2f, 1f),
-            Height = StyleDimension.FromPixels(12f),
-            Top = StyleDimension.FromPixels(-8f)
-        };
-        
-        Append(progressBar);
-        
-        var percentage = new UIText($"{progressBar.Progress * 100f:F2}%", 0.8f)
-        {
-            HAlign = 1f,
-            VAlign = 0f,
-            Top = StyleDimension.FromPixels(8f),
-            Left = StyleDimension.FromPixels(-8f)
-        };
-
-        percentage.OnUpdate += _ => percentage.SetText($"{progressBar.Progress * 100f:F2}%");
-        
-        Append(percentage);
-    }
-    
-    /// <summary>
-    ///     Sets the progress of this progress card.
-    /// </summary>
-    /// <param name="progress">
-    ///     The progress to set.
-    /// </param>
-    /// <exception cref="ArgumentOutOfRangeException">
-    ///     <paramref name="progress"/> is negative.
-    /// </exception>
-    /// <remarks>
-    ///     Clamped in the range of <c>[0f - 1f]</c>, where <c>0f</c> is empty and <c>1f</c> is full.
-    /// </remarks>
-    public void SetProgress(float progress)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegative(progress);
-        
-        progressBar.SetProgress(progress);
-        
-        OnChangeProgress?.Invoke(progress);
+        percentage.Contents = $"{Progress * 100f:F2}%";
     }
 
-    /// <summary>
-    ///     Sets the progress bar color of this progress card.
-    /// </summary>
-    /// <param name="color">
-    ///     The color to set.
-    /// </param>
-    public void SetColor(in Color color) => progressBar.SetColor(in color);
+    protected override void DrawSelf(SpriteBatch spriteBatch)
+    {
+        base.DrawSelf(spriteBatch);
+        
+        if (!IsMouseHovering || string.IsNullOrEmpty(Tooltip))
+        {
+            return;
+        }
+        
+        Main.instance.MouseText(Tooltip);
+    }
 }

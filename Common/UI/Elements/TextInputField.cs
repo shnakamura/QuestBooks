@@ -1,37 +1,60 @@
-﻿using Terraria.Audio;
+﻿using QuestBooks.Core.Graphics;
+using ReLogic.Content;
+using ReLogic.Graphics;
+using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.GameInput;
 using Terraria.UI;
+using Terraria.UI.Chat;
 
 namespace QuestBooks.Common.UI.Elements;
 
-public class TextInputField : TextField
+// TODO: Implement text cursor positioning.
+public sealed class TextInputField : UIElement
 {
+    public delegate void TextInputFieldChangeCallback(string contents);
+
     /// <summary>
-    ///     Occurs when the text input field starts writing.
+    ///     Raised when the contents of the text input field are changed.
+    /// </summary>
+    public event TextInputFieldChangeCallback OnChangeContents;
+    
+    /// <summary>
+    ///     Raised when the text input field starts writing.
     /// </summary>
     public event Action OnStartWriting;
 
     /// <summary>
-    ///     Occurs when the text input field stops writing.
+    ///     Raised when the text input field stops writing.
     /// </summary>
     public event Action OnStopWriting;
     
     /// <summary>
-    ///     Gets the maximum number of characters that can be entered into this text input field.
+    ///     Gets a value indicating whether the text input field is writing.
     /// </summary>
-    public int Capacity { get; init; } = 50;
-
+    public bool Writing { get; private set; }
+    
     /// <summary>
-    ///     Gets or sets a value indicating whether a ticker should be displayed when text is being written to this text input field.
+    ///     Gets or sets the capacity of the text input field, in characters.
     /// </summary>
+    public int Capacity { get; set; }
+
     public bool Ticker { get; init; } = true;
+    
+    public string Placeholder { get; set; } = string.Empty;
+
+    public float Scale { get; set; } = 1f;
+
+    public string Contents { get; private set; } = string.Empty;
+
+    public bool Empty => Contents == string.Empty;
 
     /// <summary>
-    ///     Gets a value indicating whether text is currently being written to this text input field.
+    ///     Gets or sets the font of the text.
     /// </summary>
-    public bool Writing { get; protected set; }
-
-    public override string Display
+    public Asset<DynamicSpriteFont> Font { get; set; } = FontAssets.MouseText;
+    
+    public string Display
     {
         get
         {
@@ -53,60 +76,66 @@ public class TextInputField : TextField
         ToggleWriting();
     }
 
-    public override void MouseOver(UIMouseEvent evt)
-    {
-        base.MouseOver(evt);
-
-        SoundEngine.PlaySound(in SoundID.MenuTick);
-    }
-
-    public override void MouseOut(UIMouseEvent evt)
-    {
-        base.MouseOut(evt);
-        
-        SoundEngine.PlaySound(in SoundID.MenuTick);
-    }
-
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-
+        
         if (!Writing)
         {
             return;
         }
-
-        PlayerInput.WritingText = true;
         
-        Main.CurrentInputTextTakerOverride = this;
+        UpdateWriting();
     }
 
     protected override void DrawSelf(SpriteBatch spriteBatch)
     {
         base.DrawSelf(spriteBatch);
+        
+        var font = Font.Value;
+        var scale = new Vector2(Scale);
+
+        var dimensions = GetInnerDimensions();
+        
+        var position = dimensions.Position() + new Vector2(dimensions.Width * 0f + 2f * Scale, dimensions.Height / 2f + 4f * Scale);
+
+        var size = font.MeasureString(Display);
+        var origin = new Vector2(size.X * 0f, size.Y / 2f);
+
+        var color = Empty ? Color.Gray : Color.White;
+
+        ChatManager.DrawColorCodedStringWithShadow
+        (
+            spriteBatch,
+            font,
+            Display,
+            position,
+            color,
+            0f,
+            origin,
+            scale
+        );
 
         if (!Writing)
         {
             return;
         }
         
-        PlayerInput.WritingText = true;
+        UpdateWriting();
+    }
+    
+    public void SetContents(string contents)
+    {
+        ArgumentNullException.ThrowIfNull(contents);
         
-        Main.instance.HandleIME();
-
-        SetContents(Main.GetInputText(Contents));
-        
-        if (!Main.inputTextEnter && !Main.inputTextEscape)
+        if (Contents == contents)
         {
             return;
         }
 
-        StopWriting();
-    }
-
-    public override void SetContents(string contents)
-    {
-        base.SetContents(contents);
+        Contents = contents;
+        
+        OnChangeContents?.Invoke(contents);
         
         if (Contents.Length <= Capacity)
         {
@@ -115,17 +144,15 @@ public class TextInputField : TextField
         
         Contents = Contents[..Capacity];
     }
+    
+    public void ClearContents()
+    {
+        Contents = string.Empty;
+        
+        OnChangeContents?.Invoke(string.Empty);
+    }
 
-    /// <summary>
-    ///     Toggles whether text is currently being written to this text input field.
-    /// </summary>
-    /// <param name="clear">
-    ///     Whether to clear the contents of this text input field if stopping writing.
-    /// </param>
-    /// <param name="sound">
-    ///     Whether to play a sound when toggling the writing state.
-    /// </param>
-    public virtual void ToggleWriting(bool clear = false, bool sound = true)
+    public void ToggleWriting(bool clear = false, bool sound = true)
     {
         if (Writing)
         {
@@ -133,18 +160,22 @@ public class TextInputField : TextField
         }
         else
         {
-            StartWriting(sound);
+            StartWriting(clear, sound);
         }
     }
 
-    /// <summary>
-    ///     Begins writing text to this text input field.
-    /// </summary>
-    /// <param name="sound">
-    ///     Whether to play a sound when starting to write.
-    /// </param>
-    public virtual void StartWriting(bool sound = true)
+    public void StartWriting(bool clear = false, bool sound = true)
     {
+        if (clear)
+        {
+            ClearContents();
+        }
+        
+        if (Writing)
+        {
+            return;
+        }
+        
         Writing = true;
         
         OnStartWriting?.Invoke();
@@ -157,22 +188,18 @@ public class TextInputField : TextField
         SoundEngine.PlaySound(in SoundID.MenuOpen);
     }
 
-    /// <summary>
-    ///     Stops writing text to this text input field.
-    /// </summary>
-    /// <param name="clear">
-    ///     Whether to clear the contents of this text input field when stopping writing.
-    /// </param>
-    /// <param name="sound">
-    ///     Whether to play a sound when stopping writing.
-    /// </param>
-    public virtual void StopWriting(bool clear = false, bool sound = true)
+    public void StopWriting(bool clear = false, bool sound = true)
     {
         if (clear)
         {
             ClearContents();
         }
-
+        
+        if (!Writing)
+        {
+            return;
+        }
+        
         Writing = false;
         
         OnStopWriting?.Invoke();
@@ -183,5 +210,29 @@ public class TextInputField : TextField
         }
 
         SoundEngine.PlaySound(in SoundID.MenuClose); 
+    }
+
+    private void UpdateWriting()
+    {
+        if (!Writing)
+        {
+            return;
+        }
+        
+        PlayerInput.WritingText = true;
+        
+        Main.instance.HandleIME();
+        Main.CurrentInputTextTakerOverride = this;
+
+        SetContents(Main.GetInputText(Contents));
+
+        var escape = Main.inputTextEnter || Main.inputTextEscape;
+        
+        if (!escape)
+        {
+            return;
+        }
+
+        StopWriting();
     }
 }

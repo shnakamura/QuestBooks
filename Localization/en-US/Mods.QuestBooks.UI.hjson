@@ -1,18 +1,37 @@
 Common: {
-	Buttons.Close: Close
-	SearchBars.Placeholder: Search...
+	Buttons: {
+		Search: Search
+		Close: Close
+		Clear: Clear
+		Filter: Filter
+	}
+
+	Searches.Placeholder: Search...
 }
 
 Testing: {
-	Labels: {
-		TotalProgressOverview: Total Progress Overview
-		ModProgressOverview: Mod Progress Overview
-	}
-
-	ProgressBars: {
-		Mods: Mod Completion
-		Quests: Quest Completion
-	}
-
 	Header: Quest Testing
+
+	Labels: {
+		Mods: Mods
+		Quest: Quest
+		Mod: Mod
+		Book: Book
+		Chapter: Chapter
+		Status: Status
+		Complete: Complete
+		Incomplete: Incomplete
+	}
+
+	Progress: {
+		Quests: Quest Completion
+		Chapters: Chapter Completion
+		Books: Book Completion
+	}
+
+	Buttons: {
+		Open: Open Quest Testing
+		MarkComplete: Mark Complete
+		MarkIncomplete: Mark Incomplete
+	}
 }

@@ -1,6 +1,8 @@
 ﻿using MonoMod.Utils;
 using Newtonsoft.Json;
 using QuestBooks.QuestLog;
+using QuestBooks.Quests;
+using QuestBooks.Quests.VanillaQuests;
 using QuestBooks.Utilities;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -108,7 +110,7 @@ namespace QuestBooks.Systems
         {
             // Cache the tag compound as we only want to read it for the actual player
             // entering the world.
-            private TagCompound tagCompound = null;
+            private TagCompound tagCompound = new();
 
             public override void LoadData(TagCompound tag) => tagCompound = tag;
 

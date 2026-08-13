@@ -17,13 +17,10 @@ public sealed class TestingMenuQuestList : UIElement
     private sealed class QuestFilterButton : ImageButton
     {
         private static readonly Asset<Texture2D> FilterTexture = ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Filter");
-
+        
         public override string Tooltip => Language.GetTextValue("Mods.QuestBooks.UI.Common.Buttons.Filter");
 
-        public QuestFilterButton() : base(FilterTexture)
-        {
-            
-        }
+        public QuestFilterButton() : base(FilterTexture) { }
     }
     
     private sealed class QuestListFilters : UIElement
@@ -40,7 +37,7 @@ public sealed class TestingMenuQuestList : UIElement
                 Height = StyleDimension.FromPercent(1f)
             });
 
-            Append(new QuestFilterButton()
+            Append(new QuestFilterButton
             {
                 HAlign = 0.5f,
                 VAlign = 0.5f
@@ -91,15 +88,15 @@ public sealed class TestingMenuQuestList : UIElement
     
     private sealed class QuestListItem : UIElement
     {
-        public readonly Quest Quest;
-
+        private readonly Quest quest;
+        
         private Text status;
         
         public QuestListItem(Quest quest)
         {
             ArgumentNullException.ThrowIfNull(quest);
             
-            Quest = quest;
+            this.quest = quest;
         }
 
         public override void OnInitialize()
@@ -116,17 +113,17 @@ public sealed class TestingMenuQuestList : UIElement
             
             Append(stack);
             
-            stack.Add(new Text(Quest.Name)
+            stack.Add(new Text(quest.Name)
             {
                 Scale = 0.7f
             });
             
-            stack.Add(new Text(Quest.Mod.DisplayNameClean)
+            stack.Add(new Text(quest.Mod.DisplayNameClean)
             {
                 Scale = 0.7f
             });
 
-            status = new Text(Language.GetText(Quest.Completed ? "Mods.QuestBooks.UI.Testing.Labels.Complete" : "Mods.QuestBooks.UI.Testing.Labels.Incomplete"))
+            status = new Text(Language.GetText(quest.Completed ? "Mods.QuestBooks.UI.Testing.Labels.Complete" : "Mods.QuestBooks.UI.Testing.Labels.Incomplete"))
             {
                 Scale = 0.7f
             };
@@ -138,13 +135,13 @@ public sealed class TestingMenuQuestList : UIElement
         {
             base.RightClick(evt);
             
-            if (Quest.Completed)
+            if (quest.Completed)
             {
-                QuestManager.MarkIncomplete(Quest);
+                QuestManager.MarkIncomplete(quest);
             }
             else
             {
-                QuestManager.MarkComplete(Quest);
+                QuestManager.MarkComplete(quest);
             }
         }
 
@@ -152,7 +149,7 @@ public sealed class TestingMenuQuestList : UIElement
         {
             base.Update(gameTime);
 
-            status.Contents = Language.GetTextValue(Quest.Completed ? "Mods.QuestBooks.UI.Testing.Labels.Complete" : "Mods.QuestBooks.UI.Testing.Labels.Incomplete");
+            status.Contents = Language.GetTextValue(quest.Completed ? "Mods.QuestBooks.UI.Testing.Labels.Complete" : "Mods.QuestBooks.UI.Testing.Labels.Incomplete");
         }
 
         protected override void DrawSelf(SpriteBatch spriteBatch)
@@ -164,7 +161,7 @@ public sealed class TestingMenuQuestList : UIElement
 
             var color = IsMouseHovering ? UICommon.DefaultUIBlue : UICommon.DefaultUIBlueMouseOver;
 
-            if (Quest.Completed)
+            if (quest.Completed)
             {
                 color = IsMouseHovering ? new Color(67, 191, 77) : new Color(27, 151, 37);
             }
@@ -173,25 +170,42 @@ public sealed class TestingMenuQuestList : UIElement
         }
     }
 
-    private readonly List<QuestListItem> items = new();
+    private readonly record struct QuestListItemData(Quest Quest, QuestListItem Item);
+
+    private readonly List<QuestListItemData> data = new();
 
     private UIList list;
-    
-    public delegate void QuestSelectedCallback(Quest quest);
-    
-    public event QuestSelectedCallback OnQuestSelected;
 
     public override void OnInitialize()
     {
         base.OnInitialize();
         
         SetPadding(8f);
-
+        
         Append(new SettingsPanel
         {
             Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(1f)
         });
+        
+        var scrollbar = new UIScrollbar
+        {
+            Width = StyleDimension.FromPixels(20f),
+            Height = StyleDimension.FromPixelsAndPercent(-16f, 1f),
+            HAlign = 1f,
+            VAlign = 0.5f
+        };
+
+        list = new UIList
+        {
+            PaddingTop = 8f,
+            PaddingLeft = 8f,
+            PaddingBottom = 8f,
+            PaddingRight = 8f,
+            ListPadding = 0f,
+            Width = StyleDimension.FromPixelsAndPercent(-scrollbar.Width.Pixels, 1f),
+            Height = StyleDimension.FromPercent(1f)
+        };
 
         var verticalStack = new VerticalStack
         {
@@ -221,18 +235,6 @@ public sealed class TestingMenuQuestList : UIElement
         };
         
         search.OnChangeContents += Refresh;
-
-        list = new UIList
-        {
-            ManualSortMethod = Sort,
-            PaddingTop = 8f,
-            PaddingLeft = 8f,
-            PaddingBottom = 8f,
-            PaddingRight = 8f,
-            ListPadding = 0f,
-            Width = StyleDimension.FromPixelsAndPercent(-20f, 1f),
-            Height = StyleDimension.FromPercent(1f)
-        };
         
         horizontalStack.Add(search);
         
@@ -256,19 +258,10 @@ public sealed class TestingMenuQuestList : UIElement
         
         verticalStack.Add(container);
         
-        var scrollbar = new UIScrollbar
-        {
-            Width = StyleDimension.FromPixels(20f),
-            Height = StyleDimension.FromPixelsAndPercent(-16f, 1f),
-            HAlign = 1f,
-            VAlign = 0.5f
-        };
-        
-        container.Append(scrollbar);
-        
         list.SetScrollbar(scrollbar);
         
         container.Append(list);
+        container.Append(scrollbar);
 
         foreach (var quest in ModContent.GetContent<Quest>())
         {
@@ -278,10 +271,8 @@ public sealed class TestingMenuQuestList : UIElement
                 Height = StyleDimension.FromPixels(32f),
             };
             
-            item.OnLeftClick += (_, _) => OnQuestSelected?.Invoke(quest); 
-            
             list.Add(item);
-            items.Add(item);
+            data.Add(new QuestListItemData(quest, item));
         }
     }
 
@@ -289,26 +280,16 @@ public sealed class TestingMenuQuestList : UIElement
     {
         list.Clear();
 
-        foreach (var item in items)
+        foreach (var element in data)
         {
-            if (!item.Quest.Name.Contains(contents, StringComparison.OrdinalIgnoreCase))
+            if (!element.Quest.Name.Contains(contents, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            list.Add(item);
+            list.Add(element.Item);
         }
 
         list.UpdateOrder();
     }
-    
-    private static void Sort(List<UIElement> elements) => elements.Sort((a, b) =>
-    {
-        if (a is not QuestListItem left || b is not QuestListItem right)
-        {
-            return 0;
-        }
-
-        return string.Compare(left.Quest.Name, right.Quest.Name, StringComparison.OrdinalIgnoreCase);
-    });
 }

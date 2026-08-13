@@ -5,7 +5,7 @@ namespace QuestBooks.Common.UI;
 
 public static class ElementExtensions
 {
-    public static bool TryInitialize(this UIElement element, bool recalculate = true)
+    public static bool TryInitialize<TElement>(this TElement element, bool recalculate = true) where TElement : UIElement
     {
         if (element.Children.Any())
         {
@@ -22,7 +22,7 @@ public static class ElementExtensions
         return true;
     }
     
-    public static bool TryClear(this UIElement element, bool recalculate = true)
+    public static bool TryClear<TElement>(this TElement element, bool recalculate = true) where  TElement : UIElement
     {
         if (!element.Children.Any())
         {

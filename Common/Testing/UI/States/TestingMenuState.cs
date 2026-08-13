@@ -2,13 +2,58 @@
 using Microsoft.Xna.Framework.Input;
 using QuestBooks.Common.Testing.UI.Components;
 using QuestBooks.Common.UI.Components;
+using QuestBooks.Common.UI.Elements;
 using QuestBooks.Common.UI.Layout;
+using Terraria.Localization;
 using Terraria.UI;
 
 namespace QuestBooks.Common.Testing.UI.States;
 
 public sealed class TestingMenuState : UIState
 {
+    private sealed class TestingMenuHeader : UIElement
+    {
+        public override void OnInitialize()
+        {
+            base.OnInitialize();
+        
+            SetPadding(8f);
+        
+            Append(new SettingsPanel
+            {
+                Width = StyleDimension.FromPercent(1f),
+                Height = StyleDimension.FromPercent(1f)
+            });
+
+            var stack = new HorizontalStack
+            {
+                Width = StyleDimension.FromPercent(1f),
+                Height = StyleDimension.FromPercent(1f),
+                Gap = 4f
+            };
+        
+            stack.SetPadding(8f);
+        
+            Append(stack);
+        
+            stack.Add(new Image(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Testing/HeaderIcon"))
+            {
+                HAlign = 0f,
+                VAlign = 0.5f
+            });
+
+            stack.Add(new Text(Language.GetText("Mods.QuestBooks.UI.Testing.Header"))
+            {
+                HAlign = 0f,
+                VAlign = 0.5f
+            });
+        }
+    }
+    
+    private HorizontalStack horizontalStack;
+
+    private VerticalStack verticalStack;
+    
     public override void OnInitialize()
     {
         base.OnInitialize();
@@ -29,7 +74,7 @@ public sealed class TestingMenuState : UIState
             Height = StyleDimension.FromPercent(1f),
         });
 
-        var verticalStack = new VerticalStack
+        verticalStack = new VerticalStack
         {
             Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(1f)
@@ -45,7 +90,7 @@ public sealed class TestingMenuState : UIState
         
         verticalStack.Add(header);
 
-        var horizontalStack = new HorizontalStack
+        horizontalStack = new HorizontalStack
         {
             Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(0.9f)
@@ -58,6 +103,12 @@ public sealed class TestingMenuState : UIState
             Width = StyleDimension.FromPercent(0.2f),
             Height = StyleDimension.FromPixelsAndPercent(-header.Height.Pixels - verticalStack.Gap, 1f)
         });
+        
+        var info = new TestingMenuDisplay
+        {
+            Width = StyleDimension.FromPercent(0.3f),
+            Height = StyleDimension.FromPixelsAndPercent(-header.Height.Pixels - verticalStack.Gap, 1f)
+        };
 
         var list = new TestingMenuQuestList
         {
@@ -66,16 +117,6 @@ public sealed class TestingMenuState : UIState
         };
 
         horizontalStack.Add(list);
-        
-        var info = new TestingMenuQuestInfo
-        {
-            Width = StyleDimension.FromPercent(0.3f),
-            Height = StyleDimension.FromPixelsAndPercent(-header.Height.Pixels - verticalStack.Gap, 1f)
-        };
-        
-        horizontalStack.Add(info);
-
-        list.OnQuestSelected += quest => info.Set(quest);
     }
 
     public override void Update(GameTime gameTime)
@@ -88,6 +129,21 @@ public sealed class TestingMenuState : UIState
         }
 
         TestingMenuSystem.Close();
+    }
+
+    public void SetEmptyDisplay()
+    {
+
+    }
+
+    public void SetQuestDisplay()
+    {
+        
+    }
+    
+    public void SetFiltersDisplay()
+    {
+        
     }
 }
 

@@ -6,11 +6,13 @@ Common: {
 		Filter: Filter
 	}
 
+	Labels.Filters: Filters
 	Searches.Placeholder: Search...
 }
 
 Testing: {
 	Header: Quest Testing
+	Displays.Empty: Select a quest to view its details.
 
 	Labels: {
 		Mods: Mods

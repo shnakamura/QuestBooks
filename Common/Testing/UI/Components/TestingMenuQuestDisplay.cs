@@ -11,7 +11,7 @@ using Terraria.UI;
 
 namespace QuestBooks.Common.Testing.UI.Components;
 
-public sealed class TestingMenuQuestInfo : UIElement
+public sealed class TestingMenuQuestDisplay : UIElement
 {
     private sealed class MarkCompleteButton : PanelButton
     {
@@ -92,17 +92,19 @@ public sealed class TestingMenuQuestInfo : UIElement
             QuestManager.MarkIncomplete(quest);
         }
     }
-
-    public bool Empty => Quest == null;
     
-    /// <summary>
-    ///     The quest associated with the element.
-    /// </summary>
-    public Quest Quest { get; private set; }
+    private Quest quest;
+
+    private bool empty;
 
     public override void OnInitialize()
     {
         base.OnInitialize();
+
+        if (empty)
+        {
+            return;
+        }
         
         SetPadding(8f);
 
@@ -111,12 +113,7 @@ public sealed class TestingMenuQuestInfo : UIElement
             Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(1f)
         });
-
-        if (Empty)
-        {
-            return;
-        }
-
+        
         var verticalStack = new VerticalStack
         {
             PaddingTop = 8f,
@@ -130,18 +127,18 @@ public sealed class TestingMenuQuestInfo : UIElement
 
         Append(verticalStack);
 
-        verticalStack.Add(new Text(Quest.GetLocalization("Title"))
+        verticalStack.Add(new Text(quest.GetLocalization("Title"))
         {
             Font = FontAssets.DeathText
         });
 
-        verticalStack.Add(new Text("From: " + Quest.Mod.DisplayName)
+        verticalStack.Add(new Text("From: " + quest.Mod.DisplayName)
         {
             Scale = 0.7f,
             Color = Color.DarkGray
         });
         
-        verticalStack.Add(new Text(Quest.GetLocalization("Tooltip"))
+        verticalStack.Add(new Text(quest.GetLocalization("Tooltip"))
         {
             Scale = 0.8f
         });
@@ -151,7 +148,7 @@ public sealed class TestingMenuQuestInfo : UIElement
             Scale = 1.2f
         });
 
-        verticalStack.Add(new TextBox(Quest.GetLocalization("Contents"))
+        verticalStack.Add(new TextBox(quest.GetLocalization("Contents"))
         {
             Scale = 0.8f,
             Width = StyleDimension.FromPercent(1f)
@@ -169,7 +166,7 @@ public sealed class TestingMenuQuestInfo : UIElement
                 foreach (var chapter in book.Chapters)
                 {
                     // TODO: For some reason, books and chapters use different quest instances and equality isn't explicitly supported.
-                    if (!chapter.QuestList.Any(other => other.FullName == Quest.FullName))
+                    if (!chapter.QuestList.Any(other => other.FullName == quest.FullName))
                     {
                         continue;
                     }
@@ -182,7 +179,7 @@ public sealed class TestingMenuQuestInfo : UIElement
             }
         }
 
-        Append(new MarkCompleteButton(Quest)
+        Append(new MarkCompleteButton(quest)
         {
             PaddingTop = 8f,
             PaddingLeft = 8f,
@@ -194,7 +191,7 @@ public sealed class TestingMenuQuestInfo : UIElement
             Height = StyleDimension.FromPercent(0.1f)
         });
 
-        Append(new MarkIncompleteButton(Quest)
+        Append(new MarkIncompleteButton(quest)
         {
             PaddingTop = 8f,
             PaddingLeft = 8f,
@@ -204,16 +201,41 @@ public sealed class TestingMenuQuestInfo : UIElement
             VAlign = 1f,
             Width = StyleDimension.FromPixelsAndPercent(-PaddingRight / 2f, 0.5f),
             Height = StyleDimension.FromPercent(0.1f),
-        });
+        });   
     }
-
-    public void Set(Quest quest)
+    
+    // ReSharper disable once ParameterHidesMember
+    public bool TrySetQuest(Quest quest)
     {
         ArgumentNullException.ThrowIfNull(quest);
 
-        Quest = quest;
+        if (this.quest == quest)
+        {
+            return false;
+        }
 
+        this.quest = quest;
+
+        empty = false;
+        
         this.TryClear();
         this.TryInitialize();
+
+        return true;
+    }
+
+    public bool TryClearQuest()
+    {
+        if (quest == null)
+        {
+            return false;
+        }
+
+        quest = null;
+        empty = true;
+
+        this.TryClear();
+        
+        return true;
     }
 }

@@ -103,12 +103,10 @@ public sealed class SearchBar : UIElement
             Height = StyleDimension.FromPercent(1f)
         });
 
-        var stack = new JustifiedHorizontalStack
+        var stack = new HorizontalStack
         {
-            PaddingTop = 8f,
-            PaddingLeft = 8f,
-            PaddingBottom = 8f,
-            PaddingRight = 8f,
+            Mode = StackMode.Evenly,
+            Padding = 8f,
             Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(1f)
         };

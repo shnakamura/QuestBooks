@@ -13,9 +13,28 @@ public sealed class HorizontalStack : UIElement
     public IReadOnlyList<UIElement> Layout => layout;
     
     /// <summary>
+    ///     Gets the mode of the stack.
+    /// </summary>
+    public StackMode Mode { get; init; } = StackMode.Offset;
+    
+    /// <summary>
     ///     Gets the horizontal gap between each element in the stack, in pixels.
     /// </summary>
     public float Gap { get; init; }
+
+    /// <summary>
+    ///     Sets the padding for all sides of the stack, in pixels.
+    /// </summary>
+    public float Padding
+    {
+        set
+        {
+            PaddingTop = value;
+            PaddingLeft = value;
+            PaddingBottom = value;
+            PaddingRight = value;
+        }
+    }
     
     /// <summary>
     ///     Adds the specified element to the stack's layout.
@@ -37,6 +56,19 @@ public sealed class HorizontalStack : UIElement
     {
         base.Recalculate();
         
+        switch (Mode)
+        {
+            case StackMode.Offset:
+                StackOffset();
+                break;
+            case StackMode.Evenly:
+                StackEvenly();
+                break;
+        }
+    }
+
+    private void StackOffset()
+    {
         var offset = 0f;
         
         foreach (var element in Layout)
@@ -47,6 +79,19 @@ public sealed class HorizontalStack : UIElement
             offset += Gap;
             
             element.Recalculate();
+        }
+    }
+
+    private void StackEvenly()
+    {
+        var count = Layout.Count;
+
+        for (var i = 0; i < count; i++)
+        {
+            var child = Layout[i];
+            
+            child.HAlign = i / (float)(count - 1);
+            child.Recalculate();
         }
     }
 }

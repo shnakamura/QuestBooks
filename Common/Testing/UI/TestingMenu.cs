@@ -7,11 +7,11 @@ using QuestBooks.Common.UI.Layout;
 using Terraria.Localization;
 using Terraria.UI;
 
-namespace QuestBooks.Common.Testing.UI.States;
+namespace QuestBooks.Common.Testing.UI;
 
-public sealed class TestingMenuState : UIState
+public static class TestingMenu
 {
-    private sealed class TestingMenuHeader : UIElement
+    public sealed class Header : UIElement
     {
         public override void OnInitialize()
         {
@@ -29,10 +29,9 @@ public sealed class TestingMenuState : UIState
             {
                 Width = StyleDimension.FromPercent(1f),
                 Height = StyleDimension.FromPercent(1f),
-                Gap = 4f
+                Gap = 4f,
+                Padding = 8f
             };
-        
-            stack.SetPadding(8f);
         
             Append(stack);
         
@@ -50,100 +49,82 @@ public sealed class TestingMenuState : UIState
         }
     }
     
-    private HorizontalStack horizontalStack;
-
-    private VerticalStack verticalStack;
-    
-    public override void OnInitialize()
+    public sealed class State : UIState
     {
-        base.OnInitialize();
+        private HorizontalStack horizontalStack;
 
-        var container = new UIElement
-        {
-            HAlign = 0.5f,
-            VAlign = 0.5f,
-            Width = StyleDimension.FromPercent(0.8f),
-            Height = StyleDimension.FromPercent(0.7f)
-        };
+        private VerticalStack verticalStack;
         
-        Append(container);
-        
-        container.Append(new BackgroundPanel
+        public override void OnInitialize()
         {
-            Width = StyleDimension.FromPercent(1f),
-            Height = StyleDimension.FromPercent(1f),
-        });
+            base.OnInitialize();
 
-        verticalStack = new VerticalStack
-        {
-            Width = StyleDimension.FromPercent(1f),
-            Height = StyleDimension.FromPercent(1f)
-        };
+            var container = new UIElement
+            {
+                HAlign = 0.5f,
+                VAlign = 0.5f,
+                Width = StyleDimension.FromPercent(0.8f),
+                Height = StyleDimension.FromPercent(0.7f)
+            };
         
-        container.Append(verticalStack);
+            Append(container);
         
-        var header = new TestingMenuHeader
-        {
-            Width = StyleDimension.FromPercent(1f),
-            Height = StyleDimension.FromPercent(0.1f)
-        };
-        
-        verticalStack.Add(header);
+            container.Append(new BackgroundPanel
+            {
+                Width = StyleDimension.FromPercent(1f),
+                Height = StyleDimension.FromPercent(1f),
+            });
 
-        horizontalStack = new HorizontalStack
-        {
-            Width = StyleDimension.FromPercent(1f),
-            Height = StyleDimension.FromPercent(0.9f)
-        };
+            verticalStack = new VerticalStack
+            {
+                Width = StyleDimension.FromPercent(1f),
+                Height = StyleDimension.FromPercent(1f)
+            };
         
-        verticalStack.Add(horizontalStack);
+            container.Append(verticalStack);
         
-        horizontalStack.Add(new TestingMenuSidebar
-        {
-            Width = StyleDimension.FromPercent(0.2f),
-            Height = StyleDimension.FromPixelsAndPercent(-header.Height.Pixels - verticalStack.Gap, 1f)
-        });
+            var header = new Header
+            {
+                Width = StyleDimension.FromPercent(1f),
+                Height = StyleDimension.FromPercent(0.1f)
+            };
         
-        var info = new TestingMenuDisplay
-        {
-            Width = StyleDimension.FromPercent(0.3f),
-            Height = StyleDimension.FromPixelsAndPercent(-header.Height.Pixels - verticalStack.Gap, 1f)
-        };
+            verticalStack.Add(header);
 
-        var list = new TestingMenuQuestList
-        {
-            Width = StyleDimension.FromPercent(0.5f),
-            Height = StyleDimension.FromPixelsAndPercent(-header.Height.Pixels - verticalStack.Gap, 1f)
-        };
+            horizontalStack = new HorizontalStack
+            {
+                Width = StyleDimension.FromPercent(1f),
+                Height = StyleDimension.FromPercent(0.9f)
+            };
+        
+            verticalStack.Add(horizontalStack);
+        
+            horizontalStack.Add(new TestingMenuSidebar
+            {
+                Width = StyleDimension.FromPercent(0.2f),
+                Height = StyleDimension.FromPixelsAndPercent(-header.Height.Pixels - verticalStack.Gap, 1f)
+            });
 
-        horizontalStack.Add(list);
-    }
+            var list = new TestingMenuQuestList
+            {
+                Width = StyleDimension.FromPercent(0.5f),
+                Height = StyleDimension.FromPixelsAndPercent(-header.Height.Pixels - verticalStack.Gap, 1f)
+            };
 
-    public override void Update(GameTime gameTime)
-    {
-        base.Update(gameTime);
-
-        if (!Main.keyState.IsKeyDown(Keys.Escape))
-        {
-            return;
+            horizontalStack.Add(list);
         }
-
-        TestingMenuSystem.Close();
-    }
-
-    public void SetEmptyDisplay()
-    {
-
-    }
-
-    public void SetQuestDisplay()
-    {
         
-    }
-    
-    public void SetFiltersDisplay()
-    {
-        
+        public override void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
+
+            if (!Main.keyState.IsKeyDown(Keys.Escape))
+            {
+                return;
+            }
+
+            TestingMenuSystem.Close();
+        }
     }
 }
 
@@ -171,7 +152,7 @@ public sealed class TestingMenuSystem : ModSystem
     public static void Open()
     {
         UserInterface = new UserInterface();
-        UserInterface.SetState(new TestingMenuState());
+        UserInterface.SetState(new TestingMenu.State());
     }
 
     /// <summary>

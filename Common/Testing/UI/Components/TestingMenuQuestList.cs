@@ -59,8 +59,9 @@ public sealed class TestingMenuQuestList : UIElement
                 Height = StyleDimension.FromPercent(1f)
             });
 
-            var stack = new JustifiedHorizontalStack
+            var stack = new HorizontalStack
             {
+                Mode = StackMode.Evenly,
                 Width = StyleDimension.FromPercent(1f),
                 Height = StyleDimension.FromPercent(1f)
             };
@@ -105,8 +106,9 @@ public sealed class TestingMenuQuestList : UIElement
             
             SetPadding(8f);
 
-            var stack = new JustifiedHorizontalStack
+            var stack = new HorizontalStack
             {
+                Mode = StackMode.Evenly,
                 Width = StyleDimension.FromPercent(1f),
                 Height = StyleDimension.FromPercent(1f)
             };
@@ -215,8 +217,9 @@ public sealed class TestingMenuQuestList : UIElement
         
         Append(verticalStack);
 
-        var horizontalStack = new JustifiedHorizontalStack
+        var horizontalStack = new HorizontalStack
         {
+            Mode = StackMode.Evenly,
             Width = StyleDimension.FromPercent(1f),
             Height = StyleDimension.FromPercent(0.1f)
         };

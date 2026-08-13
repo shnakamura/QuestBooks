@@ -4,11 +4,11 @@ using ReLogic.Content;
 using Terraria.Localization;
 using Terraria.UI;
 
-namespace QuestBooks.Common.Testing.UI.States;
+namespace QuestBooks.Common.Testing.UI;
 
-public sealed class TestingMenuIconState : UIState
+public static class TestingIcon
 {
-    private sealed class TestingMenuButton() : ImageButton(ButtonTexture)
+    public sealed class Button() : ImageButton(ButtonTexture)
     {
         private static readonly Asset<Texture2D> ButtonTexture = ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Testing/HeaderIcon");
         
@@ -24,36 +24,39 @@ public sealed class TestingMenuIconState : UIState
         }
     }
     
-    public override void OnInitialize()
+    public sealed class State : UIState
     {
-        base.OnInitialize();
-
-        Append(new TestingMenuButton
+        public override void OnInitialize()
         {
-            Left = StyleDimension.FromPixels(574f),
-            Top = StyleDimension.FromPixels(100f)
-        });
-    }
+            base.OnInitialize();
 
-    public override void Update(GameTime gameTime)
-    {
-        if (!Main.playerInventory)
-        {
-            return;
+            Append(new Button
+            {
+                Left = StyleDimension.FromPixels(574f),
+                Top = StyleDimension.FromPixels(100f)
+            });
         }
+
+        public override void Update(GameTime gameTime)
+        {
+            if (!Main.playerInventory)
+            {
+                return;
+            }
         
-        base.Update(gameTime);
-    }
-
-    public override void Draw(SpriteBatch spriteBatch)
-    {
-        if (!Main.playerInventory)
-        {
-            return;
+            base.Update(gameTime);
         }
 
-        base.Draw(spriteBatch);
-    }
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            if (!Main.playerInventory)
+            {
+                return;
+            }
+
+            base.Draw(spriteBatch);
+        }
+    }   
 }
 
 public sealed class TestingMenuIconSystem : ModSystem
@@ -78,7 +81,7 @@ public sealed class TestingMenuIconSystem : ModSystem
         base.Load();
         
         UserInterface = new UserInterface();
-        UserInterface.SetState(new TestingMenuIconState());
+        UserInterface.SetState(new TestingIcon.State());
     }
     
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)

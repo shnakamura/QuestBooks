@@ -11,11 +11,30 @@ public sealed class VerticalStack : UIElement
     ///     Gets a read-only list of all elements in the stack's layout.
     /// </summary>
     public IReadOnlyList<UIElement> Layout => layout;
+
+    /// <summary>
+    ///     Gets the mode of the stack.
+    /// </summary>
+    public StackMode Mode { get; init; } = StackMode.Offset;
     
     /// <summary>
     ///     Gets the vertical gap between each element in the stack, in pixels.
     /// </summary>
     public float Gap { get; init; }
+    
+    /// <summary>
+    ///     Sets the padding for all sides of the stack, in pixels.
+    /// </summary>
+    public float Padding
+    {
+        set
+        {
+            PaddingTop = value;
+            PaddingLeft = value;
+            PaddingBottom = value;
+            PaddingRight = value;
+        }
+    }
     
     /// <summary>
     ///     Adds the specified element to the stack's layout.
@@ -36,7 +55,20 @@ public sealed class VerticalStack : UIElement
     public override void Recalculate()
     {
         base.Recalculate();
-        
+
+        switch (Mode)
+        {
+            case StackMode.Offset:
+                StackOffset();
+                break;
+            case StackMode.Evenly:
+                StackEvenly();
+                break;
+        }
+    }
+
+    private void StackOffset()
+    {
         var offset = 0f;
         
         foreach (var element in Layout)
@@ -47,6 +79,19 @@ public sealed class VerticalStack : UIElement
             offset += Gap;
             
             element.Recalculate();
+        }
+    }
+
+    private void StackEvenly()
+    {
+        var count = Layout.Count;
+
+        for (var i = 0; i < count; i++)
+        {
+            var child = Layout[i];
+            
+            child.VAlign = i / (float)(count - 1);
+            child.Recalculate();
         }
     }
 }

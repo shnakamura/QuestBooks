@@ -43,7 +43,7 @@ namespace QuestBooks.Systems
             foreach (var questName in incompleteQuests)
             {
                 var quest = QuestManager.GetQuest(questName);
-
+                
                 if (quest.CheckCompletion())
                     QuestManager.CompleteQuest(quest);
             }

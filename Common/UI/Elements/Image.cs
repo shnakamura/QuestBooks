@@ -1,37 +1,95 @@
-﻿using ReLogic.Content;
+﻿using QuestBooks.Core.Graphics;
+using ReLogic.Content;
+using Terraria.Audio;
+using Terraria.ModLoader.UI;
 using Terraria.UI;
 
 namespace QuestBooks.Common.UI.Elements;
 
-public class Image : UIElement
+public readonly record struct ImageSoundSettings()
 {
-    private Vector2 origin = new Vector2(0.5f);
-
-    private float opacity = 1f;
-
     /// <summary>
-    ///     Gets or sets the normalized origin of the image.
+    ///     Gets the sound style played when the cursor clicks the image.
+    /// </summary>
+    public readonly SoundStyle Click { get; init; } = SoundID.MenuOpen;
+    
+    /// <summary>
+    ///     Gets the sound style played when the cursor hovers over the image.
+    /// </summary>
+    public readonly SoundStyle Hover { get; init; } = SoundID.MenuTick;
+    
+    /// <summary>
+    ///     Gets a value indicating whether image sounds are enabled.
     /// </summary>
     /// <value>
-    ///     A value in the range of <c>[(0f, 0f) - (1f, 1f)]</c>, where <c>(0f, 0f)</c>
-    ///     represents the top-left corner of the image and <c>(1f, 1f)</c>
-    ///     represents the bottom-right corner.
+    ///     <see langword="true"/> if image sounds are enabled; otherwise, <see langword="false"/>.
     /// </value>
-    public Vector2 Origin
+    public readonly bool Enabled { get; init; } = true;
+}
+
+public readonly record struct ImageHighlightSettings()
+{
+    /// <summary>
+    ///     Gets the color of the image highlight.
+    /// </summary>
+    public readonly Color Color { get; init; } = UICommon.DefaultUIBlueMouseOver;
+
+    /// <summary>
+    ///     Gets a value indicating whether image highlighting is enabled.
+    /// </summary>
+    /// <value>
+    ///     <see langword="true"/> if image highlighting are enabled; otherwise, <see langword="false"/>.
+    /// </value>
+    public readonly bool Enabled { get; init; } = true;
+}
+
+public sealed class Image : UIElement
+{
+    private Asset<Texture2D> asset;
+
+    private Rectangle? frame;
+    
+    private float opacity = 1f;
+    
+    private Vector2 origin = new Vector2(0.5f);
+    
+    /// <summary>
+    ///     Gets the sound settings of the image.
+    /// </summary>
+    public ImageSoundSettings Sounds { get; init; } = new();
+    
+    /// <summary>
+    ///     Gets the highlight settings of the image.
+    /// </summary>
+    public ImageHighlightSettings Highlight { get; init; } = new();
+
+    /// <summary>
+    ///     Gets or sets the texture asset of the image.
+    /// </summary>
+    public Asset<Texture2D> Asset
     {
-        get => origin;
-        set => origin = Vector2.Clamp(value, Vector2.Zero, Vector2.One);
+        get => asset;
+        set
+        {
+            asset = value;
+            
+            Recalculate();
+        }
     }
 
     /// <summary>
-    ///     Gets the texture asset of the image.
+    ///     Gets or sets the frame of the image.
     /// </summary>
-    public Asset<Texture2D> Texture { get; protected set; }
-
-    /// <summary>
-    ///     Gets the frame of the image.
-    /// </summary>
-    public Rectangle? Frame { get; protected set; }
+    public Rectangle? Frame
+    {
+        get => frame;
+        set
+        {
+            frame = value;
+            
+            Recalculate();
+        }
+    }
 
     /// <summary>
     ///     Gets or sets the scale of the image.
@@ -47,7 +105,7 @@ public class Image : UIElement
     ///     Gets or sets the color of the image.
     /// </summary>
     public Color Color { get; set; } = Color.White;
-
+    
     /// <summary>
     ///     Gets or sets the opacity of the image.
     /// </summary>
@@ -65,47 +123,117 @@ public class Image : UIElement
     /// </summary>
     public SpriteEffects Effects { get; set; } = SpriteEffects.None;
     
-    public virtual string Tooltip { get; set; }
+    /// <summary>
+    ///     Gets or sets the normalized origin of the image.
+    /// </summary>
+    /// <value>
+    ///     A value in the range of <c>[(0f, 0f) - (1f, 1f)]</c>, where <c>(0f, 0f)</c>
+    ///     represents the top-left corner of the image, and <c>(1f, 1f)</c>
+    ///     represents the bottom-right corner.
+    /// </value>
+    public Vector2 Origin
+    {
+        get => origin;
+        set => origin = Vector2.Clamp(value, Vector2.Zero, Vector2.One);
+    }
+
+    /// <summary>
+    ///     Gets the texture of the image.
+    /// </summary>
+    public Texture2D Texture => Asset.Value;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="Image"/> <see langword="class"/>.
     /// </summary>
-    /// <param name="texture">
+    /// <param name="asset">
     ///     The texture of the image.
     /// </param>
     /// <param name="frame">
     ///     The frame of the image.
     /// </param>
-    public Image(Asset<Texture2D> texture, Rectangle? frame = null)
+    public Image(Asset<Texture2D> asset, Rectangle? frame = null)
     {
-        texture.Wait();
+        asset.Wait();
         
-        Texture = texture;
+        Asset = asset;
         Frame = frame;
    
-        Width.Set((Frame.HasValue ? Frame.Value.Width : Texture.Width()) * Scale, 0f);
-        Height.Set(Frame.HasValue ? Frame.Value.Height : Texture.Height() * Scale, 0f);
+        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()) * Scale, 0f);
+        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height() * Scale, 0f);
+    }
+    
+    public override void MouseOver(UIMouseEvent evt)
+    {
+        base.MouseOver(evt);
+
+        if (!Sounds.Enabled)
+        {
+            return;
+        }
+
+        SoundEngine.PlaySound(Sounds.Hover);
+    }
+
+    public override void MouseOut(UIMouseEvent evt)
+    {
+        base.MouseOut(evt);
+        
+        if (!Sounds.Enabled)
+        {
+            return;
+        }
+        
+        SoundEngine.PlaySound(Sounds.Hover);
+    }
+
+    public override void LeftClick(UIMouseEvent evt)
+    {
+        base.LeftClick(evt);
+
+        if (!Sounds.Enabled)
+        {
+            return;
+        }
+        
+        SoundEngine.PlaySound(Sounds.Click);
     }
     
     public override void Recalculate()
     {
         base.Recalculate();
 
-        Width.Set((Frame.HasValue ? Frame.Value.Width : Texture.Width()) * Scale, 0f);
-        Height.Set(Frame.HasValue ? Frame.Value.Height : Texture.Height() * Scale, 0f);
+        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()) * Scale, 0f);
+        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height() * Scale, 0f);
     }
 
     protected override void DrawSelf(SpriteBatch spriteBatch)
     {
         base.DrawSelf(spriteBatch);
-        
+
         var dimensions = GetDimensions();
         
-        var texture = Texture.Value;
-        var size = Frame.HasValue ? Frame.Value.Size() : texture.Size();
-        
+        var size = Frame.HasValue ? Frame.Value.Size() : Texture.Size();
         var position = dimensions.Position() + size * Origin;
+        
+        if (Highlight.Enabled)
+        {
+            position = position.Floor();
 
+            var parameters = spriteBatch.Capture() with
+            {
+                SpriteSortMode = SpriteSortMode.Immediate
+            };
+
+            using var scope = spriteBatch.Scope(in parameters);
+
+            Main.pixelShader.CurrentTechnique.Passes["ColorOnly"].Apply();
+        
+            spriteBatch.Draw(Asset.Value, position + new Vector2(0f, 2f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, Scale, Effects, 0f);
+            spriteBatch.Draw(Asset.Value, position + new Vector2(0f, -2f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, Scale, Effects, 0f);
+            spriteBatch.Draw(Asset.Value, position + new Vector2(2f, 0f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, Scale, Effects, 0f);
+            spriteBatch.Draw(Asset.Value, position + new Vector2(-2f, 0f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, Scale, Effects, 0f);
+        }
+        
         position = position.Floor();
 
         var scale = Scale;
@@ -115,39 +243,6 @@ public class Image : UIElement
             scale *= dimensions.Width / size.X;
         }
         
-        spriteBatch.Draw(texture, position, Frame, Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
-
-        if (!IsMouseHovering || string.IsNullOrEmpty(Tooltip))
-        {
-            return;
-        }
-        
-        Main.instance.MouseText(Tooltip);
-    }
-
-    /// <summary>
-    ///     Sets the texture of the image.
-    /// </summary>
-    /// <param name="texture">
-    ///     The texture to set.
-    /// </param>
-    public virtual void SetTexture(Asset<Texture2D> texture)
-    {
-        Texture = texture;
-        
-        Recalculate();
-    }
-
-    /// <summary>
-    ///     Sets the frame of the image's texture.
-    /// </summary>
-    /// <param name="frame">
-    ///     The frame to set.
-    /// </param>
-    public virtual void SetFrame(Rectangle? frame)
-    {
-        Frame = frame;
-        
-        Recalculate();
+        spriteBatch.Draw(Texture, position, Frame, Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
     }
 }

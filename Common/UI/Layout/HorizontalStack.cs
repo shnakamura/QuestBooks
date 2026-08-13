@@ -88,10 +88,10 @@ public sealed class HorizontalStack : UIElement
 
         for (var i = 0; i < count; i++)
         {
-            var child = Layout[i];
+            var element = Layout[i];
             
-            child.HAlign = i / (float)(count - 1);
-            child.Recalculate();
+            element.HAlign = i / (float)(count - 1);
+            element.Recalculate();
         }
     }
 }

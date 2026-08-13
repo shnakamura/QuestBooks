@@ -88,10 +88,10 @@ public sealed class VerticalStack : UIElement
 
         for (var i = 0; i < count; i++)
         {
-            var child = Layout[i];
+            var element = Layout[i];
             
-            child.VAlign = i / (float)(count - 1);
-            child.Recalculate();
+            element.VAlign = i / (float)(count - 1);
+            element.Recalculate();
         }
     }
 }

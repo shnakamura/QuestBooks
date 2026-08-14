@@ -136,9 +136,15 @@ public readonly record struct PanelColorSettings
 // ReSharper disable once LocalFunctionHidesMethod
 public class Panel : Element
 {
-    private static readonly Asset<Texture2D> DEFAULT_BACKGROUND = Main.Assets.Request<Texture2D>("Images/UI/PanelBackground", AssetRequestMode.ImmediateLoad);
+    /// <summary>
+    ///     The default background texture asset of a panel.
+    /// </summary>
+    public static readonly Asset<Texture2D> DEFAULT_BACKGROUND = Main.Assets.Request<Texture2D>("Images/UI/PanelBackground", AssetRequestMode.ImmediateLoad);
     
-    private static readonly Asset<Texture2D> DEFAULT_BORDER = Main.Assets.Request<Texture2D>("Images/UI/PanelBorder", AssetRequestMode.ImmediateLoad);
+    /// <summary>
+    ///     The default border texture asset of a panel.
+    /// </summary>
+    public static readonly Asset<Texture2D> DEFAULT_BORDER = Main.Assets.Request<Texture2D>("Images/UI/PanelBorder", AssetRequestMode.ImmediateLoad);
     
     private Asset<Texture2D> background;
 
@@ -147,19 +153,19 @@ public class Panel : Element
     private float opacity = 1f;
 
     /// <summary>
-    ///     Gets the highlight settings of the panel.
+    ///     Gets or sets the highlight settings of the panel.
     /// </summary>
-    public PanelHighlightSettings Highlight { get; init; }
+    public PanelHighlightSettings Highlight { get; set; }
 
     /// <summary>
-    ///     Gets the edge settings of the panel.
+    ///     Gets or sets the edge settings of the panel.
     /// </summary>
-    public PanelEdgeSettings Edge { get; init; } = new();
+    public PanelEdgeSettings Edge { get; set; } = new();
 
     /// <summary>
-    ///     Gets the color settings of the panel.
+    ///     Gets or sets the color settings of the panel.
     /// </summary>
-    public PanelColorSettings Colors { get; init; } = new();
+    public PanelColorSettings Colors { get; set; } = new();
     
     /// <summary>
     ///     Gets or sets the background texture asset of the panel.
@@ -265,4 +271,16 @@ public class Panel : Element
         Draw(Background, backgroundColor);
         Draw(Border, borderColor);
     }
+}
+
+public static class PanelExtensions
+{
+    public static Panel Highlight(this Panel panel, Color color)
+    {
+        panel.Highlight = new PanelHighlightSettings(color);
+        
+        return panel;
+    }
+
+    public static Panel Highlight(this Panel panel) => panel.Highlight(PanelHighlightSettings.DEFAULT_HIGHLIGHT_COLOR);
 }

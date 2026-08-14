@@ -83,11 +83,7 @@ public class Text : Element
         
         Contents = contents;
         
-        var font = Font.Value;
-        var size = ChatManager.GetStringSize(font, Contents, new Vector2(Scale));
-        
-        Width.Set(size.X + 2f * Scale, 0f);
-        Height.Set(size.Y * Scale - 4f, 0f);
+        Resize();
     }
 
     /// <summary>
@@ -105,16 +101,7 @@ public class Text : Element
     {
         base.Recalculate();
         
-        if (string.IsNullOrEmpty(Contents))
-        {
-            return;
-        }
-
-        var font = Font.Value;
-        var size = ChatManager.GetStringSize(font, Contents, new Vector2(Scale));
-        
-        Width.Set(size.X + 2f * Scale, 0f);
-        Height.Set(size.Y * Scale - 4f, 0f);
+        Resize();
     }
 
     protected override void DrawSelf(SpriteBatch spriteBatch)
@@ -143,6 +130,20 @@ public class Text : Element
         }
 
         ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, Contents, position, Color * Opacity, 0f, center, new Vector2(scale));
+    }
+
+    private void Resize()
+    {
+        if (string.IsNullOrEmpty(Contents))
+        {
+            return;
+        }
+
+        var font = Font.Value;
+        var size = ChatManager.GetStringSize(font, Contents, new Vector2(Scale));
+        
+        Width.Set(size.X + 2f * Scale, 0f);
+        Height.Set(size.Y * Scale - 4f, 0f);
     }
     
     public static implicit operator string(Text text) => text.Contents;

@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using QuestBooks.Common.UI;
-using QuestBooks.Common.UI.Components;
 using QuestBooks.Common.UI.Elements;
-using QuestBooks.Common.UI.Layout;
 using ReLogic.Content;
 using Terraria.Localization;
 using Terraria.UI;
@@ -41,8 +39,8 @@ public static class TestingMenu
 
             Append(stack);
             
-            stack.Add(new Image(ICON_TEXTURE).Allign(0f, 0.5f));
-            stack.Add(new Text(ICON_LABEL).Allign(0f, 0.5f));
+            stack.Add(new Image(ICON_TEXTURE).Align(0f, 0.5f));
+            stack.Add(new Text(ICON_LABEL).Align(0f, 0.5f));
         }
     }
     
@@ -55,6 +53,15 @@ public static class TestingMenu
             Padding = 8f;
             
             Append(new SettingsPanel().Fill());
+
+            var vertical = new VerticalStack
+            {
+                Fill = (1f, 1f)
+            };
+            
+            Append(vertical);
+            
+            vertical.Append(new SettingsPanel().Fill(1f, 0.125f).Padding(8f).Highlight().LeftClicked(Close).Add(new Text(InterfaceCommon.CLOSE_TEXT).Center()));
         }
     }
 
@@ -69,7 +76,7 @@ public static class TestingMenu
             Append(new SettingsPanel().Fill());
         }
     }
-
+    
     public sealed class State : UIState
     {
         public override void OnInitialize()
@@ -111,22 +118,14 @@ public static class TestingMenu
     /// <summary>
     ///     Opens the quest testing menu.
     /// </summary>
-    /// <param name="closeInventory">
-    ///     <see langword="true" /> to close the player inventory while opening the quest testing menu;
-    ///     otherwise, <see langword="false" />.
-    /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Open(bool closeInventory = true) => TestingMenuSystem.Open(closeInventory);
+    public static void Open() => TestingMenuSystem.Open();
 
     /// <summary>
     ///     Closes the quest testing menu.
     /// </summary>
-    /// <param name="closeInventory">
-    ///     <see langword="true" /> to close the player inventory while closing the quest testing menu;
-    ///     otherwise, <see langword="false" />.
-    /// </param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Close(bool closeInventory = true) => TestingMenuSystem.Close(closeInventory);
+    public static void Close() => TestingMenuSystem.Close();
 }
 
 // ReSharper disable MemberHidesStaticFromOuterClass
@@ -149,19 +148,26 @@ public sealed class TestingMenuSystem : ModSystem
     /// </summary>
     public static UserInterface UserInterface { get; private set; } = null!;
 
+    public override void Unload()
+    {
+        base.Unload();
+
+        Close(false);
+    }
+
     /// <summary>
     ///     Opens the quest testing menu.
     /// </summary>
-    /// <param name="closeInventory">
+    /// <param name="inventory">
     ///     <see langword="true" /> to close the player inventory while opening the quest testing menu;
     ///     otherwise, <see langword="false" />.
     /// </param>
-    public static void Open(bool closeInventory = true)
+    public static void Open(bool inventory = true)
     {
         UserInterface = new UserInterface();
         UserInterface.SetState(new TestingMenu.State());
 
-        if (!closeInventory)
+        if (!inventory)
         {
             return;
         }
@@ -172,16 +178,16 @@ public sealed class TestingMenuSystem : ModSystem
     /// <summary>
     ///     Closes the quest testing menu.
     /// </summary>
-    /// <param name="closeInventory">
+    /// <param name="inventory">
     ///     <see langword="true" /> to close the player inventory while closing the quest testing menu;
     ///     otherwise, <see langword="false" />.
     /// </param>
-    public static void Close(bool closeInventory = true)
+    public static void Close(bool inventory = true)
     {
         UserInterface?.SetState(null);
         UserInterface = null;
 
-        if (!closeInventory)
+        if (!inventory)
         {
             return;
         }

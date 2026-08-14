@@ -124,6 +124,13 @@ public sealed class TestingIconSystem : ModSystem
         TestingIcon.Callbacks.OnOpenInventory += Open;
         TestingIcon.Callbacks.OnCloseInventory += Close;
     }
+    
+    public override void Unload()
+    {
+        base.Unload();
+        
+        Close();
+    }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {

@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using QuestBooks.Common.UI.Elements;
 using Terraria.UI;
 
-namespace QuestBooks.Common.UI.Layout;
+namespace QuestBooks.Common.UI.Elements;
 
 public sealed class VerticalStack : Element
 {

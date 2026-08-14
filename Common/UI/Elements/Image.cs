@@ -180,11 +180,6 @@ public class Image : Element
         get => opacity;
         set => opacity = Math.Clamp(value, 0f, 1f);
     }
-
-    /// <summary>
-    ///     Gets or sets the sprite effects of the image.
-    /// </summary>
-    public SpriteEffects Effects { get; set; } = SpriteEffects.None;
     
     /// <summary>
     ///     Gets or sets the normalized origin of the image.
@@ -201,30 +196,47 @@ public class Image : Element
     }
 
     /// <summary>
+    ///     Gets or sets the sprite effects of the image.
+    /// </summary>
+    public SpriteEffects Effects { get; set; } = SpriteEffects.None;
+    
+    /// <summary>
+    ///     Gets or sets a value indicating whether the image is stretched to fill its dimensions.
+    /// </summary>
+    /// <value>
+    ///     <see langword="true"/> if the image is stretched to fill its dimensions; otherwise, <see langword="false"/>.
+    /// </value>
+    public bool Stretch { get; set; }
+    
+    /// <summary>
     ///     Gets the texture of the image.
     /// </summary>
     public Texture2D Texture => Asset.Value;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="Image"/> <see langword="class"/>.
+    ///     Initializes a new instance of the <see cref="Image"/> <see langword="class"/> with the specified texture asset and frame.
     /// </summary>
     /// <param name="asset">
-    ///     The texture of the image.
+    ///     The texture asset of the image.
     /// </param>
     /// <param name="frame">
     ///     The frame of the image.
     /// </param>
     public Image(Asset<Texture2D> asset, Rectangle? frame = null)
     {
-        asset.Wait();
-        
         Asset = asset;
         Frame = frame;
    
-        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()) * Scale, 0f);
-        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height() * Scale, 0f);
+        Resize();
     }
     
+    public override void Recalculate()
+    {
+        base.Recalculate();
+
+        Resize();
+    }
+
     public override void MouseOver(UIMouseEvent evt)
     {
         base.MouseOver(evt);
@@ -261,14 +273,6 @@ public class Image : Element
         SoundEngine.PlaySound(Sounds.Click);
     }
     
-    public override void Recalculate()
-    {
-        base.Recalculate();
-
-        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()) * Scale, 0f);
-        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height() * Scale, 0f);
-    }
-
     protected override void DrawSelf(SpriteBatch spriteBatch)
     {
         base.DrawSelf(spriteBatch);
@@ -278,6 +282,15 @@ public class Image : Element
         var size = Frame.HasValue ? Frame.Value.Size() : Texture.Size();
         var position = dimensions.Position() + size * Origin;
         
+        position = position.Floor();
+        
+        var scale = Scale;
+        
+        if (size.X > dimensions.Width)
+        {
+            scale *= dimensions.Width / size.X;
+        }
+
         if (Highlight.Enabled && IsMouseHovering)
         {
             position = position.Floor();
@@ -291,19 +304,10 @@ public class Image : Element
 
             Main.pixelShader.CurrentTechnique.Passes["ColorOnly"].Apply();
         
-            spriteBatch.Draw(Asset.Value, position + new Vector2(0f, 2f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, Scale, Effects, 0f);
-            spriteBatch.Draw(Asset.Value, position + new Vector2(0f, -2f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, Scale, Effects, 0f);
-            spriteBatch.Draw(Asset.Value, position + new Vector2(2f, 0f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, Scale, Effects, 0f);
-            spriteBatch.Draw(Asset.Value, position + new Vector2(-2f, 0f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, Scale, Effects, 0f);
-        }
-        
-        position = position.Floor();
-
-        var scale = Scale;
-        
-        if (size.X > dimensions.Width)
-        {
-            scale *= dimensions.Width / size.X;
+            spriteBatch.Draw(Asset.Value, position + new Vector2(0f, 2f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
+            spriteBatch.Draw(Asset.Value, position + new Vector2(0f, -2f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
+            spriteBatch.Draw(Asset.Value, position + new Vector2(2f, 0f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
+            spriteBatch.Draw(Asset.Value, position + new Vector2(-2f, 0f), Frame, Highlight.Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
         }
         
         spriteBatch.Draw(Texture, position, Frame, Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
@@ -312,5 +316,16 @@ public class Image : Element
         {
             Main.instance.MouseText(Tooltip.Text);
         }
+    }
+
+    private void Resize()
+    {
+        if (Stretch)
+        {
+            return;
+        }
+
+        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()) * Scale, 0f);
+        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height() * Scale, 0f);
     }
 }

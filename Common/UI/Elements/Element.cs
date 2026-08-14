@@ -19,6 +19,6 @@ public class Element : UIElement
 
     public (float Horizontal, float Vertical) Allign
     {
-        set => this.Allign(value.Horizontal, value.Vertical);
+        set => this.Align(value.Horizontal, value.Vertical);
     }
 }

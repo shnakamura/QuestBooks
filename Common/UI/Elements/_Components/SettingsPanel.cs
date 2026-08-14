@@ -1,7 +1,6 @@
-﻿using QuestBooks.Common.UI.Elements;
-using ReLogic.Content;
+﻿using ReLogic.Content;
 
-namespace QuestBooks.Common.UI.Components;
+namespace QuestBooks.Common.UI.Elements;
 
 public sealed class SettingsPanel() : Panel(BACKGROUND_TEXTURE, BORDER_TEXTURE)
 {

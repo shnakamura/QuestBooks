@@ -1,4 +1,4 @@
-﻿namespace QuestBooks.Common.UI.Layout;
+﻿namespace QuestBooks.Common.UI.Elements;
 
 public enum StackMode : byte
 {

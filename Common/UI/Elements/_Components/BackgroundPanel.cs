@@ -1,7 +1,6 @@
-﻿using QuestBooks.Common.UI.Elements;
-using Terraria.ModLoader.UI;
+﻿using Terraria.ModLoader.UI;
 
-namespace QuestBooks.Common.UI.Components;
+namespace QuestBooks.Common.UI.Elements;
 
 public sealed class BackgroundPanel : Panel
 {

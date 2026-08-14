@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using QuestBooks.Common.UI.Elements;
-using ReLogic.Content;
 using Terraria.Localization;
 using Terraria.UI;
 
@@ -8,19 +8,41 @@ namespace QuestBooks.Common.Testing.UI;
 
 public static class TestingIcon
 {
-    public sealed class Button() : ImageButton(ButtonTexture)
+    [Autoload(Side = ModSide.Client)]
+    public sealed class Callbacks : ModSystem
     {
-        private static readonly Asset<Texture2D> ButtonTexture = ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Testing/HeaderIcon");
+        /// <summary>
+        ///     Raised when the player's inventory is opened.
+        /// </summary>
+        public static event Action OnOpenInventory;
+
+        /// <summary>
+        ///     Raised when the player's inventory is closed.
+        /// </summary>
+        public static event Action OnCloseInventory;
         
-        public override string Tooltip => Language.GetTextValue("Mods.QuestBooks.UI.Testing.Buttons.Open");
-
-        public override void LeftClick(UIMouseEvent evt)
+        private static bool flag;
+        
+        public override void Unload()
         {
-            base.LeftClick(evt);
-            
-            TestingMenuSystem.Open();
+            base.Unload();
 
-            Main.playerInventory = false;
+            OnOpenInventory = null;
+            OnCloseInventory = null;
+        }
+        
+        public override void UpdateUI(GameTime gameTime)
+        {
+            base.UpdateUI(gameTime);
+        
+            if (Main.playerInventory == flag)
+            {
+                return;
+            }
+
+            flag = Main.playerInventory;
+        
+            (Main.playerInventory ? OnOpenInventory : OnCloseInventory)?.Invoke();
         }
     }
     
@@ -30,11 +52,18 @@ public static class TestingIcon
         {
             base.OnInitialize();
 
-            Append(new Button
+            var icon = new Image(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Testing/HeaderIcon"))
             {
                 Left = StyleDimension.FromPixels(574f),
-                Top = StyleDimension.FromPixels(100f)
-            });
+                Top = StyleDimension.FromPixels(100f),
+                Sounds = new ImageSoundSettings(),
+                Highlight = new ImageHighlightSettings(),
+                Tooltip = new ImageTooltipSettings(Language.GetText("Mods.QuestBooks.UI.Testing.Buttons.Open"))
+            };
+
+            icon.OnLeftClick += static (_, _) => TestingMenu.Open();
+            
+            Append(icon);
         }
 
         public override void Update(GameTime gameTime)
@@ -56,12 +85,24 @@ public static class TestingIcon
 
             base.Draw(spriteBatch);
         }
-    }   
+    }
+
+    /// <summary>
+    ///     Opens the quest testing icon.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Open()  => TestingIconSystem.Open();
+    
+    /// <summary>
+    ///     Closes the quest testing icon.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Close() => TestingIconSystem.Close();
 }
 
-public sealed class TestingMenuIconSystem : ModSystem
+public sealed class TestingIconSystem : ModSystem
 {
-    private const string InsertionLayerName = "Vanilla: Inventory";
+    private const string INSERTION_LAYER_NAME = "Vanilla: Inventory";
     
     /// <summary>
     ///     The name of the interface layer used by the testing interface.
@@ -69,7 +110,7 @@ public sealed class TestingMenuIconSystem : ModSystem
     /// <remarks>
     ///     Use this value when inserting interface layers relative to this layer in <see cref="ModifyInterfaceLayers"/>.
     /// </remarks>
-    public const string InterfaceLayerName = "QuestBooks: Testing Menu Icon";
+    public const string INTERFACE_LAYER_NAME = "QuestBooks: Testing Menu Icon";
 
     /// <summary>
     ///     Gets the user interface used to display the testing interface.
@@ -79,11 +120,11 @@ public sealed class TestingMenuIconSystem : ModSystem
     public override void Load()
     {
         base.Load();
-        
-        UserInterface = new UserInterface();
-        UserInterface.SetState(new TestingIcon.State());
+
+        TestingIcon.Callbacks.OnOpenInventory += Open;
+        TestingIcon.Callbacks.OnCloseInventory += Close;
     }
-    
+
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
         static bool Draw()
@@ -93,8 +134,8 @@ public sealed class TestingMenuIconSystem : ModSystem
             return true;
         }
         
-        var index = layers.FindIndex(static layer => layer.Name.Equals(InsertionLayerName));
-        var layer = new LegacyGameInterfaceLayer(InterfaceLayerName, Draw, InterfaceScaleType.UI);
+        var index = layers.FindIndex(static layer => layer.Name.Equals(INSERTION_LAYER_NAME));
+        var layer = new LegacyGameInterfaceLayer(INTERFACE_LAYER_NAME, Draw, InterfaceScaleType.UI);
         
         if (index == -1)
         {
@@ -107,4 +148,22 @@ public sealed class TestingMenuIconSystem : ModSystem
     }
 
     public override void UpdateUI(GameTime gameTime) => UserInterface?.Update(gameTime);
+
+    /// <summary>
+    ///     Opens the quest testing icon.
+    /// </summary>
+    public static void Open()
+    {
+        UserInterface = new UserInterface();
+        UserInterface.SetState(new TestingIcon.State());
+    }
+
+    /// <summary>
+    ///     Closes the quest testing icon.
+    /// </summary>
+    public static void Close()
+    {
+        UserInterface?.SetState(null);
+        UserInterface = null;
+    }
 }

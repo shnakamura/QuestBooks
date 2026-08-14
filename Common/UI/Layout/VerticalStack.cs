@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using QuestBooks.Common.UI.Elements;
 using Terraria.UI;
 
 namespace QuestBooks.Common.UI.Layout;
 
-public sealed class VerticalStack : UIElement
+public sealed class VerticalStack : Element
 {
     private List<UIElement> layout = new();
     
@@ -21,21 +22,7 @@ public sealed class VerticalStack : UIElement
     ///     Gets the vertical gap between each element in the stack, in pixels.
     /// </summary>
     public float Gap { get; init; }
-    
-    /// <summary>
-    ///     Sets the padding for all sides of the stack, in pixels.
-    /// </summary>
-    public float Padding
-    {
-        set
-        {
-            PaddingTop = value;
-            PaddingLeft = value;
-            PaddingBottom = value;
-            PaddingRight = value;
-        }
-    }
-    
+
     /// <summary>
     ///     Adds the specified element to the stack's layout.
     /// </summary>

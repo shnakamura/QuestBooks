@@ -12,7 +12,6 @@ Common: {
 
 Testing: {
 	Header: Quest Testing
-	Displays.Empty: Select a quest to view its details.
 
 	Labels: {
 		Mods: Mods

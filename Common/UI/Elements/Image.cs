@@ -1,6 +1,7 @@
 ﻿using QuestBooks.Core.Graphics;
 using ReLogic.Content;
 using Terraria.Audio;
+using Terraria.Localization;
 using Terraria.ModLoader.UI;
 using Terraria.UI;
 
@@ -27,12 +28,12 @@ public readonly record struct ImageSoundSettings()
     public readonly bool Enabled { get; init; } = true;
 }
 
-public readonly record struct ImageHighlightSettings()
+public readonly record struct ImageHighlightSettings
 {
     /// <summary>
     ///     Gets the color of the image highlight.
     /// </summary>
-    public readonly Color Color { get; init; } = UICommon.DefaultUIBlueMouseOver;
+    public readonly Color Color { get; } = UICommon.DefaultUIBorderMouseOver;
 
     /// <summary>
     ///     Gets a value indicating whether image highlighting is enabled.
@@ -40,10 +41,67 @@ public readonly record struct ImageHighlightSettings()
     /// <value>
     ///     <see langword="true"/> if image highlighting are enabled; otherwise, <see langword="false"/>.
     /// </value>
-    public readonly bool Enabled { get; init; } = true;
+    public readonly bool Enabled { get; }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ImageHighlightSettings"/> struct.
+    /// </summary>
+    public ImageHighlightSettings() => Enabled = true;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ImageHighlightSettings"/> struct with the specified color.
+    /// </summary>
+    /// <param name="color">
+    ///     The color of the image highlight.
+    /// </param>
+    public ImageHighlightSettings(Color color) : this() => Color = color;
 }
 
-public sealed class Image : UIElement
+public readonly record struct ImageTooltipSettings
+{
+    /// <summary>
+    ///     Gets the text of the image tooltip.
+    /// </summary>
+    public readonly string Text { get; }
+    
+    /// <summary>
+    ///     Gets a value indicating whether the image tooltip is enabled.
+    /// </summary>
+    /// <value>
+    ///     <see langword="true"/> if the image tooltip is enabled; otherwise, <see langword="false"/>.
+    /// </value>
+    public readonly bool Enabled { get; }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ImageTooltipSettings"/> struct with the specified text.
+    /// </summary>
+    /// <param name="text">
+    ///     The text of the image tooltip.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    ///     <paramref name="text"/> is <see langword="null"/> or empty.
+    /// </exception>
+    public ImageTooltipSettings(string text)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(text);
+
+        Text = text;
+        Enabled = true;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ImageTooltipSettings"/> struct with the specified localized text.
+    /// </summary>
+    /// <param name="text">
+    ///     The localized text of the image tooltip.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    ///     <paramref name="text"/> is <see langword="null"/>.
+    /// </exception>
+    public ImageTooltipSettings(LocalizedText text) : this(text.Value) => ArgumentNullException.ThrowIfNull(text);
+}
+
+public class Image : Element
 {
     private Asset<Texture2D> asset;
 
@@ -56,12 +114,17 @@ public sealed class Image : UIElement
     /// <summary>
     ///     Gets the sound settings of the image.
     /// </summary>
-    public ImageSoundSettings Sounds { get; init; } = new();
+    public ImageSoundSettings Sounds { get; init; }
     
     /// <summary>
     ///     Gets the highlight settings of the image.
     /// </summary>
-    public ImageHighlightSettings Highlight { get; init; } = new();
+    public ImageHighlightSettings Highlight { get; init; }
+    
+    /// <summary>
+    ///     Gets the tooltip settings of the image.
+    /// </summary>
+    public ImageTooltipSettings Tooltip { get; init; }
 
     /// <summary>
     ///     Gets or sets the texture asset of the image.
@@ -215,7 +278,7 @@ public sealed class Image : UIElement
         var size = Frame.HasValue ? Frame.Value.Size() : Texture.Size();
         var position = dimensions.Position() + size * Origin;
         
-        if (Highlight.Enabled)
+        if (Highlight.Enabled && IsMouseHovering)
         {
             position = position.Floor();
 
@@ -244,5 +307,10 @@ public sealed class Image : UIElement
         }
         
         spriteBatch.Draw(Texture, position, Frame, Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
+
+        if (Tooltip.Enabled && IsMouseHovering)
+        {
+            Main.instance.MouseText(Tooltip.Text);
+        }
     }
 }

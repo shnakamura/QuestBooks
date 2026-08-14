@@ -2,12 +2,11 @@
 using ReLogic.Graphics;
 using Terraria.GameContent;
 using Terraria.Localization;
-using Terraria.UI;
 using Terraria.UI.Chat;
 
 namespace QuestBooks.Common.UI.Elements;
 
-public class Text : UIElement
+public class Text : Element
 {
     private Vector2 origin = new Vector2(0.5f);
 
@@ -64,13 +63,16 @@ public class Text : UIElement
         set => opacity = Math.Clamp(value, 0f, 1f);
     }
 
-    public Text() { }
-
     /// <summary>
     ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/>.
     /// </summary>
+    public Text() { }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/> with the specified contents.
+    /// </summary>
     /// <param name="contents">
-    ///     The value of the text.
+    ///     The contents of the text.
     /// </param>
     /// <exception cref="ArgumentException">
     ///     <paramref name="contents"/> is <see langword="null"/> or empty.
@@ -89,10 +91,10 @@ public class Text : UIElement
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/>.
+    ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/> with the specified localized text.
     /// </summary>
     /// <param name="value">
-    ///     The value of the text.
+    ///     The localized text of the text.
     /// </param>
     /// <exception cref="ArgumentNullException">
     ///     <paramref name="value"/> is <see langword="null"/>.
@@ -142,4 +144,6 @@ public class Text : UIElement
 
         ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, Contents, position, Color * Opacity, 0f, center, new Vector2(scale));
     }
+    
+    public static implicit operator string(Text text) => text.Contents;
 }

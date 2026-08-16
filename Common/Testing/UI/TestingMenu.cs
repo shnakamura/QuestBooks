@@ -2,7 +2,10 @@
 using System.Runtime.CompilerServices;
 using QuestBooks.Common.UI;
 using QuestBooks.Common.UI.Elements;
+using QuestBooks.Common.UI.States;
+using QuestBooks.Quests;
 using ReLogic.Content;
+using Terraria.GameContent.UI.Elements;
 using Terraria.Localization;
 using Terraria.UI;
 
@@ -20,7 +23,7 @@ public static class TestingMenu
         /// <summary>
         ///     The localized text of the testing menu header.
         /// </summary>
-        public static readonly LocalizedText ICON_LABEL = Language.GetText("Mods.QuestBooks.Testing.UI.Header");
+        public static readonly LocalizedText ICON_LABEL = Language.GetText("Mods.QuestBooks.UI.Testing.Header");
         
         public override void OnInitialize()
         {
@@ -28,19 +31,29 @@ public static class TestingMenu
             
             Padding = 8f;
             
-            Append(new SettingsPanel().Fill());
+            Append(new SettingsPanel().WithFill(1f));
 
-            var stack = new HorizontalStack
-            {
-                Gap = 4f,
-                Padding = 8f,
-                Fill = (1f, 1f)
-            };
-
-            Append(stack);
+            var horizontal = Flex.Horizontal(FlexAlignment.Evenly).WithFill(1f).WithPadding(8f);
             
-            stack.Add(new Image(ICON_TEXTURE).Align(0f, 0.5f));
-            stack.Add(new Text(ICON_LABEL).Align(0f, 0.5f));
+            Append(horizontal);
+
+            var container = new Element().WithFill(1f);
+            var display = new Flex(FlexDirection.Horizontal, FlexAlignment.Start).WithFill(0.9f, 1f).WithVerticalAlignment(0.5f).Gap(8f);
+
+            display.WithElement(new Image(ICON_TEXTURE).WithVerticalAlignment(0.5f));
+            display.WithElement(new Text(ICON_LABEL).WithVerticalAlignment(0.5f));
+
+            container.WithElement(display);
+            
+            horizontal.WithElement(container);
+            horizontal.WithElement
+            (
+                new SettingsPanel()
+                    .WithFill(0.1f, 1f)
+                    .Highlight()
+                    .WithLeftClickEvent(Close)
+                    .WithElement(Text.FromKey("Mods.QuestBooks.UI.Common.Buttons.Close").WithAlignment(0.5f))
+            );
         }
     }
     
@@ -52,19 +65,45 @@ public static class TestingMenu
 
             Padding = 8f;
             
-            Append(new SettingsPanel().Fill());
-
-            var vertical = new VerticalStack
-            {
-                Fill = (1f, 1f)
-            };
-            
-            Append(vertical);
-            
-            vertical.Append(new SettingsPanel().Fill(1f, 0.125f).Padding(8f).Highlight().LeftClicked(Close).Add(new Text(InterfaceCommon.CLOSE_TEXT).Center()));
+            Append(new SettingsPanel().WithFill(1f));
         }
     }
 
+    public sealed class ListItem : Element
+    {
+        private readonly Quest quest;
+        
+        public ListItem(Quest quest)
+        {
+            ArgumentNullException.ThrowIfNull(quest);
+
+            this.quest = quest;
+        }
+        
+        public override void OnInitialize()
+        {
+            base.OnInitialize();
+            
+            Append
+            (
+                Flex.Horizontal(FlexAlignment.Evenly)
+                    .WithFill(1f)
+                    .WithElement(Text.FromLiteral(quest.Name).WithScale(0.8f).WithVerticalAlignment(0.5f))
+                    .WithElement(Text.FromLiteral(quest.Mod.Name).WithScale(0.8f).WithVerticalAlignment(0.5f))
+            );
+        }
+
+        protected override void DrawSelf(SpriteBatch spriteBatch)
+        {
+            base.DrawSelf(spriteBatch);
+            
+            var dimensions = GetDimensions();
+            var position = dimensions.Position();
+
+            Utils.DrawSettingsPanel(spriteBatch, position, dimensions.Width, Color.White);
+        }
+    }
+    
     public sealed class List : Element
     {
         public override void OnInitialize()
@@ -73,48 +112,79 @@ public static class TestingMenu
             
             Padding = 8f;
             
-            Append(new SettingsPanel().Fill());
+            Append(new SettingsPanel().WithFill(1f));
+
+            var vertical = Flex.Vertical(FlexAlignment.Start).WithFill(1f);
+            
+            Append(vertical);
+
+            var header = new Element().WithFill(1f, 0.1f).WithPadding(8f);
+            
+            header.WithElement(new SettingsPanel().WithFill(1f));
+            header.WithElement
+            (
+                Flex.Horizontal(FlexAlignment.Evenly)
+                    .WithFill(1f, 1f)
+                    .WithPadding(8f)
+                    .WithElement(Text.FromKey("Mods.QuestBooks.UI.Testing.Labels.Quest").WithVerticalAlignment(0.5f))
+                    .WithElement(Text.FromKey("Mods.QuestBooks.UI.Testing.Labels.Mod").WithVerticalAlignment(0.5f))
+                    .WithElement(Text.FromKey("Mods.QuestBooks.UI.Testing.Labels.Status").WithVerticalAlignment(0.5f))
+            );
+
+            vertical.WithElement(header);
+            
+            var search = new SearchBar().WithFill(1f, 0.1f).WithPadding(8f);
+
+            vertical.WithElement(search);
+            
+            var horizontal = Flex.Horizontal(FlexAlignment.Evenly).WithFill(1f, 0.8f).WithPadding(8f);
+
+            var scrollbar = new UIScrollbar().WithAlignment(1f, 0.5f).WithVerticalFill(1f);
+            var list = new UIList().WithFill(1f).WithWidth(-20f);
+
+            foreach (var quest in ModContent.GetContent<Quest>())
+            {
+                list.Add(new ListItem(quest).WithHorizontalFill(1f).WithHeight(32f));
+            }
+            
+            list.SetScrollbar(scrollbar);
+
+            horizontal.WithElement(list);
+            horizontal.WithElement(scrollbar);
+
+            vertical.WithElement(horizontal);
         }
     }
     
-    public sealed class State : UIState
+    public sealed class State : Root<TestingMenuSystem>
     {
+        public override bool Escape => true;
+
         public override void OnInitialize()
         {
             base.OnInitialize();
 
-            var container = new Element
-            {
-                Allign = (0.5f, 0.5f),
-                Fill = (0.8f, 0.7f)
-            };
+            var container = new Element().WithAlignment(0.5f).WithFill(0.8f, 0.7f).WithFocus();
 
             Append(container);
 
-            container.Append(new BackgroundPanel().Fill(1f));
+            container.Append(new BackgroundPanel().WithFill(1f));
 
-            var vertical = new VerticalStack
-            {
-                Allign = (0.5f, 0.5f),
-                Fill = (1f, 1f)
-            };
+            var vertical = Flex.Vertical(FlexAlignment.Start).WithFill(1f).WithAlignment(0.5f);
             
             container.Append(vertical);
             
-            vertical.Add(new Header().Fill(1f, 0.1f));
+            vertical.WithElement(new Header().WithFill(1f, 0.1f));
 
-            var horizontal = new HorizontalStack
-            {
-                Fill = (1f, 0.9f)
-            };
+            var horizontal = Flex.Horizontal(FlexAlignment.Start).WithFill(1f, 0.9f);
             
-            vertical.Add(horizontal);
+            vertical.WithElement(horizontal);
             
-            horizontal.Add(new Sidebar().Fill(0.2f, 1f));
-            horizontal.Add(new List().Fill(0.5f, 1f));
+            horizontal.WithElement(new Sidebar().WithFill(0.2f, 1f));
+            horizontal.WithElement(new List().WithFill(0.5f, 1f));
         }
     }
-
+    
     /// <summary>
     ///     Opens the quest testing menu.
     /// </summary>
@@ -130,10 +200,10 @@ public static class TestingMenu
 
 // ReSharper disable MemberHidesStaticFromOuterClass
 [Autoload(Side = ModSide.Client)]
-public sealed class TestingMenuSystem : ModSystem
+public sealed class TestingMenuSystem : ModSystem, IRootSystem
 {
     private const string INSERTION_LAYER_NAME = "Vanilla: Mouse Text";
-
+    
     /// <summary>
     ///     The name of the interface layer used by the testing interface.
     /// </summary>
@@ -152,47 +222,21 @@ public sealed class TestingMenuSystem : ModSystem
     {
         base.Unload();
 
-        Close(false);
+        Close();
     }
 
-    /// <summary>
-    ///     Opens the quest testing menu.
-    /// </summary>
-    /// <param name="inventory">
-    ///     <see langword="true" /> to close the player inventory while opening the quest testing menu;
-    ///     otherwise, <see langword="false" />.
-    /// </param>
-    public static void Open(bool inventory = true)
+    public static void Open()
     {
+        Main.playerInventory = false;
+        
         UserInterface = new UserInterface();
         UserInterface.SetState(new TestingMenu.State());
-
-        if (!inventory)
-        {
-            return;
-        }
-
-        Main.playerInventory = false;
     }
 
-    /// <summary>
-    ///     Closes the quest testing menu.
-    /// </summary>
-    /// <param name="inventory">
-    ///     <see langword="true" /> to close the player inventory while closing the quest testing menu;
-    ///     otherwise, <see langword="false" />.
-    /// </param>
-    public static void Close(bool inventory = true)
+    public static void Close()
     {
         UserInterface?.SetState(null);
         UserInterface = null;
-
-        if (!inventory)
-        {
-            return;
-        }
-
-        Main.playerInventory = false;
     }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
@@ -204,7 +248,7 @@ public sealed class TestingMenuSystem : ModSystem
             return true;
         }
 
-        var index = layers.FindIndex(static layer => layer.Name.Equals(INSERTION_LAYER_NAME));
+        var index = layers.FindIndex(static layer => layer.Name == INSERTION_LAYER_NAME);
         var layer = new LegacyGameInterfaceLayer(INTERFACE_LAYER_NAME, Draw, InterfaceScaleType.UI);
 
         if (index == -1)

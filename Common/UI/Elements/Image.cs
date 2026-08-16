@@ -7,17 +7,21 @@ using Terraria.UI;
 
 namespace QuestBooks.Common.UI.Elements;
 
-public readonly record struct ImageSoundSettings()
+public readonly record struct ImageSoundSettings
 {
+    public static readonly SoundStyle DEFAULT_CLICK_SOUND = SoundID.MenuOpen;
+    
+    public static readonly SoundStyle DEFAULT_HOVER_SOUND = SoundID.MenuTick;
+    
     /// <summary>
     ///     Gets the sound style played when the cursor clicks the image.
     /// </summary>
-    public readonly SoundStyle Click { get; init; } = SoundID.MenuOpen;
+    public SoundStyle Click { get; }
     
     /// <summary>
     ///     Gets the sound style played when the cursor hovers over the image.
     /// </summary>
-    public readonly SoundStyle Hover { get; init; } = SoundID.MenuTick;
+    public SoundStyle Hover { get; }
     
     /// <summary>
     ///     Gets a value indicating whether image sounds are enabled.
@@ -25,15 +29,27 @@ public readonly record struct ImageSoundSettings()
     /// <value>
     ///     <see langword="true"/> if image sounds are enabled; otherwise, <see langword="false"/>.
     /// </value>
-    public readonly bool Enabled { get; init; } = true;
+    public bool Enabled { get; init; } = true;
+
+    public ImageSoundSettings(in SoundStyle click, in SoundStyle hover)
+    {
+        Click = click;
+        Hover = hover;
+        
+        Enabled = true;
+    }
+
+    public ImageSoundSettings() : this(in DEFAULT_CLICK_SOUND, in DEFAULT_HOVER_SOUND) { }
 }
 
 public readonly record struct ImageHighlightSettings
 {
+    public static readonly Color DEFAULT_HIGHLIGHT_COLOR = UICommon.DefaultUIBorderMouseOver;
+    
     /// <summary>
     ///     Gets the color of the image highlight.
     /// </summary>
-    public readonly Color Color { get; } = UICommon.DefaultUIBorderMouseOver;
+    public readonly Color Color { get; } 
 
     /// <summary>
     ///     Gets a value indicating whether image highlighting is enabled.
@@ -44,17 +60,22 @@ public readonly record struct ImageHighlightSettings
     public readonly bool Enabled { get; }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="ImageHighlightSettings"/> struct.
-    /// </summary>
-    public ImageHighlightSettings() => Enabled = true;
-
-    /// <summary>
     ///     Initializes a new instance of the <see cref="ImageHighlightSettings"/> struct with the specified color.
     /// </summary>
     /// <param name="color">
     ///     The color of the image highlight.
     /// </param>
-    public ImageHighlightSettings(Color color) : this() => Color = color;
+    public ImageHighlightSettings(Color color)
+    {
+        Color = color;
+
+        Enabled = true;
+    }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ImageHighlightSettings"/> struct with the default highlight color.
+    /// </summary>
+    public ImageHighlightSettings() : this(DEFAULT_HIGHLIGHT_COLOR) { }
 }
 
 public readonly record struct ImageTooltipSettings
@@ -112,19 +133,19 @@ public class Image : Element
     private Vector2 origin = new Vector2(0.5f);
     
     /// <summary>
-    ///     Gets the sound settings of the image.
+    ///     Gets or sets the sound settings of the image.
     /// </summary>
-    public ImageSoundSettings Sounds { get; init; }
+    public ImageSoundSettings Sounds { get; set; }
     
     /// <summary>
-    ///     Gets the highlight settings of the image.
+    ///     Gets or sets the highlight settings of the image.
     /// </summary>
-    public ImageHighlightSettings Highlight { get; init; }
+    public ImageHighlightSettings Highlight { get; set; }
     
     /// <summary>
-    ///     Gets the tooltip settings of the image.
+    ///     Gets or sets the tooltip settings of the image.
     /// </summary>
-    public ImageTooltipSettings Tooltip { get; init; }
+    public ImageTooltipSettings Tooltip { get; set; }
 
     /// <summary>
     ///     Gets or sets the texture asset of the image.
@@ -273,9 +294,9 @@ public class Image : Element
         SoundEngine.PlaySound(Sounds.Click);
     }
     
-    protected override void DrawSelf(SpriteBatch spriteBatch)
+    public override void Draw(SpriteBatch spriteBatch)
     {
-        base.DrawSelf(spriteBatch);
+        base.Draw(spriteBatch);
 
         var dimensions = GetDimensions();
         
@@ -328,4 +349,34 @@ public class Image : Element
         Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()) * Scale, 0f);
         Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height() * Scale, 0f);
     }
+
+    public static Image FromAsset(Asset<Texture2D> asset, Rectangle? frame = null) => new(asset, frame);
+}
+
+public static class ImageExtensions
+{
+    public static Image WithTooltipSettings(this Image image, ImageTooltipSettings settings)
+    {
+        image.Tooltip = settings;
+        
+        return image;
+    }
+    
+    public static Image WithSoundSettings(this Image image, ImageSoundSettings settings)
+    {
+        image.Sounds = settings;
+        
+        return image;
+    }
+    
+    public static Image WithHighlightSettings(this Image image, ImageHighlightSettings settings)
+    {
+        image.Highlight = settings;
+        
+        return image;
+    }
+    
+    public static Image WithDefaultSoundSettings(this Image image) => image.WithSoundSettings(new ImageSoundSettings());
+    
+    public static Image WithDefaultHighlightSettings(this Image image) => image.WithHighlightSettings(new ImageHighlightSettings());
 }

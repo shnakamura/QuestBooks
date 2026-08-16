@@ -89,13 +89,13 @@ public class Text : Element
     /// <summary>
     ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/> with the specified localized text.
     /// </summary>
-    /// <param name="value">
+    /// <param name="text">
     ///     The localized text of the text.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    ///     <paramref name="value"/> is <see langword="null"/>.
+    ///     <paramref name="text"/> is <see langword="null"/>.
     /// </exception>
-    public Text(LocalizedText value) : this(value.Value) => ArgumentNullException.ThrowIfNull(value);
+    public Text(LocalizedText text) : this(text.Value) => ArgumentNullException.ThrowIfNull(text);
 
     public override void Recalculate()
     {
@@ -104,9 +104,9 @@ public class Text : Element
         Resize();
     }
 
-    protected override void DrawSelf(SpriteBatch spriteBatch)
+    public override void Draw(SpriteBatch spriteBatch)
     {
-        base.DrawSelf(spriteBatch);
+        base.Draw(spriteBatch);
 
         if (string.IsNullOrEmpty(Contents))
         {
@@ -146,5 +146,19 @@ public class Text : Element
         Height.Set(size.Y * Scale - 4f, 0f);
     }
     
-    public static implicit operator string(Text text) => text.Contents;
+    public static Text FromLiteral(string contents) => new(contents);
+
+    public static Text FromKey(string key) => new(Language.GetText(key));
+    
+    public static Text FromLocalization(LocalizedText text) => new(text);
+}
+
+public static class TextExtensions
+{
+    public static TText WithScale<TText>(this TText text, float scale) where TText : Text
+    {
+        text.Scale = scale;
+
+        return text;
+    }
 }

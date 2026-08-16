@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using QuestBooks.Common.Inventory;
+using QuestBooks.Common.UI;
 using QuestBooks.Common.UI.Elements;
+using QuestBooks.Common.UI.States;
+using ReLogic.Content;
 using Terraria.Localization;
 using Terraria.UI;
 
@@ -8,51 +12,15 @@ namespace QuestBooks.Common.Testing.UI;
 
 public static class TestingIcon
 {
-    [Autoload(Side = ModSide.Client)]
-    public sealed class Callbacks : ModSystem
+    public sealed class State : Root<TestingIconSystem>
     {
-        /// <summary>
-        ///     Raised when the player's inventory is opened.
-        /// </summary>
-        public static event Action OnOpenInventory;
-
-        /// <summary>
-        ///     Raised when the player's inventory is closed.
-        /// </summary>
-        public static event Action OnCloseInventory;
+        public static readonly Asset<Texture2D> ICON_TEXTURE = ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Testing/HeaderIcon", AssetRequestMode.ImmediateLoad);
         
-        private static bool flag;
-        
-        public override void Unload()
-        {
-            base.Unload();
-
-            OnOpenInventory = null;
-            OnCloseInventory = null;
-        }
-        
-        public override void UpdateUI(GameTime gameTime)
-        {
-            base.UpdateUI(gameTime);
-        
-            if (Main.playerInventory == flag)
-            {
-                return;
-            }
-
-            flag = Main.playerInventory;
-        
-            (Main.playerInventory ? OnOpenInventory : OnCloseInventory)?.Invoke();
-        }
-    }
-    
-    public sealed class State : UIState
-    {
         public override void OnInitialize()
         {
             base.OnInitialize();
 
-            var icon = new Image(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Testing/HeaderIcon"))
+            var icon = new Image(ICON_TEXTURE)
             {
                 Left = StyleDimension.FromPixels(574f),
                 Top = StyleDimension.FromPixels(100f),
@@ -61,29 +29,9 @@ public static class TestingIcon
                 Tooltip = new ImageTooltipSettings(Language.GetText("Mods.QuestBooks.UI.Testing.Buttons.Open"))
             };
 
-            icon.OnLeftClick += static (_, _) => TestingMenu.Open();
+            icon.WithLeftClickEvent(TestingMenu.Open);
             
             Append(icon);
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-            if (!Main.playerInventory)
-            {
-                return;
-            }
-        
-            base.Update(gameTime);
-        }
-
-        public override void Draw(SpriteBatch spriteBatch)
-        {
-            if (!Main.playerInventory)
-            {
-                return;
-            }
-
-            base.Draw(spriteBatch);
         }
     }
 
@@ -91,7 +39,7 @@ public static class TestingIcon
     ///     Opens the quest testing icon.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Open()  => TestingIconSystem.Open();
+    public static void Open() => TestingIconSystem.Open();
     
     /// <summary>
     ///     Closes the quest testing icon.
@@ -100,7 +48,7 @@ public static class TestingIcon
     public static void Close() => TestingIconSystem.Close();
 }
 
-public sealed class TestingIconSystem : ModSystem
+public sealed class TestingIconSystem : ModSystem, IRootSystem
 {
     private const string INSERTION_LAYER_NAME = "Vanilla: Inventory";
     
@@ -121,8 +69,8 @@ public sealed class TestingIconSystem : ModSystem
     {
         base.Load();
 
-        TestingIcon.Callbacks.OnOpenInventory += Open;
-        TestingIcon.Callbacks.OnCloseInventory += Close;
+        InventoryCallbacks.OnOpenInventory += Open;
+        InventoryCallbacks.OnCloseInventory += Close;
     }
     
     public override void Unload()
@@ -141,7 +89,7 @@ public sealed class TestingIconSystem : ModSystem
             return true;
         }
         
-        var index = layers.FindIndex(static layer => layer.Name.Equals(INSERTION_LAYER_NAME));
+        var index = layers.FindIndex(static layer => layer.Name == INSERTION_LAYER_NAME);
         var layer = new LegacyGameInterfaceLayer(INTERFACE_LAYER_NAME, Draw, InterfaceScaleType.UI);
         
         if (index == -1)

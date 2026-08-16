@@ -1,4 +1,6 @@
-﻿using Terraria.GameInput;
+﻿using Terraria.GameContent;
+using Terraria.GameInput;
+using Terraria.UI.Chat;
 
 namespace QuestBooks.Common.UI.Elements;
 
@@ -53,11 +55,38 @@ public class TextInputField : Element
     /// </value>
     public bool Empty => Contents == string.Empty;
 
-    public override void Update(GameTime gameTime)
+    public override void Draw(SpriteBatch spriteBatch)
     {
-        base.Update(gameTime);
-
+        base.Draw(spriteBatch);
+        
         Write();
+        
+        if (string.IsNullOrEmpty(Contents))
+        {
+            return;
+        }
+        
+        var dimensions = GetInnerDimensions();
+
+        var Scale = 1f;
+        var Color = Microsoft.Xna.Framework.Color.White;
+        var Opacity = 1f;
+
+        var position = dimensions.Position() + new Vector2(0f, (4f + dimensions.Height / 2f) * Scale);
+
+        var font = FontAssets.MouseText.Value;
+        var size = ChatManager.GetStringSize(font, Contents, new Vector2(Scale));
+        
+        var center = new Vector2(size.X * 0f, size.Y / 2f);
+        
+        var scale = Scale;
+        
+        if (size.X > dimensions.Width)
+        {
+            scale *= dimensions.Width / size.X;
+        }
+
+        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, Contents, position, Color * Opacity, 0f, center, new Vector2(scale));
     }
 
     /// <summary>
@@ -124,6 +153,4 @@ public class TextInputField : Element
 
         Contents = Main.GetInputText(Contents);
     }
-
-    public static implicit operator string(TextInputField field) => field.Contents;
 }

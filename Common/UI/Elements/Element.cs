@@ -48,18 +48,6 @@ public class Element : UIElement
         SoundEngine.PlaySound(Sounds.Hover);
     }
 
-    public override void MouseOut(UIMouseEvent evt)
-    {
-        base.MouseOut(evt);
-        
-        if (!Sounds.Enabled)
-        {
-            return;
-        }
-        
-        SoundEngine.PlaySound(Sounds.Hover);
-    }
-
     public override void LeftClick(UIMouseEvent evt)
     {
         base.LeftClick(evt);

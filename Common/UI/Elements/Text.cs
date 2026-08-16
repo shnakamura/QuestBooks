@@ -108,16 +108,9 @@ public class Text : Element
     /// </exception>
     public Text(LocalizedText text) : this(text.Value) => ArgumentNullException.ThrowIfNull(text);
 
-    public override void Recalculate()
+    protected override void DrawSelf(SpriteBatch spriteBatch)
     {
-        base.Recalculate();
-        
-        Resize();
-    }
-
-    public override void Draw(SpriteBatch spriteBatch)
-    {
-        base.Draw(spriteBatch);
+        base.DrawSelf(spriteBatch);
 
         if (string.IsNullOrEmpty(Contents))
         {
@@ -150,7 +143,7 @@ public class Text : Element
         {
             return;
         }
-
+        
         var font = Font.Value;
         var size = ChatManager.GetStringSize(font, Contents, new Vector2(Scale));
         

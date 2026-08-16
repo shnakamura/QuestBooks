@@ -145,10 +145,6 @@ public class Panel : Element
     ///     The default border texture asset of a panel.
     /// </summary>
     public static readonly Asset<Texture2D> DEFAULT_BORDER = Main.Assets.Request<Texture2D>("Images/UI/PanelBorder", AssetRequestMode.ImmediateLoad);
-    
-    private Asset<Texture2D> background;
-
-    private Asset<Texture2D> border;
 
     private float opacity = 1f;
 
@@ -170,30 +166,12 @@ public class Panel : Element
     /// <summary>
     ///     Gets or sets the background texture asset of the panel.
     /// </summary>
-    public Asset<Texture2D> Background
-    {
-        get => background;
-        set
-        {
-            background = value;
-            
-            Recalculate();
-        }
-    }
+    public Asset<Texture2D> Background { get; set; }
     
     /// <summary>
     ///     Gets or sets the border texture asset of the panel.
     /// </summary>
-    public Asset<Texture2D> Border
-    {
-        get => border;
-        set
-        {
-            border = value;
-            
-            Recalculate();
-        }
-    }
+    public Asset<Texture2D> Border { get; set; }
     
     /// <summary>
     ///     Gets or sets the opacity of the panel.

@@ -1,4 +1,5 @@
-﻿using Terraria.UI;
+﻿using Terraria.Audio;
+using Terraria.UI;
 
 namespace QuestBooks.Common.UI.Elements; 
 
@@ -24,30 +25,68 @@ public class Element : UIElement
     ///     <see langword="true"/> if the mouse should be captured while hovering over the state; otherwise, <see langword="false"/>.
     /// </value>
     public bool Focus { get; set; } = true;
-
+    
     /// <summary>
-    ///     Sets the padding for all sides of the element, in pixels.
+    ///     Gets or sets the sound settings of the element.
     /// </summary>
-    public float Padding
+    public ElementSoundSettings Sounds { get; set; }
+    
+    /// <summary>
+    ///     Gets or sets the tooltip settings of the element.
+    /// </summary>
+    public ElementTooltipSettings Tooltip { get; set; }
+
+    public override void MouseOver(UIMouseEvent evt)
     {
-        set => this.WithPadding(value);
+        base.MouseOver(evt);
+
+        if (!Sounds.Enabled)
+        {
+            return;
+        }
+
+        SoundEngine.PlaySound(Sounds.Hover);
     }
 
-    public (float Width, float Height) Fill
+    public override void MouseOut(UIMouseEvent evt)
     {
-        set => this.WithFill(value.Width, value.Height);
+        base.MouseOut(evt);
+        
+        if (!Sounds.Enabled)
+        {
+            return;
+        }
+        
+        SoundEngine.PlaySound(Sounds.Hover);
     }
 
-    public (float Horizontal, float Vertical) Align
+    public override void LeftClick(UIMouseEvent evt)
     {
-        set => this.WithAlignment(value.Horizontal, value.Vertical);
-    }
+        base.LeftClick(evt);
 
+        if (!Sounds.Enabled)
+        {
+            return;
+        }
+        
+        SoundEngine.PlaySound(Sounds.Click);
+    }
+    
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
 
         Player.mouseInterface |= Focus && Hovered;
+    }
+
+    public override void Draw(SpriteBatch spriteBatch)
+    {
+        base.Draw(spriteBatch);
+        
+        if (Tooltip.Enabled && IsMouseHovering)
+        {
+            Main.instance.MouseText(Tooltip.Text);
+        }
     }
 }
 

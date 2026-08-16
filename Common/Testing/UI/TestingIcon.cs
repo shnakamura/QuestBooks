@@ -5,7 +5,6 @@ using QuestBooks.Common.UI;
 using QuestBooks.Common.UI.Elements;
 using QuestBooks.Common.UI.States;
 using ReLogic.Content;
-using Terraria.Localization;
 using Terraria.UI;
 
 namespace QuestBooks.Common.Testing.UI;
@@ -20,17 +19,11 @@ public static class TestingIcon
         {
             base.OnInitialize();
 
-            var icon = new Image(ICON_TEXTURE)
-            {
-                Left = StyleDimension.FromPixels(574f),
-                Top = StyleDimension.FromPixels(100f),
-                Sounds = new ImageSoundSettings(),
-                Highlight = new ImageHighlightSettings(),
-                Tooltip = new ImageTooltipSettings(Language.GetText("Mods.QuestBooks.UI.Testing.Buttons.Open"))
-            };
+            var icon = Image.FromAsset(ICON_TEXTURE).WithLeftClickEvent(TestingMenu.Open);
 
-            icon.WithLeftClickEvent(TestingMenu.Open);
-            
+            icon.Left.Pixels = 574f;
+            icon.Top.Pixels = 100f;
+
             Append(icon);
         }
     }

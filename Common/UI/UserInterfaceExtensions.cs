@@ -6,9 +6,23 @@ namespace QuestBooks.Common.UI;
 
 public static class UserInterfaceListExtensions
 {
+    public static TList WithScrollbar<TList, TScrollbar>(this TList list, TScrollbar scrollbar) where TList : UIList where TScrollbar : UIScrollbar
+    {
+        list.SetScrollbar(scrollbar);
+        
+        return list;
+    }
+    
     public static TList WithSort<TList>(this TList list, Action<List<UIElement>> callback) where TList : UIList
     {
         list.ManualSortMethod = callback;
+        
+        return list;
+    }
+
+    public static TList WithHiddenOverflow<TList>(this TList list, bool value) where TList : UIList
+    {
+        list.OverflowHidden = value;
         
         return list;
     }
@@ -37,6 +51,21 @@ public static class UserInterfaceInputExtensions
 
 public static class UserInterfaceAlignmentExtensions
 {
+    /// <summary>
+    ///     Sets the horizontal alignment of the element, in percent.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the horizontal alignment of.
+    /// </param>
+    /// <param name="percent">
+    ///     The horizontal alignment of the element, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified horizontal alignment.
+    /// </returns>
     public static TElement WithHorizontalAlignment<TElement>(this TElement element, float percent) where TElement : UIElement
     {
         element.HAlign = percent;
@@ -44,6 +73,21 @@ public static class UserInterfaceAlignmentExtensions
         return element;
     }
     
+    /// <summary>
+    ///     Sets the vertical alignment of the element, in percent.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the vertical alignment of.
+    /// </param>
+    /// <param name="percent">
+    ///     The vertical alignment of the element, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified vertical alignment.
+    /// </returns>
     public static TElement WithVerticalAlignment<TElement>(this TElement element, float percent) where TElement : UIElement
     {
         element.VAlign = percent;
@@ -51,6 +95,24 @@ public static class UserInterfaceAlignmentExtensions
         return element;
     }
     
+    /// <summary>
+    ///     Sets the horizontal and vertical alignment of the element, in percent.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the horizontal and vertical alignment of.
+    /// </param>
+    /// <param name="horizontal">
+    ///     The horizontal alignment of the element, in percent.
+    /// </param>
+    /// <param name="vertical">
+    ///     The vertical alignment of the element, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified horizontal and vertical alignment.
+    /// </returns>
     public static TElement WithAlignment<TElement>(this TElement element, float horizontal, float vertical) where TElement : UIElement
     {
         element.HAlign = horizontal;
@@ -59,11 +121,41 @@ public static class UserInterfaceAlignmentExtensions
         return element;
     }
 
+    /// <summary>
+    ///     Sets the horizontal and vertical alignment of the element, in percent.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the horizontal and vertical alignment of.
+    /// </param>
+    /// <param name="percent">
+    ///     The horizontal and vertical alignment of the element, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified horizontal and vertical alignment.
+    /// </returns>
     public static TElement WithAlignment<TElement>(this TElement element, float percent) where TElement : UIElement => element.WithAlignment(percent, percent);
 }
 
 public static class UserInterfaceFillExtensions
 {
+    /// <summary>
+    ///     Sets the width of the element, in percent.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the width of.
+    /// </param>
+    /// <param name="percent">
+    ///     The width of the element, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified width.
+    /// </returns>
     public static TElement WithHorizontalFill<TElement>(this TElement element, float percent) where TElement : UIElement
     {
         element.Width.Percent = percent;
@@ -71,6 +163,21 @@ public static class UserInterfaceFillExtensions
         return element;
     }
     
+    /// <summary>
+    ///     Sets the height of the element, in percent.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the height of.
+    /// </param>
+    /// <param name="percent">
+    ///     The height of the element, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified height.
+    /// </returns>
     public static TElement WithVerticalFill<TElement>(this TElement element, float percent) where TElement : UIElement
     {
         element.Height.Percent = percent;
@@ -78,6 +185,24 @@ public static class UserInterfaceFillExtensions
         return element;
     }
     
+    /// <summary>
+    ///     Sets the width and height of the element, in percent.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the width and height of.
+    /// </param>
+    /// <param name="horizontal">
+    ///     The width of the element, in percent.
+    /// </param>
+    /// <param name="vertical">
+    ///     The height of the element, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified width and height.
+    /// </returns>
     public static TElement WithFill<TElement>(this TElement element, float horizontal, float vertical) where TElement : UIElement
     {
         element.Width.Percent = horizontal;
@@ -86,11 +211,44 @@ public static class UserInterfaceFillExtensions
         return element;
     }
     
+    /// <summary>
+    ///     Sets the width and height of the element, in percent.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the width and height of.
+    /// </param>
+    /// <param name="percent">
+    ///     The width and height of the element, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified width and height.
+    /// </returns>
     public static TElement WithFill<TElement>(this TElement element, float percent) where TElement : UIElement => element.WithFill(percent, percent);
 }
 
 public static class UserInterfaceExtensions
 {
+    /// <summary>
+    ///     Appends a child to the specified element.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to append the child to.
+    /// </param>
+    /// <param name="child">
+    ///     The child to append to the specified element.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <typeparam name="TChild">
+    ///     The type of the child element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified child.
+    /// </returns>
     public static TElement WithElement<TElement, TChild>(this TElement element, TChild child) where TElement : UIElement where TChild : UIElement
     {
         element.Append(child);
@@ -98,16 +256,21 @@ public static class UserInterfaceExtensions
         return element;
     }
 
-    public static TElement WithPadding<TElement>(this TElement element, float padding) where TElement : UIElement
-    {
-        element.PaddingTop = padding;
-        element.PaddingLeft = padding;
-        element.PaddingBottom = padding;
-        element.PaddingRight = padding;
-        
-        return element;
-    }
-
+    /// <summary>
+    ///     Sets the width of the element, in pixels.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the width of.
+    /// </param>
+    /// <param name="pixels">
+    ///     The width of the element, in pixels.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified width.
+    /// </returns>
     public static TElement WithWidth<TElement>(this TElement element, float pixels) where TElement : UIElement
     {
         element.Width.Pixels = pixels;
@@ -115,6 +278,21 @@ public static class UserInterfaceExtensions
         return element;
     }
     
+    /// <summary>
+    ///     Sets the height of the element, in pixels.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the height of.
+    /// </param>
+    /// <param name="pixels">
+    ///     The height of the element, in pixels.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element.
+    /// </typeparam>
+    /// <returns>
+    ///     The element with the specified height.
+    /// </returns>
     public static TElement WithHeight<TElement>(this TElement element, float pixels) where TElement : UIElement
     {
         element.Height.Pixels = pixels;

@@ -1,46 +1,8 @@
 ﻿using QuestBooks.Core.Graphics;
 using ReLogic.Content;
-using Terraria.Audio;
-using Terraria.Localization;
 using Terraria.ModLoader.UI;
-using Terraria.UI;
 
 namespace QuestBooks.Common.UI.Elements;
-
-public readonly record struct ImageSoundSettings
-{
-    public static readonly SoundStyle DEFAULT_CLICK_SOUND = SoundID.MenuOpen;
-    
-    public static readonly SoundStyle DEFAULT_HOVER_SOUND = SoundID.MenuTick;
-    
-    /// <summary>
-    ///     Gets the sound style played when the cursor clicks the image.
-    /// </summary>
-    public SoundStyle Click { get; }
-    
-    /// <summary>
-    ///     Gets the sound style played when the cursor hovers over the image.
-    /// </summary>
-    public SoundStyle Hover { get; }
-    
-    /// <summary>
-    ///     Gets a value indicating whether image sounds are enabled.
-    /// </summary>
-    /// <value>
-    ///     <see langword="true"/> if image sounds are enabled; otherwise, <see langword="false"/>.
-    /// </value>
-    public bool Enabled { get; init; } = true;
-
-    public ImageSoundSettings(in SoundStyle click, in SoundStyle hover)
-    {
-        Click = click;
-        Hover = hover;
-        
-        Enabled = true;
-    }
-
-    public ImageSoundSettings() : this(in DEFAULT_CLICK_SOUND, in DEFAULT_HOVER_SOUND) { }
-}
 
 public readonly record struct ImageHighlightSettings
 {
@@ -78,50 +40,6 @@ public readonly record struct ImageHighlightSettings
     public ImageHighlightSettings() : this(DEFAULT_HIGHLIGHT_COLOR) { }
 }
 
-public readonly record struct ImageTooltipSettings
-{
-    /// <summary>
-    ///     Gets the text of the image tooltip.
-    /// </summary>
-    public readonly string Text { get; }
-    
-    /// <summary>
-    ///     Gets a value indicating whether the image tooltip is enabled.
-    /// </summary>
-    /// <value>
-    ///     <see langword="true"/> if the image tooltip is enabled; otherwise, <see langword="false"/>.
-    /// </value>
-    public readonly bool Enabled { get; }
-    
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="ImageTooltipSettings"/> struct with the specified text.
-    /// </summary>
-    /// <param name="text">
-    ///     The text of the image tooltip.
-    /// </param>
-    /// <exception cref="ArgumentException">
-    ///     <paramref name="text"/> is <see langword="null"/> or empty.
-    /// </exception>
-    public ImageTooltipSettings(string text)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(text);
-
-        Text = text;
-        Enabled = true;
-    }
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="ImageTooltipSettings"/> struct with the specified localized text.
-    /// </summary>
-    /// <param name="text">
-    ///     The localized text of the image tooltip.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    ///     <paramref name="text"/> is <see langword="null"/>.
-    /// </exception>
-    public ImageTooltipSettings(LocalizedText text) : this(text.Value) => ArgumentNullException.ThrowIfNull(text);
-}
-
 public class Image : Element
 {
     private Asset<Texture2D> asset;
@@ -131,21 +49,11 @@ public class Image : Element
     private float opacity = 1f;
     
     private Vector2 origin = new Vector2(0.5f);
-    
-    /// <summary>
-    ///     Gets or sets the sound settings of the image.
-    /// </summary>
-    public ImageSoundSettings Sounds { get; set; }
-    
+
     /// <summary>
     ///     Gets or sets the highlight settings of the image.
     /// </summary>
     public ImageHighlightSettings Highlight { get; set; }
-    
-    /// <summary>
-    ///     Gets or sets the tooltip settings of the image.
-    /// </summary>
-    public ImageTooltipSettings Tooltip { get; set; }
 
     /// <summary>
     ///     Gets or sets the texture asset of the image.
@@ -157,7 +65,7 @@ public class Image : Element
         {
             asset = value;
             
-            Recalculate();
+            Resize();
         }
     }
 
@@ -171,7 +79,7 @@ public class Image : Element
         {
             frame = value;
             
-            Recalculate();
+            Resize();
         }
     }
 
@@ -243,7 +151,7 @@ public class Image : Element
     /// <param name="frame">
     ///     The frame of the image.
     /// </param>
-    public Image(Asset<Texture2D> asset, Rectangle? frame = null)
+    private Image(Asset<Texture2D> asset, Rectangle? frame = null)
     {
         Asset = asset;
         Frame = frame;
@@ -257,46 +165,10 @@ public class Image : Element
 
         Resize();
     }
-
-    public override void MouseOver(UIMouseEvent evt)
-    {
-        base.MouseOver(evt);
-
-        if (!Sounds.Enabled)
-        {
-            return;
-        }
-
-        SoundEngine.PlaySound(Sounds.Hover);
-    }
-
-    public override void MouseOut(UIMouseEvent evt)
-    {
-        base.MouseOut(evt);
-        
-        if (!Sounds.Enabled)
-        {
-            return;
-        }
-        
-        SoundEngine.PlaySound(Sounds.Hover);
-    }
-
-    public override void LeftClick(UIMouseEvent evt)
-    {
-        base.LeftClick(evt);
-
-        if (!Sounds.Enabled)
-        {
-            return;
-        }
-        
-        SoundEngine.PlaySound(Sounds.Click);
-    }
     
-    public override void Draw(SpriteBatch spriteBatch)
+    protected override void DrawSelf(SpriteBatch spriteBatch)
     {
-        base.Draw(spriteBatch);
+        base.DrawSelf(spriteBatch);
 
         var dimensions = GetDimensions();
         
@@ -332,11 +204,6 @@ public class Image : Element
         }
         
         spriteBatch.Draw(Texture, position, Frame, Color * Opacity, Rotation, size * Origin, scale, Effects, 0f);
-
-        if (Tooltip.Enabled && IsMouseHovering)
-        {
-            Main.instance.MouseText(Tooltip.Text);
-        }
     }
 
     private void Resize()
@@ -355,28 +222,12 @@ public class Image : Element
 
 public static class ImageExtensions
 {
-    public static Image WithTooltipSettings(this Image image, ImageTooltipSettings settings)
+    public static TElement WithHighlight<TElement>(this TElement element, ImageHighlightSettings settings) where TElement : Image
     {
-        image.Tooltip = settings;
+        element.Highlight = settings;
         
-        return image;
+        return element;
     }
-    
-    public static Image WithSoundSettings(this Image image, ImageSoundSettings settings)
-    {
-        image.Sounds = settings;
-        
-        return image;
-    }
-    
-    public static Image WithHighlightSettings(this Image image, ImageHighlightSettings settings)
-    {
-        image.Highlight = settings;
-        
-        return image;
-    }
-    
-    public static Image WithDefaultSoundSettings(this Image image) => image.WithSoundSettings(new ImageSoundSettings());
-    
-    public static Image WithDefaultHighlightSettings(this Image image) => image.WithHighlightSettings(new ImageHighlightSettings());
+
+    public static TElement WithDefaultHighlight<TElement>(this TElement element) where TElement : Image => element.WithHighlight(new ImageHighlightSettings());
 }

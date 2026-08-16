@@ -11,6 +11,8 @@ public class Text : Element
     private Vector2 origin = new Vector2(0.5f);
 
     private float opacity = 1f;
+
+    private float scale = 1f;
     
     /// <summary>
     ///     Gets or sets the font of the text.
@@ -25,7 +27,16 @@ public class Text : Element
     /// <summary>
     ///     Gets or sets the scale of the text.
     /// </summary>
-    public float Scale { get; set; } = 1f;
+    public float Scale
+    {
+        get => scale;
+        set
+        {
+            scale = value;
+            
+            Resize();
+        }
+    }
 
     /// <summary>
     ///     Gets or sets the normalized origin of the text.
@@ -66,7 +77,7 @@ public class Text : Element
     /// <summary>
     ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/>.
     /// </summary>
-    public Text() { }
+    private Text() { }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/> with the specified contents.
@@ -77,7 +88,7 @@ public class Text : Element
     /// <exception cref="ArgumentException">
     ///     <paramref name="contents"/> is <see langword="null"/> or empty.
     /// </exception>
-    public Text(string contents)
+    private Text(string contents)
     {
         ArgumentException.ThrowIfNullOrEmpty(contents);    
         
@@ -122,6 +133,7 @@ public class Text : Element
         
         var center = new Vector2(size.X * 0f, size.Y / 2f);
         
+        // ReSharper disable once LocalVariableHidesMember
         var scale = Scale;
         
         if (size.X > dimensions.Width)
@@ -146,10 +158,45 @@ public class Text : Element
         Height.Set(size.Y * Scale - 4f, 0f);
     }
     
+    /// <summary>
+    ///     Creates a new instance of the <see cref="Text"/> class from empty contents.
+    /// </summary>
+    /// <returns>
+    ///     A new instance of the <see cref="Text"/> class with empty contents.
+    /// </returns>
+    public static Text Empty() => new();
+    
+    /// <summary>
+    ///     Creates a new instance of the <see cref="Text"/> class from the specified contents.
+    /// </summary>
+    /// <param name="contents">
+    ///     The contents of the text.
+    /// </param>
+    /// <returns>
+    ///     A new instance of the <see cref="Text"/> class with the specified contents.
+    /// </returns>
     public static Text FromLiteral(string contents) => new(contents);
 
+    /// <summary>
+    ///     Creates a new instance of the <see cref="Text"/> class from the specified localization key.
+    /// </summary>
+    /// <param name="key">
+    ///     The localization key of the text.
+    /// </param>
+    /// <returns>
+    ///     A new instance of the <see cref="Text"/> class with the specified localization key.
+    /// </returns>
     public static Text FromKey(string key) => new(Language.GetText(key));
     
+    /// <summary>
+    ///     Creates a new instance of the <see cref="Text"/> class from the specified localized text.
+    /// </summary>
+    /// <param name="text">
+    ///     The localized text of the text.
+    /// </param>
+    /// <returns>
+    ///     A new instance of the <see cref="Text"/> class with the specified localized text.
+    /// </returns>
     public static Text FromLocalization(LocalizedText text) => new(text);
 }
 

@@ -1,5 +1,6 @@
 ﻿using ReLogic.Content;
 using Terraria.Localization;
+using Terraria.ModLoader.UI;
 
 namespace QuestBooks.Common.UI.Elements;
 
@@ -32,9 +33,9 @@ public class SearchBar : Element
                     Image.FromAsset(SEARCH_ICON_TEXTURE)
                         .WithAlignment(0f, 0.5f)
                         .WithLeftClickEvent(input.Begin)
-                        .WithDefaultSoundSettings()
-                        .WithDefaultHighlightSettings()
-                        .WithTooltipSettings(new ImageTooltipSettings(Language.GetText("Mods.QuestBooks.UI.Common.Buttons.Search")))
+                        .WithDefaultSounds()
+                        .WithDefaultHighlight()
+                        .WithTooltip(ElementTooltipSettings.FromKey("Mods.QuestBooks.UI.Common.Buttons.Search"))
                 )
                 .WithElement(input)
                 .WithElement
@@ -43,9 +44,9 @@ public class SearchBar : Element
                         .WithAlignment(0f, 0.5f)
                         .WithLeftClickEvent(input.Clear)
                         .WithLeftClickEvent(input.End)
-                        .WithDefaultSoundSettings()
-                        .WithDefaultHighlightSettings()
-                        .WithTooltipSettings(new ImageTooltipSettings(Language.GetText("Mods.QuestBooks.UI.Common.Buttons.Clear")))
+                        .WithDefaultSounds()
+                        .WithDefaultHighlight()
+                        .WithTooltip(ElementTooltipSettings.FromKey("Mods.QuestBooks.UI.Common.Buttons.Clear"))
                 )
         );
     }

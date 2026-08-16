@@ -221,7 +221,7 @@ public class Panel : Element
         Background = background;
         Border = border;
 
-        Padding = Edge.Corner;
+        SetPadding(Edge.Corner);
     }
     
     /// <summary>

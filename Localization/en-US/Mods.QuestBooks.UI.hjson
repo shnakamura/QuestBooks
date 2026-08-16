@@ -7,7 +7,6 @@ Common: {
 	}
 
 	Labels.Filters: Filters
-	Searches.Placeholder: Search...
 }
 
 Testing: {
@@ -20,6 +19,9 @@ Testing: {
 		Book: Book
 		Chapter: Chapter
 		Status: Status
+	}
+
+	Status: {
 		Complete: Complete
 		Incomplete: Incomplete
 	}

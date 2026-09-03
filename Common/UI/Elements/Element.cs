@@ -10,11 +10,6 @@ public abstract class Element : UIElement
     private readonly List<ElementComponent> components = [];
 
     /// <summary>
-    ///     Gets a read-only list of all components in the element.
-    /// </summary>
-    public IReadOnlyList<ElementComponent> Components => components;
-
-    /// <summary>
     ///     Initializes a new instance of the <see cref="Element" /> class.
     /// </summary>
     protected Element() { }
@@ -92,6 +87,12 @@ public abstract class Element : UIElement
         componentsByType.Remove(typeof(TComponent));
     }
 
+    /// <summary>
+    ///     Applies a style to the element.
+    /// </summary>
+    /// <typeparam name="TStyle">
+    ///     The type of the style to apply.
+    /// </typeparam>
     public void Style<TStyle>() where TStyle : IElementStyle => TStyle.Apply(this);
 }
 

@@ -1180,13 +1180,13 @@ public sealed class TestingMenuDisplay : Element
         {
             Quest = null;
             
-            this.WithReplacement(new TestingMenuEmpty().WithFullDimensions());
+            this.WithContent(new TestingMenuEmpty().WithFullDimensions());
         }
         else
         {
             Quest = quest;
             
-            this.WithReplacement(new TestingMenuQuest(quest).WithFullDimensions());
+            this.WithContent(new TestingMenuQuest(quest).WithFullDimensions());
         }
     }
 }

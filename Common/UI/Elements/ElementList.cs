@@ -6,7 +6,7 @@ using Terraria.UI;
 
 namespace QuestBooks.Common.UI;
 
-public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where TElement : UIElement
+public class ElementList<TElement> : Element, IEnumerable<TElement> where TElement : UIElement
 {
     /// <summary>
     ///     Gets an empty element list with full dimensions.
@@ -20,7 +20,7 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     
     private IComparer<TElement> _comparer = Comparer<TElement>.Default;
     
-    private float _target;
+    private float _scroll;
     
     private float _gap;
     
@@ -41,14 +41,14 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     }
 
     /// <summary>
-    ///     Gets or sets the scroll offset target of the list, in pixels.
+    ///     Gets or sets the scroll offset of the list, in pixels.
     /// </summary>
-    public float Target
+    public float Scroll
     {
-        get => _target;
+        get => _scroll;
         set
         {
-            _target = MathHelper.Clamp(value, 0f, Overflow);
+            _scroll = MathHelper.Clamp(value, 0f, Overflow);
             
             Recalculate();
         }
@@ -67,11 +67,6 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
             Recalculate();
         }
     }
-    
-    /// <summary>
-    ///     Gets the scroll offset of the list, in pixels.
-    /// </summary>
-    public float Scroll { get; private set; }
 
     /// <summary>
     ///     Gets the number of elements in the list.
@@ -86,7 +81,7 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     /// <summary>
     ///     Initializes a new instance of the <see cref="ElementList{TElement}"/> class.
     /// </summary>
-    private ElementList() => OverflowHidden = true;
+    protected ElementList() => OverflowHidden = true;
 
     /// <summary>
     ///     Gets the element at the specified index.
@@ -119,8 +114,6 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     {
         base.Update(gameTime);
 
-        Scroll = MathHelper.SmoothStep(Scroll, Target, 0.5f);
-
         if (!IsMouseHovering)
         {
             return;
@@ -134,7 +127,7 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     {
         base.ScrollWheel(evt);
 
-        Target -= evt.ScrollWheelValue;
+        Scroll -= evt.ScrollWheelValue;
     }
     
     /// <summary>
@@ -182,7 +175,7 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     /// </summary>
     public void Sort()
     {
-        Target = 0f;
+        Scroll = 0f;
         
         items.Sort(Comparer);
     }
@@ -194,7 +187,15 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     public IEnumerator<TElement> GetEnumerator() => items.GetEnumerator();
 }
 
-public static class BExtensions
+/// <summary>
+/// 
+/// </summary>
+public sealed class ElementList : ElementList<Element>;
+
+/// <summary>
+///     Provides <see cref="ElementList{TElement}"/> extensions.
+/// </summary>
+public static class ElementListExtensions
 {
     public static ElementList<TElement> WithComparer<TElement>(this ElementList<TElement> list, IComparer<TElement> comparer) where TElement : Element
     {

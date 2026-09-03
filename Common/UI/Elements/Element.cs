@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Terraria.GameContent.UI.Elements;
 using Terraria.UI;
 
 namespace QuestBooks.Common.UI;
@@ -96,33 +95,335 @@ public abstract class Element : UIElement
     public void Style<TStyle>() where TStyle : IElementStyle => TStyle.Apply(this);
 }
 
-public static class ElementListExtensions
+public static class ElementExtensions
 {
-    public static TList WithScrollbar<TList, TScrollbar>(this TList list, TScrollbar scrollbar) where TList : UIList where TScrollbar : UIScrollbar
+    public static TElement WithUpdateCallback<TElement>(this TElement element, Action callback) where TElement : UIElement
     {
-        list.SetScrollbar(scrollbar);
-        
-        return list;
-    }
-    
-    public static TList WithItem<TList, TItem>(this TList list, TItem item) where TList : UIList where TItem : UIElement
-    {
-        list.Add(item);
-        
-        return list;
-    }
-    
-    public static TList WithSort<TList>(this TList list, Action<List<UIElement>> callback) where TList : UIList
-    {
-        list.ManualSortMethod = callback;
-        
-        return list;
+        element.OnUpdate += _ => callback.Invoke();
+
+        return element;
     }
 
-    public static TList WithGap<TList>(this TList list, float gap) where TList : UIList
-    {
-        list.ListPadding = gap;
+    public static TElement WithUpdateCallback<TElement>(this TElement element, Action<TElement> callback) where TElement : UIElement => element.WithUpdateCallback(() => callback.Invoke(element));
 
-        return list;
+    public static TElement WithLeftClickCallback<TElement>(this TElement element, Action callback) where TElement : UIElement
+    {
+        element.OnLeftClick += (_, _) => callback.Invoke();
+
+        return element;
+    }
+
+    public static TElement WithLeftClickCallback<TElement>(this TElement element, Action<TElement> callback) where TElement : UIElement => element.WithLeftClickCallback(() => callback.Invoke(element));
+
+    public static TElement WithFullDimensions<TElement>(this TElement element) where TElement : UIElement
+    {
+        element.Width = StyleDimension.Fill;
+        element.Height = StyleDimension.Fill;
+
+        return element;
+    }
+
+    /// <summary>
+    ///     Sets the width of the specified element.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the width of.
+    /// </param>
+    /// <param name="width">
+    ///     The width to set.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the width of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithWidth<TElement>(this TElement element, StyleDimension width) where TElement : UIElement
+    {
+        element.Width = width;
+
+        return element;
+    }
+
+    /// <summary>
+    ///     Sets the width of the specified element.
+    /// </summary>
+    /// <remarks>
+    ///     <paramref name="percent" /> is a value in the range of <c>[0f - 1f]</c>, where <c>0f</c>
+    ///     represents left alignment and <c>1f</c> represents right alignment.
+    /// </remarks>
+    /// <param name="element">
+    ///     The element to set the width of.
+    /// </param>
+    /// <param name="pixels">
+    ///     The width to set, in pixels.
+    /// </param>
+    /// <param name="percent">
+    ///     The width to set, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the width of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithWidth<TElement>(this TElement element, float pixels, float percent) where TElement : UIElement => element.WithWidth(StyleDimension.FromPixelsAndPercent(pixels, percent));
+
+    /// <summary>
+    ///     Sets the height of the specified element.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the height of.
+    /// </param>
+    /// <param name="height">
+    ///     The height to set.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the height of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithHeight<TElement>(this TElement element, StyleDimension height) where TElement : UIElement
+    {
+        element.Height = height;
+
+        return element;
+    }
+
+    /// <summary>
+    ///     Sets the height of the specified element.
+    /// </summary>
+    /// <remarks>
+    ///     <paramref name="percent" /> is a value in the range of <c>[0f - 1f]</c>, where <c>0f</c>
+    ///     represents top alignment and <c>1f</c> represents bottom alignment.
+    /// </remarks>
+    /// <param name="element">
+    ///     The element to set the height of.
+    /// </param>
+    /// <param name="pixels">
+    ///     The height to set, in pixels.
+    /// </param>
+    /// <param name="percent">
+    ///     The height to set, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the height of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithHeight<TElement>(this TElement element, float pixels, float percent) where TElement : UIElement => element.WithHeight(StyleDimension.FromPixelsAndPercent(pixels, percent));
+
+    /// <summary>
+    ///     Sets the top position of the specified element.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the top position of.
+    /// </param>
+    /// <param name="top">
+    ///     The top position to set.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the top position of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithTop<TElement>(this TElement element, StyleDimension top) where TElement : UIElement
+    {
+        element.Top = top;
+
+        return element;
+    }
+
+    /// <summary>
+    ///     Sets the top position of the specified element.
+    /// </summary>
+    /// <remarks>
+    ///     <paramref name="percent" /> is a value in the range of <c>[0f - 1f]</c>, where <c>0f</c>
+    ///     represents top alignment and <c>1f</c> represents bottom alignment.
+    /// </remarks>
+    /// <param name="element">
+    ///     The element to set the top position of.
+    /// </param>
+    /// <param name="pixels">
+    ///     The top position to set, in pixels.
+    /// </param>
+    /// <param name="percent">
+    ///     The top position to set, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the top position of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithTop<TElement>(this TElement element, float pixels, float percent) where TElement : UIElement => element.WithTop(StyleDimension.FromPixelsAndPercent(pixels, percent));
+
+    /// <summary>
+    ///     Sets the left position of the specified element.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the left position of.
+    /// </param>
+    /// <param name="left">
+    ///     The left position to set.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the left position of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithLeft<TElement>(this TElement element, StyleDimension left) where TElement : UIElement
+    {
+        element.Left = left;
+
+        return element;
+    }
+
+    /// <summary>
+    ///     Sets the left position of the specified element.
+    /// </summary>
+    /// <remarks>
+    ///     <paramref name="percent" /> is a value in the range of <c>[0f - 1f]</c>, where <c>0f</c>
+    ///     represents left alignment and <c>1f</c> represents right alignment.
+    /// </remarks>
+    /// <param name="element">
+    ///     The element to set the left position of.
+    /// </param>
+    /// <param name="pixels">
+    ///     The left position to set, in pixels.
+    /// </param>
+    /// <param name="percent">
+    ///     The left position to set, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the left position of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithLeft<TElement>(this TElement element, float pixels, float percent) where TElement : UIElement => element.WithLeft(StyleDimension.FromPixelsAndPercent(pixels, percent));
+
+    /// <summary>
+    ///     Sets the horizontal alignment of the specified element.
+    /// </summary>
+    /// <remarks>
+    ///     <paramref name="percent" /> is a value in the range of <c>[0f - 1f]</c>, where <c>0f</c>
+    ///     represents left alignment and <c>1f</c> represents right alignment.
+    /// </remarks>
+    /// <param name="element">
+    ///     The element to set the horizontal alignment of.
+    /// </param>
+    /// <param name="percent">
+    ///     The horizontal alignment to set, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the horizontal alignment of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithHAlign<TElement>(this TElement element, float percent) where TElement : UIElement
+    {
+        element.HAlign = percent;
+
+        return element;
+    }
+
+    /// <summary>
+    ///     Sets the vertical alignment of the specified element.
+    /// </summary>
+    /// <remarks>
+    ///     <paramref name="percent" /> is a value in the range of <c>[0f - 1f]</c>, where <c>0f</c>
+    ///     represents top alignment and <c>1f</c> represents bottom alignment.
+    /// </remarks>
+    /// <param name="element">
+    ///     The element to set the vertical alignment of.
+    /// </param>
+    /// <param name="percent">
+    ///     The vertical alignment to set, in percent.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the vertical alignment of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithVAlign<TElement>(this TElement element, float percent) where TElement : UIElement
+    {
+        element.VAlign = percent;
+
+        return element;
+    }
+
+    /// <summary>
+    ///     Sets the padding of the specified element.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the padding of.
+    /// </param>
+    /// <param name="top">
+    ///     The top padding to set, in pixels.
+    /// </param>
+    /// <param name="left">
+    ///     The left padding to set, in pixels.
+    /// </param>
+    /// <param name="bottom">
+    ///     The bottom padding to set, in pixels.
+    /// </param>
+    /// <param name="right">
+    ///     The right padding to set, in pixels.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the padding of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithPadding<TElement>(this TElement element, float top, float left, float bottom, float right) where TElement : UIElement
+    {
+        element.PaddingTop = top;
+        element.PaddingLeft = left;
+        element.PaddingBottom = bottom;
+        element.PaddingRight = right;
+
+        return element;
+    }
+
+    /// <summary>
+    ///     Sets the padding of the specified element.
+    /// </summary>
+    /// <param name="element">
+    ///     The element to set the padding of.
+    /// </param>
+    /// <param name="padding">
+    ///     The padding to set, in pixels.
+    /// </param>
+    /// <typeparam name="TElement">
+    ///     The type of the element to set the padding of.
+    /// </typeparam>
+    /// <returns>
+    ///     The specified element.
+    /// </returns>
+    public static TElement WithPadding<TElement>(this TElement element, float padding) where TElement : UIElement => element.WithPadding(padding, padding, padding, padding);
+
+    public static TElement WithElement<TElement, TChild>(this TElement element, TChild child) where TElement : UIElement where TChild : UIElement
+    {
+        element.Append(child);
+
+        return element;
+    }
+
+    public static TElement WithContent<TElement, TChild>(this TElement element, TChild child) where TElement : UIElement where TChild : UIElement
+    {
+        element.RemoveAllChildren();
+        element.Append(child);
+
+        child.Activate();
+
+        return element;
     }
 }

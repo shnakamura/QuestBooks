@@ -49,3 +49,13 @@ public sealed class ElementTween<TValue> : IElementTween
     /// <inheritdoc/> 
     void IElementTween.Update() => Setter.Invoke(Interpolator.Invoke(Start, End, Ease.Invoke(Elapsed++ / (float)Duration)));
 }
+
+public static class ElementTweenExtensions
+{
+    public static TElement WithTween<TElement>(this TElement element) where TElement : Element
+    {
+        
+        
+        return element;
+    }
+}

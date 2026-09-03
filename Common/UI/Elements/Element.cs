@@ -3,7 +3,44 @@ using Terraria.UI;
 
 namespace QuestBooks.Common.UI;
 
-public abstract class Element : UIElement
+public readonly ref struct ElementUpdateContext
+{
+    /// <summary>
+    ///     Gets the time elapsed since the last element update, in frames.
+    /// </summary>
+    public readonly required float Elapsed { get; init; }
+}
+
+public readonly ref struct ElementDrawContext
+{
+    /// <summary>
+    ///     Gets a value indicating whether the element's children are currently being drawn.
+    /// </summary>
+    /// <value>
+    ///     <see langword="true"/> if the element's children are currently being drawn; otherwise, <see langword="false"/>.
+    /// </value>
+    public readonly required bool Children { get; init; }
+
+    /// <summary>
+    ///     Gets a value indicating whether the element itself is currently being drawn.
+    /// </summary>
+    /// <value>
+    ///     <see langword="true"/> if the element itself is currently being drawn; otherwise, <see langword="false"/>.
+    /// </value>
+    public readonly required bool Self { get; init; }
+    
+    /// <summary>
+    ///     Gets the sprite batch used for drawing.
+    /// </summary>
+    public readonly required SpriteBatch Batch { get; init; }
+    
+    /// <summary>
+    ///     Gets the graphics device used for drawing.
+    /// </summary>
+    public readonly required GraphicsDevice Device { get; init; }
+}
+
+public class Element : UIElement
 {
     private readonly Dictionary<Type, ElementComponent> componentsByType = [];
     private readonly List<ElementComponent> components = [];
@@ -13,7 +50,8 @@ public abstract class Element : UIElement
     /// </summary>
     protected Element() { }
 
-    public override void OnDeactivate()
+    /// <inheritdoc/> 
+    public sealed override void OnDeactivate()
     {
         base.OnDeactivate();
 
@@ -25,6 +63,83 @@ public abstract class Element : UIElement
         components.Clear();
         componentsByType.Clear();
     }
+
+    /// <inheritdoc/> 
+    public sealed override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+
+        var context = new ElementUpdateContext
+        {
+            Elapsed = gameTime.ElapsedGameTime.Ticks
+        };
+        
+        Update(in context);
+    }
+
+    /// <inheritdoc/> 
+    public sealed override void Draw(SpriteBatch spriteBatch)
+    {
+        base.Draw(spriteBatch);
+
+        var context = new ElementDrawContext
+        {
+            Children = false,
+            Self = false,
+            Batch = spriteBatch,
+            Device = spriteBatch.GraphicsDevice
+        };
+        
+        Draw(in context);
+    }
+
+    /// <inheritdoc/> 
+    protected sealed override void DrawSelf(SpriteBatch spriteBatch)
+    {
+        base.DrawSelf(spriteBatch);
+        
+        var context = new ElementDrawContext
+        {
+            Children = false,
+            Self = true,
+            Batch = spriteBatch,
+            Device = spriteBatch.GraphicsDevice
+        };
+        
+        Draw(in context);
+    }
+
+    /// <inheritdoc/> 
+    protected sealed override void DrawChildren(SpriteBatch spriteBatch)
+    {
+        base.DrawChildren(spriteBatch);
+        
+        var context = new ElementDrawContext
+        {
+            Children = true,
+            Self = false,
+            Batch = spriteBatch,
+            Device = spriteBatch.GraphicsDevice
+        };
+        
+        Draw(in context);
+    }
+
+    /// <summary>
+    ///     
+    /// </summary>
+    /// <param name="context">
+    ///     The update context.
+    /// </param>
+    protected virtual void Update(in ElementUpdateContext context) { }
+    
+    /// <summary>
+    ///     
+    /// </summary>
+    /// <param name="context">
+    ///     The draw context.
+    /// </param>
+    protected virtual void Draw(in ElementDrawContext context) { }
 
     /// <summary>
     ///     Attaches a component to the element.

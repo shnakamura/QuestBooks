@@ -16,13 +16,6 @@ public sealed class ElementListScrollbar : Element
     ///     Initializes a new instance of the <see cref="ElementListScrollbar"/> class.
     /// </summary>
     private ElementListScrollbar() { }
-
-    protected override void DrawSelf(SpriteBatch spriteBatch)
-    {
-        base.DrawSelf(spriteBatch);
-        
-        
-    }
 }
 
 public static class ElementListScrollbarUtilities

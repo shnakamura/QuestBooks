@@ -43,11 +43,6 @@ public class Text : Element
         get => _contents;
         set
         {
-            if (_contents == value)
-            {
-                return;
-            }
-            
             _contents = value;
             
             Resize();
@@ -130,8 +125,6 @@ public class Text : Element
         ArgumentException.ThrowIfNullOrEmpty(contents);    
         
         Contents = contents;
-        
-        Resize();
     }
 
     /// <summary>
@@ -151,12 +144,12 @@ public class Text : Element
         
         Resize();
     }
-    
-    protected override void DrawSelf(SpriteBatch spriteBatch)
-    {
-        base.DrawSelf(spriteBatch);
 
-        if (Blank)
+    protected override void Draw(in ElementDrawContext context)
+    {
+        base.Draw(in context);
+
+        if (Blank || !context.Self)
         {
             return;
         }
@@ -170,10 +163,13 @@ public class Text : Element
         var origin = new Vector2(0f, size.Y / 2f);
         var position = dimensions.Position() + origin;
 
-        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Font, Contents, position, Color * Opacity, Rotation, origin, scale);
+        ChatManager.DrawColorCodedStringWithShadow(context.Batch, Font, Contents, position, Color * Opacity, Rotation, origin, scale);
     }
-
-    private void Resize()
+    
+    /// <summary>
+    ///     Resizes the text to fit its contents.
+    /// </summary>
+    public void Resize()
     {
         if (Blank)
         {

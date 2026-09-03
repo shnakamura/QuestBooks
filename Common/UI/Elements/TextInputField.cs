@@ -134,9 +134,14 @@ public class TextInputField : Element
         Begin();
     }
 
-    protected override void DrawSelf(SpriteBatch spriteBatch)
+    protected override void Draw(in ElementDrawContext context)
     {
-        base.DrawSelf(spriteBatch);
+        base.Draw(in context);
+
+        if (!context.Self)
+        {
+            return;
+        }
         
         Write();
 
@@ -167,32 +172,34 @@ public class TextInputField : Element
 
         position.Y += size.Y / 2f + 4f;
 
-        var device = spriteBatch.GraphicsDevice;
+        var batch = context.Batch;
+        var device = context.Device;
+        
         var scissor = device.ScissorRectangle;
 
-        var bounds = GetClippingRectangle(spriteBatch);
+        var bounds = GetClippingRectangle(batch);
         
         bounds.Inflate(padding, padding);
 
         device.ScissorRectangle = bounds;
         
-        var snapshot = spriteBatch.Capture();
+        var snapshot = batch.Capture();
 
         var parameters = snapshot with
         {
             RasterizerState = RASTERIZER_STATE
         };
         
-        spriteBatch.End();
-        spriteBatch.Begin(in parameters);
+        batch.End();
+        batch.Begin(in parameters);
         
-        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Font, contents, position, color * Opacity, 0f, origin, scale);
+        ChatManager.DrawColorCodedStringWithShadow(batch, Font, contents, position, color * Opacity, 0f, origin, scale);
         
-        spriteBatch.End();
+        batch.End();
         
         device.ScissorRectangle = scissor;
         
-        spriteBatch.Begin(in snapshot);
+        batch.Begin(in snapshot);
     }
 
     /// <summary>

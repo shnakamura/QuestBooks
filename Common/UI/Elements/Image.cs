@@ -3,7 +3,7 @@ using ReLogic.Content;
 
 namespace QuestBooks.Common.UI;
 
-public sealed class Image : Element
+public class Image : Element
 {
     private Asset<Texture2D> _asset;
 
@@ -21,7 +21,7 @@ public sealed class Image : Element
         {
             _asset = value;
             
-            Recalculate();
+            Resize();
         }
     }
 
@@ -35,7 +35,7 @@ public sealed class Image : Element
         {
             _frame = value;
             
-            Recalculate();
+            Resize();
         }
     }
 
@@ -95,7 +95,7 @@ public sealed class Image : Element
     /// <param name="asset">
     ///     The texture asset of the image.
     /// </param>
-    private Image(Asset<Texture2D> asset) => Asset = asset;
+    protected Image(Asset<Texture2D> asset) => Asset = asset;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="Image"/> <see langword="class"/> with the specified texture asset path.
@@ -103,40 +103,45 @@ public sealed class Image : Element
     /// <param name="path">
     ///     The path of the texture asset of the image.
     /// </param>
-    private Image(string path) => Asset = ModContent.Request<Texture2D>(path, AssetRequestMode.ImmediateLoad);
+    protected Image(string path) => Asset = ModContent.Request<Texture2D>(path, AssetRequestMode.ImmediateLoad);
     
     /// <inheritdoc/>
     public override void Recalculate()
     {
         base.Recalculate();
 
-        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()), 0f);
-        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height(), 0f);
+        Resize();
     }
-    
-    /// <inheritdoc/>
-    protected override void DrawSelf(SpriteBatch spriteBatch)
-    {
-        base.DrawSelf(spriteBatch);
 
+    /// <inheritdoc/>
+    protected override void Draw(in ElementDrawContext context)
+    {
+        base.Draw(in context);
+
+        if (!context.Self)
+        {
+            return;
+        }
+        
         var dimensions = GetDimensions();
+        var position = dimensions.Center();
         
         var size = Frame.HasValue ? Frame.Value.Size() : Texture.Size();
-
-        var position = dimensions.Center();
         var origin = size / 2f;
         
         var fit = Fit && size.X > dimensions.Width;
         var scale = fit ? Scale * dimensions.Width / size.X : Scale;
 
+        var batch = context.Batch;
+        
         if (Highlight != Color.Transparent && IsMouseHovering)
         {
-            var parameters = spriteBatch.Capture() with
+            var parameters = batch.Capture() with
             {
                 SpriteSortMode = SpriteSortMode.Immediate
             };
             
-            using var scope = spriteBatch.Scope(in parameters);
+            using var scope = batch.Scope(in parameters);
 
             Main.pixelShader.CurrentTechnique.Passes["ColorOnly"].Apply();
             
@@ -144,15 +149,24 @@ public sealed class Image : Element
             
             var highlight = Highlight * Opacity;
         
-            spriteBatch.Draw(Asset.Value, position + new Vector2(0f, offset), Frame, highlight, Rotation, origin, scale, Effects, 0f);
-            spriteBatch.Draw(Asset.Value, position + new Vector2(0f, -offset), Frame, highlight, Rotation, origin, scale, Effects, 0f);
-            spriteBatch.Draw(Asset.Value, position + new Vector2(offset, 0f), Frame, highlight, Rotation, origin, scale, Effects, 0f);
-            spriteBatch.Draw(Asset.Value, position + new Vector2(-offset, 0f), Frame, highlight, Rotation, origin, scale, Effects, 0f);
+            batch.Draw(Asset.Value, position + new Vector2(0f, offset), Frame, highlight, Rotation, origin, scale, Effects, 0f);
+            batch.Draw(Asset.Value, position + new Vector2(0f, -offset), Frame, highlight, Rotation, origin, scale, Effects, 0f);
+            batch.Draw(Asset.Value, position + new Vector2(offset, 0f), Frame, highlight, Rotation, origin, scale, Effects, 0f);
+            batch.Draw(Asset.Value, position + new Vector2(-offset, 0f), Frame, highlight, Rotation, origin, scale, Effects, 0f);
         }
         
-        spriteBatch.Draw(Texture, position, Frame, Color * Opacity, Rotation, origin, scale, Effects, 0f);
+        batch.Draw(Texture, position, Frame, Color * Opacity, Rotation, origin, scale, Effects, 0f);
     }
-    
+
+    /// <summary>
+    ///     Resizes the image to fit its contents.
+    /// </summary>
+    public void Resize()
+    {
+        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()), 0f);
+        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height(), 0f);
+    }
+
     /// <summary>
     ///     Returns a new <see cref="Image"/> from the specified texture asset path.
     /// </summary>

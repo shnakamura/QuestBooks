@@ -1,13 +1,18 @@
-﻿using QuestBooks.Core.Graphics;
-using ReLogic.Content;
+﻿using ReLogic.Content;
 using Terraria.ModLoader.UI;
 
 namespace QuestBooks.Common.UI;
 
-public sealed class Panel : Element
+public class Panel : Element
 {
+    /// <summary>
+    ///     Gets an empty panel with full dimensions.
+    /// </summary>
     public static Panel Full => new Panel().WithFullDimensions();
 
+    /// <summary>
+    ///     Gets an empty panel.
+    /// </summary>
     public static Panel Empty => new();
     
     private float _opacity = 1f;
@@ -62,7 +67,7 @@ public sealed class Panel : Element
     /// <summary>
     ///     Initializes a new instance of the <see cref="Panel"/> class.
     /// </summary>
-    private Panel() : this(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Panel", AssetRequestMode.ImmediateLoad)) { }
+    protected Panel() : this(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Panel", AssetRequestMode.ImmediateLoad)) { }
     
     /// <summary>
     ///     Initializes a new instance of the <see cref="Panel"/> class with the specified texture asset.
@@ -70,7 +75,7 @@ public sealed class Panel : Element
     /// <param name="asset">
     ///     The texture asset of the panel.
     /// </param>
-    private Panel(Asset<Texture2D> asset)
+    protected Panel(Asset<Texture2D> asset)
     {
         Asset = asset;
 
@@ -83,7 +88,7 @@ public sealed class Panel : Element
     /// <param name="path">
     ///     The path of the texture asset of the panel.
     /// </param>
-    private Panel(string path)
+    protected Panel(string path)
     {
         Asset = ModContent.Request<Texture2D>(path, AssetRequestMode.ImmediateLoad);
         
@@ -91,19 +96,17 @@ public sealed class Panel : Element
     }
 
     /// <inheritdoc/>
-    protected override void DrawSelf(SpriteBatch spriteBatch)
+    protected override void Draw(in ElementDrawContext context)
     {
-        base.DrawSelf(spriteBatch);
-        
+        base.Draw(in context);
+
+        if (!context.Self)
+        {
+            return;
+        }
+                
         var dimensions = GetDimensions();
         var bounds = dimensions.ToRectangle();
-        
-        var parameters = spriteBatch.Capture() with
-        {
-           SamplerState = SamplerState.PointClamp
-        };
-
-        using var scope = spriteBatch.Scope(in parameters);
 
         var background = Background * Opacity;
         var border = (IsMouseHovering && Highlight != Color.Transparent ? Highlight : Border) * Opacity;

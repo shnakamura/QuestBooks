@@ -31,22 +31,27 @@ public sealed class Background : Element
     ///     Initializes a new instance of the <see cref="Background"/> class.
     /// </summary>
     private Background() { }
-    
-    protected override void DrawSelf(SpriteBatch spriteBatch)
+
+    protected override void Draw(in ElementDrawContext context)
     {
-        base.DrawSelf(spriteBatch);
+        base.Draw(in context);
+
+        if (!context.Self)
+        {
+            return;
+        }
         
         var dimensions = GetDimensions();
         var position = dimensions.Position();
 
-        Utils.DrawSettingsPanel(spriteBatch, position, dimensions.Width, Color * Opacity);
+        Utils.DrawSettingsPanel(context.Batch, position, dimensions.Width, Color * Opacity);
     }
 }
 
 /// <summary>
 ///     Provides <see cref="Background"/> extensions.
 /// </summary>
-public static class backgroundExtensions
+public static class BackgroundExtensions
 {
     public static Background WithColor(this Background background, in Color color)
     {

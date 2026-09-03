@@ -110,10 +110,10 @@ public class ElementList<TElement> : Element, IEnumerable<TElement> where TEleme
     }
 
     /// <inheritdoc/>
-    public override void Update(GameTime gameTime)
+    protected override void Update(in ElementUpdateContext context)
     {
-        base.Update(gameTime);
-
+        base.Update(in context);
+        
         if (!IsMouseHovering)
         {
             return;

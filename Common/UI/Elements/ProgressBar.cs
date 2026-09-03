@@ -59,9 +59,9 @@ public sealed class ProgressBar : Element
     }
 
     /// <inheritdoc/>
-    public override void Update(GameTime gameTime)
+    protected override void Update(in ElementUpdateContext context)
     {
-        base.Update(gameTime);
+        base.Update(in context);
         
         Fill.Width = StyleDimension.FromPercent(Progress);
     }

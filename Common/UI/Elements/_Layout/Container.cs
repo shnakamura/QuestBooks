@@ -11,11 +11,4 @@ public sealed class Container : Element
     ///     Gets an empty container.
     /// </summary>
     public static Container Empty => new();
-
-    public override void OnInitialize()
-    {
-        base.OnInitialize();
-        
-        Attach(new InterfaceMouse());
-    }
 }

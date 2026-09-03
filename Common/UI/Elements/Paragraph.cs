@@ -7,7 +7,7 @@ using Terraria.UI.Chat;
 
 namespace QuestBooks.Common.UI;
 
-public sealed class Paragraph : Element
+public class Paragraph : Element
 {
     /// <summary>
     ///     Gets an empty paragraph with full dimensions.
@@ -112,7 +112,7 @@ public sealed class Paragraph : Element
     /// <summary>
     ///     Initializes a new instance of the <see cref="Paragraph"/> class.
     /// </summary>
-    private Paragraph() { }
+    protected Paragraph() { }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="Paragraph"/> class with the specified contents.
@@ -123,7 +123,7 @@ public sealed class Paragraph : Element
     /// <exception cref="ArgumentNullException">
     ///     <paramref name="contents"/> is <see langword="null"/>.
     /// </exception>
-    private Paragraph(string contents)
+    protected Paragraph(string contents)
     {
         ArgumentNullException.ThrowIfNull(contents);    
         
@@ -160,11 +160,11 @@ public sealed class Paragraph : Element
     }
 
     /// <inheritdoc/>
-    protected override void DrawSelf(SpriteBatch spriteBatch)
+    protected override void Draw(in ElementDrawContext context)
     {
-        base.DrawSelf(spriteBatch);
+        base.Draw(in context);
         
-        if (Blank)
+        if (Blank || !context.Self)
         {
             return;
         }
@@ -176,9 +176,11 @@ public sealed class Paragraph : Element
         var snippets = ChatManager.ParseMessage(wrap, Color).ToArray();
         
         ChatManager.ConvertNormalSnippets(snippets);
+
+        var batch = context.Batch;
         
-        ChatManager.DrawColorCodedStringShadow(spriteBatch, Font, snippets, position, Color.Black * Opacity, Rotation, default, new Vector2(Scale));
-        ChatManager.DrawColorCodedString(spriteBatch, Font, snippets, position, Color * Opacity, Rotation, default, new Vector2(Scale), out var _, -1f);
+        ChatManager.DrawColorCodedStringShadow(batch, Font, snippets, position, Color.Black * Opacity, Rotation, default, new Vector2(Scale));
+        ChatManager.DrawColorCodedString(batch, Font, snippets, position, Color * Opacity, Rotation, default, new Vector2(Scale), out var _, -1f);
     }
 
     /// <summary>

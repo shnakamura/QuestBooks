@@ -34,19 +34,17 @@ public class SearchBar : Element
             .WithHeight(StyleDimension.FromPercent(1f));
 
         Search = Image.FromPath("QuestBooks/Assets/Textures/UI/Search")
+            .WithStyle<Image, Button>()
             .WithHAlign(0f)
             .WithVAlign(0.5f)
-            .WithLeftClickCallback(Input.Begin)
-            .WithHighlight(UICommon.DefaultUIBorderMouseOver)
-            .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen));
+            .WithLeftClickCallback(Input.Begin);
 
         Clear = Image.FromPath("QuestBooks/Assets/Textures/UI/SearchClear")
+            .WithStyle<Image, Button>()
             .WithHAlign(0f)
             .WithVAlign(0.5f)
             .WithLeftClickCallback(Input.End)
-            .WithLeftClickCallback(Input.Clear)
-            .WithHighlight(UICommon.DefaultUIBorderMouseOver)
-            .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen));
+            .WithLeftClickCallback(Input.Clear);
     }
     
     public override void OnInitialize()

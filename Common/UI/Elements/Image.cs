@@ -42,7 +42,7 @@ public sealed class Image : Element
     /// <summary>
     ///     Gets or sets the scale of the image.
     /// </summary>
-    public Vector2 Scale { get; set; } = new Vector2(1f);
+    public float Scale { get; set; } = 1f;
 
     /// <summary>
     ///     Gets or sets the rotation of the image, in radians.
@@ -110,8 +110,8 @@ public sealed class Image : Element
     {
         base.Recalculate();
 
-        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()) * Scale.X, 0f);
-        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height() * Scale.Y, 0f);
+        Width.Set((Frame.HasValue ? Frame.Value.Width : Asset.Width()), 0f);
+        Height.Set(Frame.HasValue ? Frame.Value.Height : Asset.Height(), 0f);
     }
     
     /// <inheritdoc/>
@@ -135,7 +135,7 @@ public sealed class Image : Element
             {
                 SpriteSortMode = SpriteSortMode.Immediate
             };
-
+            
             using var scope = spriteBatch.Scope(in parameters);
 
             Main.pixelShader.CurrentTechnique.Passes["ColorOnly"].Apply();

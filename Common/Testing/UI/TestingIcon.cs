@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using QuestBooks.Common.Inventory;
 using QuestBooks.Common.UI;
-using ReLogic.Content;
-using Terraria.ModLoader.UI;
 using Terraria.UI;
 
 namespace QuestBooks.Common.Testing.UI;
@@ -16,12 +14,11 @@ public sealed class TestingIconState : UIState
         Append
         (
             Image.FromPath("QuestBooks/Assets/Textures/UI/Testing/Header")
-                .WithHighlight(UICommon.DefaultUIBorderMouseOver)
-                .WithTop(StyleDimension.FromPixels(InventoryDimensions.Height))
-                .WithLeft(StyleDimension.FromPixels(InventoryDimensions.Width))
+                .WithTop(StyleDimension.FromPixels(InventoryDimensions.Bounds.Top + 100f))
+                .WithLeft(StyleDimension.FromPixels(InventoryDimensions.Bounds.Right + 80f))
+                .WithStyle<Image, Button>()
                 .WithLeftClickCallback(TestingMenuSystem.Open)
-                .WithComponent(new InterfaceMouse())
-                .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen))
+                .WithComponent(InterfaceTooltip.FromLiteral("Open Quest Testing"))
         );
     }
 }

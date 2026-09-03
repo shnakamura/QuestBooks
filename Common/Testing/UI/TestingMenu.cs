@@ -186,19 +186,15 @@ public sealed class TestingMenuHeader : Element
                 )
                 .WithElement
                 (
-                    Button.Empty
+                    Panel.Full
                         .WithWidth(StyleDimension.FromPercent(0.1f))
                         .WithHeight(StyleDimension.FromPercent(1f))
+                        .WithStyle<Panel, Button>()
                         .WithElement
                         (
-                            Panel.Full
-                                .WithHighlight(UICommon.DefaultUIBorderMouseOver)
-                                .WithElement
-                                (
-                                    Text.FromLiteral("Close")
-                                        .WithHAlign(0.5f)
-                                        .WithVAlign(0.5f)
-                                )
+                            Text.FromLiteral("Close")
+                                .WithHAlign(0.5f)
+                                .WithVAlign(0.5f)
                         )
                         .WithLeftClickCallback(TestingMenuSystem.Close)
                 )
@@ -336,11 +332,10 @@ public sealed class TestingMenuBook : Element
                                 .WithElement
                                 (
                                     Image.FromPath("QuestBooks/Assets/Textures/UI/Dropdown")
+                                        .WithStyle<Image, Button>()
                                         .WithHAlign(1f)
                                         .WithVAlign(0.5f)
-                                        .WithHighlight(UICommon.DefaultUIBorderMouseOver)
                                         .WithLeftClickCallback(Toggle)
-                                        .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen))
                                 )
                         )
                 )
@@ -572,13 +567,12 @@ public sealed class TestingMenuListItem : Element
         Callback = callback;
 
         Button = Image.FromPath("QuestBooks/Assets/Textures/UI/Testing/Status")
+            .WithStyle<Image, Button>()
             .WithHAlign(0f)
             .WithVAlign(0.5f)
-            .WithHighlight(UICommon.DefaultUIBorderMouseOver)
             .WithLeftClickCallback(Toggle)
-            .WithUpdateCallback(image => image.Frame = Completed ? COMPLETE_FRAME : INCOMPLETE_FRAME)
             .WithComponent(InterfaceTooltip.FromLiteral("Toggle"))
-            .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen));
+            .WithUpdateCallback(image => image.Frame = Completed ? COMPLETE_FRAME : INCOMPLETE_FRAME);
     }
     
     public override void OnInitialize()
@@ -763,13 +757,12 @@ public sealed class TestingMenuList : Element
                                 .WithElement
                                 (
                                     Image.FromPath("QuestBooks/Assets/Textures/UI/Testing/Status")
-                                        .WithHighlight(UICommon.DefaultUIBorderMouseOver)
+                                        .WithStyle<Image, Button>()
                                         .WithFrame(COMPLETE_FRAME)
                                         .WithHAlign(0.5f)
                                         .WithVAlign(0.5f)
                                         .WithLeftClickCallback(Complete)
                                         .WithComponent(InterfaceTooltip.FromLiteral("Complete All"))
-                                        .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen))
                                 )
                         )
                         .WithElement
@@ -780,13 +773,12 @@ public sealed class TestingMenuList : Element
                                 .WithElement
                                 (
                                     Image.FromPath("QuestBooks/Assets/Textures/UI/Testing/Status")
-                                        .WithHighlight(UICommon.DefaultUIBorderMouseOver)
+                                        .WithStyle<Image, Button>()
                                         .WithFrame(INCOMPLETE_FRAME)
                                         .WithHAlign(0.5f)
                                         .WithVAlign(0.5f)
                                         .WithLeftClickCallback(Incomplete)
                                         .WithComponent(InterfaceTooltip.FromLiteral("Incomplete All"))
-                                        .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen))
                                 )
                         )
                         .WithElement
@@ -797,12 +789,11 @@ public sealed class TestingMenuList : Element
                                 .WithElement
                                 (
                                     Image.FromPath("QuestBooks/Assets/Textures/UI/Sort")
-                                        .WithHighlight(UICommon.DefaultUIBorderMouseOver)
+                                        .WithStyle<Image, Button>()
                                         .WithHAlign(0.5f)
                                         .WithVAlign(0.5f)
                                         .WithLeftClickCallback(Cycle)
                                         .WithComponent(InterfaceTooltip.FromCallback(() => "Sorting by " + Sorting))
-                                        .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen))
                                 )
                         )
                 )

@@ -20,7 +20,7 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     
     private IComparer<TElement> _comparer = Comparer<TElement>.Default;
     
-    private float scroll;
+    private float _target;
     
     private float _gap;
     
@@ -41,14 +41,14 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     }
 
     /// <summary>
-    ///     Gets or sets the scroll offset of the list, in pixels.
+    ///     Gets or sets the scroll offset target of the list, in pixels.
     /// </summary>
-    public float Scroll
+    public float Target
     {
-        get => scroll;
+        get => _target;
         set
         {
-            scroll = MathHelper.Clamp(value, 0f, Overflow);
+            _target = MathHelper.Clamp(value, 0f, Overflow);
             
             Recalculate();
         }
@@ -67,6 +67,11 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
             Recalculate();
         }
     }
+    
+    /// <summary>
+    ///     Gets the scroll offset of the list, in pixels.
+    /// </summary>
+    public float Scroll { get; private set; }
 
     /// <summary>
     ///     Gets the number of elements in the list.
@@ -114,6 +119,8 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     {
         base.Update(gameTime);
 
+        Scroll = MathHelper.SmoothStep(Scroll, Target, 0.5f);
+
         if (!IsMouseHovering)
         {
             return;
@@ -127,7 +134,7 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     {
         base.ScrollWheel(evt);
 
-        Scroll -= evt.ScrollWheelValue;
+        Target -= evt.ScrollWheelValue;
     }
     
     /// <summary>
@@ -173,7 +180,12 @@ public sealed class ElementList<TElement> : Element, IEnumerable<TElement> where
     /// <summary>
     ///     Sorts the elements in the list.
     /// </summary>
-    public void Sort() => items.Sort(Comparer);
+    public void Sort()
+    {
+        Target = 0f;
+        
+        items.Sort(Comparer);
+    }
 
     /// <inheritdoc/>
     IEnumerator IEnumerable.GetEnumerator() => items.GetEnumerator();

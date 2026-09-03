@@ -271,7 +271,7 @@ public sealed class TestingMenuBook : Element
     /// <summary>
     ///     Gets the list of the element.
     /// </summary>
-    public UIList List { get; }
+    public ElementList<TestingMenuChapter> List { get; }
     
     /// <summary>
     ///     Gets a value indicating whether the element is expanded.
@@ -296,7 +296,7 @@ public sealed class TestingMenuBook : Element
 
         Book = book;
 
-        List = new UIList()
+        List = ElementList<TestingMenuChapter>.Empty
             .WithWidth(StyleDimension.FromPercent(1f))
             .WithHeight(StyleDimension.FromPixels(0f))
             .WithGap(4f);
@@ -368,8 +368,8 @@ public sealed class TestingMenuBook : Element
     {
         Expanded = true;
 
-        List.Height = StyleDimension.FromPixels(items.Count * (32f + List.ListPadding));
-        Height = StyleDimension.FromPixels(32f + (items.Count * (32f + List.ListPadding) + 4f));
+        List.Height = StyleDimension.FromPixels(items.Count * (32f + List.Gap));
+        Height = StyleDimension.FromPixels(32f + (items.Count * (32f + List.Gap) + 4f));
 
         Recalculate();
     }
@@ -414,7 +414,7 @@ public sealed class TestingMenuFilters : Element
     /// <summary>
     ///     Gets the list of the element.
     /// </summary>
-    public UIList List { get; }
+    public ElementList<TestingMenuBook> List { get; }
     
     /// <summary>
     ///     Gets the items in the list.
@@ -432,11 +432,10 @@ public sealed class TestingMenuFilters : Element
             .WithHAlign(1f)
             .WithVAlign(0.5f);
 
-        List = new UIList()
+        List = ElementList<TestingMenuBook>.Empty
             .WithWidth(StyleDimension.FromPixelsAndPercent(-28f, 1f))
             .WithHeight(StyleDimension.FromPercent(0.9f))
-            .WithGap(8f)
-            .WithScrollbar(Scrollbar);
+            .WithGap(8f);
     }
     
     public override void OnInitialize()
@@ -508,7 +507,7 @@ public sealed class TestingMenuFilters : Element
             List.Add(item);
         }
 
-        List.UpdateOrder();
+        List.Sort();
     }
 }
 

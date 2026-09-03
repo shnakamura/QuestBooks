@@ -393,23 +393,6 @@ public static class ElementExtensions
         return element;
     }
 
-    /// <summary>
-    ///     Sets the padding of the specified element.
-    /// </summary>
-    /// <param name="element">
-    ///     The element to set the padding of.
-    /// </param>
-    /// <param name="padding">
-    ///     The padding to set, in pixels.
-    /// </param>
-    /// <typeparam name="TElement">
-    ///     The type of the element to set the padding of.
-    /// </typeparam>
-    /// <returns>
-    ///     The specified element.
-    /// </returns>
-    public static TElement WithPadding<TElement>(this TElement element, float padding) where TElement : UIElement => element.WithPadding(padding, padding, padding, padding);
-
     public static TElement WithElement<TElement, TChild>(this TElement element, TChild child) where TElement : UIElement where TChild : UIElement
     {
         element.Append(child);

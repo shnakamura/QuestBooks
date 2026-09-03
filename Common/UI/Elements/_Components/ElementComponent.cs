@@ -19,6 +19,9 @@ public abstract class ElementComponent
     public virtual void Detach(Element element) { }
 }
 
+/// <summary>
+///     Provides <see cref="ElementComponent"/> extensions.
+/// </summary>
 public static class ElementComponentExtensions
 {
     /// <summary>

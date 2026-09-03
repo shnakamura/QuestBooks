@@ -1,47 +1,33 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using QuestBooks.Common.Inventory;
 using QuestBooks.Common.UI;
-using QuestBooks.Common.UI.Elements;
-using QuestBooks.Common.UI.States;
 using ReLogic.Content;
+using Terraria.ModLoader.UI;
 using Terraria.UI;
 
 namespace QuestBooks.Common.Testing.UI;
 
-public static class TestingIcon
+public sealed class TestingIconState : UIState
 {
-    public sealed class State : Root<TestingIconSystem>
+    public override void OnInitialize()
     {
-        public static readonly Asset<Texture2D> ICON_TEXTURE = ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Testing/HeaderIcon", AssetRequestMode.ImmediateLoad);
-        
-        public override void OnInitialize()
-        {
-            base.OnInitialize();
+        base.OnInitialize();
 
-            var icon = Image.FromAsset(ICON_TEXTURE).WithLeftClickEvent(TestingMenu.Open);
-
-            icon.Left.Pixels = 574f;
-            icon.Top.Pixels = 100f;
-
-            Append(icon);
-        }
+        Append
+        (
+            Image.FromPath("QuestBooks/Assets/Textures/UI/Testing/Header")
+                .WithHighlight(UICommon.DefaultUIBorderMouseOver)
+                .WithTop(StyleDimension.FromPixels(InventoryDimensions.Height))
+                .WithLeft(StyleDimension.FromPixels(InventoryDimensions.Width))
+                .WithLeftClickCallback(TestingMenuSystem.Open)
+                .WithComponent(new InterfaceMouse())
+                .WithComponent(InterfaceSounds.FromSounds(in SoundID.MenuTick, in SoundID.MenuOpen))
+        );
     }
-
-    /// <summary>
-    ///     Opens the quest testing icon.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Open() => TestingIconSystem.Open();
-    
-    /// <summary>
-    ///     Closes the quest testing icon.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Close() => TestingIconSystem.Close();
 }
 
-public sealed class TestingIconSystem : ModSystem, IRootSystem
+[Autoload(Side = ModSide.Client)]
+public sealed class TestingIconSystem : ModSystem
 {
     private const string INSERTION_LAYER_NAME = "Vanilla: Inventory";
     
@@ -53,31 +39,51 @@ public sealed class TestingIconSystem : ModSystem, IRootSystem
     /// </remarks>
     public const string INTERFACE_LAYER_NAME = "QuestBooks: Testing Menu Icon";
 
-    /// <summary>
-    ///     Gets the user interface used to display the testing interface.
-    /// </summary>
-    public static UserInterface UserInterface { get; private set; } = null!;
+    private static UserInterface userInterface = null!;
 
+    /// <summary>
+    ///     Opens the quest testing icon.
+    /// </summary>
+    public static void Open() => userInterface.SetState(new TestingIconState());
+
+    /// <summary>
+    ///     Closes the quest testing icon.
+    /// </summary>
+    public static void Close() => userInterface.SetState(null);
+    
     public override void Load()
     {
         base.Load();
 
-        InventoryCallbacks.OnOpenInventory += Open;
-        InventoryCallbacks.OnCloseInventory += Close;
+        userInterface = new UserInterface();
+        
+        InventorySystem.OnOpenInventory += Open;
+        InventorySystem.OnCloseInventory += Close;
     }
     
     public override void Unload()
     {
         base.Unload();
         
-        Close();
+        userInterface.SetState(null);
+        userInterface = null;
+        
+        InventorySystem.OnOpenInventory -= Open;
+        InventorySystem.OnCloseInventory -= Close;
     }
 
     public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
     {
+        base.ModifyInterfaceLayers(layers);
+        
+        if (!TestingSystem.Enabled)
+        {
+            return;
+        }
+        
         static bool Draw()
         {
-            UserInterface?.Draw(Main.spriteBatch, new GameTime());
+            userInterface.Draw(Main.spriteBatch, new GameTime());
             
             return true;
         }
@@ -95,23 +101,15 @@ public sealed class TestingIconSystem : ModSystem, IRootSystem
         }
     }
 
-    public override void UpdateUI(GameTime gameTime) => UserInterface?.Update(gameTime);
-
-    /// <summary>
-    ///     Opens the quest testing icon.
-    /// </summary>
-    public static void Open()
+    public override void UpdateUI(GameTime gameTime)
     {
-        UserInterface = new UserInterface();
-        UserInterface.SetState(new TestingIcon.State());
-    }
-
-    /// <summary>
-    ///     Closes the quest testing icon.
-    /// </summary>
-    public static void Close()
-    {
-        UserInterface?.SetState(null);
-        UserInterface = null;
+        base.UpdateUI(gameTime);
+        
+        if (!TestingSystem.Enabled)
+        {
+            return;
+        }
+        
+        userInterface.Update(gameTime);
     }
 }

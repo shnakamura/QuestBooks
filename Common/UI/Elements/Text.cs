@@ -4,63 +4,74 @@ using Terraria.GameContent;
 using Terraria.Localization;
 using Terraria.UI.Chat;
 
-namespace QuestBooks.Common.UI.Elements;
+namespace QuestBooks.Common.UI;
 
 public class Text : Element
 {
-    private Vector2 origin = new Vector2(0.5f);
-
-    private float opacity = 1f;
-
-    private float scale = 1f;
+    /// <summary>
+    ///     Gets an empty text.
+    /// </summary>
+    public static Text Empty => new();
     
-    /// <summary>
-    ///     Gets or sets the font of the text.
-    /// </summary>
-    public Asset<DynamicSpriteFont> Font { get; set; } = FontAssets.MouseText;
+    private Asset<DynamicSpriteFont> _asset = FontAssets.MouseText;
     
-    /// <summary>
-    ///     Gets or sets the contents of the text.
-    /// </summary>
-    public string Contents { get; set; }
+    private float _opacity = 1f;
+
+    private float _scale = 1f;
+
+    private string _contents;
 
     /// <summary>
-    ///     Gets or sets the scale of the text.
+    ///     Gets or sets the font asset of the text.
     /// </summary>
-    public float Scale
+    public Asset<DynamicSpriteFont> Asset
     {
-        get => scale;
+        get => _asset;
         set
         {
-            scale = value;
+            _asset = value;
             
             Resize();
         }
     }
 
     /// <summary>
-    ///     Gets or sets the normalized origin of the text.
+    ///     Gets or sets the contents of the text.
     /// </summary>
-    /// <value>
-    ///     A value in the range of <c>[(0f, 0f) - (1f, 1f)]</c>, where <c>(0f, 0f)</c>
-    ///     represents the top-left corner of the text and <c>(1f, 1f)</c>
-    ///     represents the bottom-right corner.
-    /// </value>
-    public Vector2 Origin
+    public string Contents
     {
-        get => origin;
-        set => origin = Vector2.Clamp(value, Vector2.Zero, Vector2.One);
+        get => _contents;
+        set
+        {
+            if (_contents == value)
+            {
+                return;
+            }
+            
+            _contents = value;
+            
+            Resize();
+        }
     }
-    
+
     /// <summary>
-    ///     Gets or sets the rotation of the text.
+    ///     Gets or sets the scale of the text.
+    /// </summary>
+    public float Scale
+    {
+        get => _scale;
+        set
+        {
+            _scale = value;
+            
+            Resize();
+        }
+    }
+
+    /// <summary>
+    ///     Gets or sets the rotation of the text, in radians.
     /// </summary>
     public float Rotation { get; set; }
-    
-    /// <summary>
-    ///     Gets or sets the color of the text.
-    /// </summary>
-    public Color Color { get; set; } = Color.White;
     
     /// <summary>
     ///     Gets or sets the opacity of the text.
@@ -70,17 +81,43 @@ public class Text : Element
     /// </value>
     public float Opacity
     {
-        get => opacity;
-        set => opacity = Math.Clamp(value, 0f, 1f);
+        get => _opacity;
+        set => _opacity = Math.Clamp(value, 0f, 1f);
     }
+    
+    /// <summary>
+    ///     Gets or sets the color of the text.
+    /// </summary>
+    public Color Color { get; set; } = Color.White;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/>.
+    ///     Gets or sets a value indicating whether the text should fit within the bounds of the element.
+    /// </summary>
+    /// <value>
+    ///     <see langword="true"/> if the text should fit within the bounds of the element; otherwise, <see langword="false"/>.
+    /// </value>
+    public bool Fit { get; set; } = true;
+    
+    /// <summary>
+    ///     Gets the font of the text.
+    /// </summary>
+    public DynamicSpriteFont Font => Asset.Value;
+    
+    /// <summary>
+    ///     Gets a value indicating whether the contents of the text are empty.
+    /// </summary>
+    /// <value>
+    ///     <see langword="true"/> if the contents of the text are empty; otherwise, <see langword="false"/>.
+    /// </value>
+    public bool Blank => string.IsNullOrEmpty(Contents);
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Text"/> class.
     /// </summary>
     private Text() { }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/> with the specified contents.
+    ///     Initializes a new instance of the <see cref="Text"/> class with the specified contents.
     /// </summary>
     /// <param name="contents">
     ///     The contents of the text.
@@ -98,7 +135,7 @@ public class Text : Element
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="Text"/> <see langword="class"/> with the specified localized text.
+    ///     Initializes a new instance of the <see cref="Text"/> class with the specified localized text.
     /// </summary>
     /// <param name="text">
     ///     The localized text of the text.
@@ -106,95 +143,113 @@ public class Text : Element
     /// <exception cref="ArgumentNullException">
     ///     <paramref name="text"/> is <see langword="null"/>.
     /// </exception>
-    public Text(LocalizedText text) : this(text.Value) => ArgumentNullException.ThrowIfNull(text);
+    private Text(LocalizedText text) : this(text.Value) => ArgumentNullException.ThrowIfNull(text);
 
+    public override void Recalculate()
+    {
+        base.Recalculate();
+        
+        Resize();
+    }
+    
     protected override void DrawSelf(SpriteBatch spriteBatch)
     {
         base.DrawSelf(spriteBatch);
 
-        if (string.IsNullOrEmpty(Contents))
+        if (Blank)
         {
             return;
         }
         
+        var size = ChatManager.GetStringSize(Font, Contents, new Vector2(Scale));
         var dimensions = GetInnerDimensions();
 
-        var position = dimensions.Position() + new Vector2(0f, (4f + dimensions.Height / 2f) * Scale);
-        
-        var font = Font.Value;
-        var size = ChatManager.GetStringSize(font, Contents, new Vector2(Scale));
-        
-        var center = new Vector2(size.X * 0f, size.Y / 2f);
-        
-        // ReSharper disable once LocalVariableHidesMember
-        var scale = Scale;
-        
-        if (size.X > dimensions.Width)
-        {
-            scale *= dimensions.Width / size.X;
-        }
+        var fit = Fit && size.X > dimensions.Width;
+        var scale = new Vector2(fit ? Scale * dimensions.Width / size.X : Scale);
 
-        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, Contents, position, Color * Opacity, 0f, center, new Vector2(scale));
+        var origin = new Vector2(0f, size.Y / 2f);
+        var position = dimensions.Position() + origin;
+
+        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Font, Contents, position, Color * Opacity, Rotation, origin, scale);
     }
 
     private void Resize()
     {
-        if (string.IsNullOrEmpty(Contents))
+        if (Blank)
         {
             return;
         }
         
-        var font = Font.Value;
-        var size = ChatManager.GetStringSize(font, Contents, new Vector2(Scale));
+        var size = ChatManager.GetStringSize(Font, Contents, new Vector2(Scale));
         
-        Width.Set(size.X + 2f * Scale, 0f);
-        Height.Set(size.Y * Scale - 4f, 0f);
+        Width.Set(size.X, 0f);
+        Height.Set(size.Y, 0f);
     }
-    
+
     /// <summary>
-    ///     Creates a new instance of the <see cref="Text"/> class from empty contents.
-    /// </summary>
-    /// <returns>
-    ///     A new instance of the <see cref="Text"/> class with empty contents.
-    /// </returns>
-    public static Text Empty() => new();
-    
-    /// <summary>
-    ///     Creates a new instance of the <see cref="Text"/> class from the specified contents.
+    ///     Returns a new <see cref="Text"/> with the specified contents.
     /// </summary>
     /// <param name="contents">
     ///     The contents of the text.
     /// </param>
     /// <returns>
-    ///     A new instance of the <see cref="Text"/> class with the specified contents.
+    ///     A new <see cref="Text"/> with the specified contents.
     /// </returns>
     public static Text FromLiteral(string contents) => new(contents);
 
     /// <summary>
-    ///     Creates a new instance of the <see cref="Text"/> class from the specified localization key.
+    ///     Returns a new <see cref="Text"/> with the specified localization key.
     /// </summary>
     /// <param name="key">
     ///     The localization key of the text.
     /// </param>
     /// <returns>
-    ///     A new instance of the <see cref="Text"/> class with the specified localization key.
+    ///     A new <see cref="Text"/> with the specified localization key.
     /// </returns>
     public static Text FromKey(string key) => new(Language.GetText(key));
-    
+
     /// <summary>
-    ///     Creates a new instance of the <see cref="Text"/> class from the specified localized text.
+    ///     Returns a new <see cref="Text"/> with the specified localized text.
     /// </summary>
     /// <param name="text">
-    ///     The localized text of the text.
+    ///     The localized text.
     /// </param>
     /// <returns>
-    ///     A new instance of the <see cref="Text"/> class with the specified localized text.
+    ///     A new <see cref="Text"/> with the specified localized text.
     /// </returns>
     public static Text FromLocalization(LocalizedText text) => new(text);
 }
 
 public static class TextExtensions
 {
+    public static TText WithRotation<TText>(this TText text, float rotation) where TText : Text
+    {
+        text.Rotation = rotation;
+
+        return text;
+    }
+    
+    public static TText WithOpacity<TText>(this TText text, float opacity) where TText : Text
+    {
+        text.Opacity = opacity;
+
+        return text;
+    }
+    
+    public static TText WithColor<TText>(this TText text, Color color) where TText : Text
+    {
+        text.Color = color;
+
+        return text;
+    }
+    
+    public static TText WithFont<TText>(this TText text, Asset<DynamicSpriteFont> font) where TText : Text
+    {
+        text.Asset = font;
+
+        return text;
+    }
+    
     public static TText WithScale<TText>(this TText text, float scale) where TText : Text
     {
         text.Scale = scale;

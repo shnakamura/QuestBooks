@@ -12,6 +12,7 @@
 	  <Compile Remove=".vs\**" />
 	  <EmbeddedResource Remove=".vs\**" />
 	  <None Remove=".vs\**" />
+	  <AdditionalFiles Remove="Assets\Textures\UI\Testing\Header.png" />
 	</ItemGroup>
 
 	<!-- References -->

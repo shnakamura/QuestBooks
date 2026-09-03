@@ -1,18 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace QuestBooks.Common.UI.Elements;
+﻿namespace QuestBooks.Common.UI;
 
 public enum FlexDirection : byte
 {
     /// <summary>
     ///     Elements will be aligned horizontally.
     /// </summary>
-    Horizontal,
+    Row,
     
     /// <summary>
     ///     Elements will be aligned vertically.
     /// </summary>
-    Vertical
+    Column
 }
 
 public enum FlexAlignment : byte
@@ -23,34 +21,34 @@ public enum FlexAlignment : byte
     Start,
     
     /// <summary>
-    ///     Elements will be aligned evenly across the flex.
+    ///     Elements will be aligned from the center of the flex.
     /// </summary>
-    Evenly
+    Center
 }
 
 public sealed class Flex : Element
 {
-    private float gap;
-    
     /// <summary>
     ///     Gets the direction of the flex.
     /// </summary>
-    public required FlexDirection Direction { get; init; }
+    public FlexDirection Direction { get; init; }
     
     /// <summary>
     ///     Gets the alignment of the flex.
     /// </summary>
-    public required FlexAlignment Alignment { get; init; }
+    public FlexAlignment Alignment { get; init; }
+    
+    private float _gap;
     
     /// <summary>
     ///     Gets or sets the gap between each element in the flex, in pixels.
     /// </summary>
     public float Gap
     {
-        get => gap;
+        get => _gap;
         set
         {
-            gap = value;
+            _gap = value;
             
             Recalculate();
         }
@@ -65,23 +63,23 @@ public sealed class Flex : Element
     /// <param name="alignment">
     ///     The alignment of the flex.
     /// </param>
-    [SetsRequiredMembers]
-    public Flex(FlexDirection direction, FlexAlignment alignment)
+    private Flex(FlexDirection direction, FlexAlignment alignment)
     {
         Direction = direction;
         Alignment = alignment;
     }
 
+    /// <inheritdoc/>
     public override void Recalculate()
     {
         base.Recalculate();
-
+        
         switch (Direction)
         {
-            case FlexDirection.Horizontal:
+            case FlexDirection.Row:
                 RecalculateHorizontal();
                 break;
-            case FlexDirection.Vertical:
+            case FlexDirection.Column:
                 RecalculateVertical();
                 break;
         }
@@ -94,7 +92,7 @@ public sealed class Flex : Element
             case FlexAlignment.Start:
                 RecalculateHorizontalFromStart();
                 break;
-            case FlexAlignment.Evenly:
+            case FlexAlignment.Center:
                 RecalculateHorizontalFromCenter();
                 break;
         }
@@ -106,12 +104,9 @@ public sealed class Flex : Element
         
         foreach (var element in Elements)
         {
-            element.Left.Set(offset, 0f);
+            element.Left.Pixels = offset;
 
-            offset += element.GetOuterDimensions().Width;
-            offset += Gap;
-            
-            element.Recalculate();
+            offset += element.GetOuterDimensions().Width + Gap;
         }
     }
 
@@ -130,7 +125,6 @@ public sealed class Flex : Element
             }
 
             element.HAlign = value;
-            element.Recalculate();
         }
     }
 
@@ -141,7 +135,7 @@ public sealed class Flex : Element
             case FlexAlignment.Start:
                 RecalculateVerticalFromStart();
                 break;
-            case FlexAlignment.Evenly:
+            case FlexAlignment.Center:
                 RecalculateVerticalFromCenter();
                 break;
         }
@@ -153,12 +147,9 @@ public sealed class Flex : Element
         
         foreach (var element in Elements)
         {
-            element.Top.Set(offset, 0f);
+            element.Top.Pixels = offset;
 
-            offset += element.GetOuterDimensions().Height;
-            offset += Gap;
-            
-            element.Recalculate();
+            offset += element.GetOuterDimensions().Height + Gap;
         }
     }
 
@@ -176,14 +167,31 @@ public sealed class Flex : Element
                 value = 0.5f;
             }
             
-            element.HAlign = value;
-            element.Recalculate();
+            element.VAlign = value;
         }
     }
 
-    public static Flex Horizontal(FlexAlignment alignment) => new(FlexDirection.Horizontal, alignment);
-    
-    public static Flex Vertical(FlexAlignment alignment) => new(FlexDirection.Vertical, alignment);
+    /// <summary>
+    ///     Returns a new horizontal <see cref="Flex"/> with the specified alignment.
+    /// </summary>
+    /// <param name="alignment">
+    ///     The alignment of the flex.
+    /// </param>
+    /// <returns>
+    ///     A new horizontal <see cref="Flex"/> with the specified alignment.
+    /// </returns>
+    public static Flex FromHorizontal(FlexAlignment alignment) => new(FlexDirection.Row, alignment);
+
+    /// <summary>
+    ///     Returns a new vertical <see cref="Flex"/> with the specified alignment.
+    /// </summary>
+    /// <param name="alignment">
+    ///     The alignment of the flex.
+    /// </param>
+    /// <returns>
+    ///     A new vertical <see cref="Flex"/> with the specified alignment.
+    /// </returns>
+    public static Flex FromVertical(FlexAlignment alignment) => new(FlexDirection.Column, alignment);
 }
 
 /// <summary>
@@ -191,7 +199,7 @@ public sealed class Flex : Element
 /// </summary>
 public static class FlexExtensions
 {
-    public static Flex Gap(this Flex flex, float gap)
+    public static Flex WithGap(this Flex flex, float gap)
     {
         flex.Gap = gap;
         

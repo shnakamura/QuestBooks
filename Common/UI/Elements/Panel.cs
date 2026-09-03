@@ -2,176 +2,45 @@
 using ReLogic.Content;
 using Terraria.ModLoader.UI;
 
-namespace QuestBooks.Common.UI.Elements;
+namespace QuestBooks.Common.UI;
 
-public readonly record struct PanelHighlightSettings
+public sealed class Panel : Element
 {
-    /// <summary>
-    ///     The default highlight color of a panel.
-    /// </summary>
-    public static readonly Color DEFAULT_HIGHLIGHT_COLOR = UICommon.DefaultUIBorderMouseOver;
+    public static Panel Full => new Panel().WithFullDimensions();
+
+    public static Panel Empty => new();
+    
+    private float _opacity = 1f;
     
     /// <summary>
-    ///     Gets the color of the highlight.
+    ///     Gets or sets the texture asset of the panel.
     /// </summary>
-    public readonly Color Color { get; }
-    
-    /// <summary>
-    ///     Gets a value indicating whether the highlight is enabled.
-    /// </summary>
-    /// <value>
-    ///     <see langword="true"/> if the highlight is enabled; otherwise, <see langword="false"/>.
-    /// </value>
-    public readonly bool Enabled { get; }
+    public Asset<Texture2D> Asset { get; set; }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PanelHighlightSettings"/> struct with the specified color.
+    ///     Gets or sets the size of the corner of the panel, in pixels.
     /// </summary>
-    /// <param name="color">
-    ///     The color of the highlight.
-    /// </param>
-    public PanelHighlightSettings(Color color)
-    {
-        Color = color;
-
-        Enabled = true;
-    }
-    
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PanelHighlightSettings"/> struct with the default highlight color.
-    /// </summary>
-    public PanelHighlightSettings() : this(DEFAULT_HIGHLIGHT_COLOR) { }
-}
-
-public readonly record struct PanelEdgeSettings
-{
-    /// <summary>
-    ///     The default corner size of a panel, in pixels.
-    /// </summary>
-    public const int DEFAULT_CORNER_SIZE = 12;
-    
-    /// <summary>
-    ///     The default side size of a panel, in pixels.
-    /// </summary>
-    public const int DEFAULT_SIDE_SIZE = 4;
-    
-    /// <summary>
-    ///     Gets the size of the corner of the panel, in pixels.
-    /// </summary>
-    public readonly int Corner { get; }
+    public int Corner { get; set; } = 12;
 
     /// <summary>
     ///     Gets the size of the side of the panel, in pixels.
     /// </summary>
-    public readonly int Side { get; }
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PanelEdgeSettings"/> struct with the specified corner and edge sizes.
-    /// </summary>
-    /// <param name="corner">
-    ///     The size of the corner of the panel, in pixels.
-    /// </param>
-    /// <param name="side">
-    ///     The size of the side of the panel, in pixels.
-    /// </param>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public PanelEdgeSettings(int corner, int side)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegative(corner);
-        ArgumentOutOfRangeException.ThrowIfNegative(side);
-        
-        Corner = corner;
-        Side = side;
-    }
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PanelEdgeSettings"/> struct with the default corner and edge sizes.
-    /// </summary>
-    public PanelEdgeSettings() : this(DEFAULT_CORNER_SIZE, DEFAULT_SIDE_SIZE) { }
-}
-
-public readonly record struct PanelColorSettings
-{
-    /// <summary>
-    ///     The default background color of a panel.
-    /// </summary>
-    public static readonly Color DEFAULT_BACKGROUND_COLOR = new Color(63, 82, 151) * 0.7f;
+    public int Side { get; set; } = 4;
     
     /// <summary>
-    ///     The default border color of a panel.
+    ///     Gets or sets the highlight color of the panel.
     /// </summary>
-    public static readonly Color DEFAULT_BORDER_COLOR = Color.Black;
-    
-    /// <summary>
-    ///     Gets the background color of the panel.
-    /// </summary>
-    public Color Background { get; }
+    public Color Highlight { get; set; }
 
     /// <summary>
-    ///     Gets the border color of the panel.
+    ///     Gets or sets the border color of the panel.
     /// </summary>
-    public Color Border { get; }
+    public Color Border { get; set; } = UICommon.DefaultUIBorder;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="PanelColorSettings"/> struct with the specified background and border colors.
+    ///     Gets or sets the background color of the panel.
     /// </summary>
-    /// <param name="background">
-    ///     The background color of the panel.
-    /// </param>
-    /// <param name="border">
-    ///     The border color of the panel.
-    /// </param>
-    public PanelColorSettings(Color background, Color border)
-    {
-        Background = background;
-        Border = border;
-    }
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PanelColorSettings"/> struct with the default background and border colors.
-    /// </summary>
-    public PanelColorSettings() : this(DEFAULT_BACKGROUND_COLOR, DEFAULT_BORDER_COLOR) { }
-}
-
-// ReSharper disable once LocalFunctionHidesMethod
-public class Panel : Element
-{
-    /// <summary>
-    ///     The default background texture asset of a panel.
-    /// </summary>
-    public static readonly Asset<Texture2D> DEFAULT_BACKGROUND = Main.Assets.Request<Texture2D>("Images/UI/PanelBackground", AssetRequestMode.ImmediateLoad);
-    
-    /// <summary>
-    ///     The default border texture asset of a panel.
-    /// </summary>
-    public static readonly Asset<Texture2D> DEFAULT_BORDER = Main.Assets.Request<Texture2D>("Images/UI/PanelBorder", AssetRequestMode.ImmediateLoad);
-
-    private float opacity = 1f;
-
-    /// <summary>
-    ///     Gets or sets the highlight settings of the panel.
-    /// </summary>
-    public PanelHighlightSettings Highlight { get; set; }
-
-    /// <summary>
-    ///     Gets or sets the edge settings of the panel.
-    /// </summary>
-    public PanelEdgeSettings Edge { get; set; } = new();
-
-    /// <summary>
-    ///     Gets or sets the color settings of the panel.
-    /// </summary>
-    public PanelColorSettings Colors { get; set; } = new();
-    
-    /// <summary>
-    ///     Gets or sets the background texture asset of the panel.
-    /// </summary>
-    public Asset<Texture2D> Background { get; set; }
-    
-    /// <summary>
-    ///     Gets or sets the border texture asset of the panel.
-    /// </summary>
-    public Asset<Texture2D> Border { get; set; }
+    public Color Background { get; set; } = UICommon.DefaultUIBlue;
     
     /// <summary>
     ///     Gets or sets the opacity of the panel.
@@ -181,84 +50,121 @@ public class Panel : Element
     /// </value>
     public float Opacity
     {
-        get => opacity;
-        set => opacity = Math.Clamp(value, 0f, 1f);
+        get => _opacity;
+        set => _opacity = Math.Clamp(value, 0f, 1f);
     }
     
     /// <summary>
-    ///     Initializes a new instance of the <see cref="Panel"/> class with the specified background and border.
+    ///     Gets the texture of the panel.
     /// </summary>
-    /// <param name="background">
-    ///     The background texture asset of the panel.
-    /// </param>
-    /// <param name="border">
-    ///     The border texture asset of the panel.
-    /// </param>
-    public Panel(Asset<Texture2D> background, Asset<Texture2D> border)
-    {
-        Background = background;
-        Border = border;
+    public Texture2D Texture => Asset.Value;
 
-        SetPadding(Edge.Corner);
-    }
-    
     /// <summary>
     ///     Initializes a new instance of the <see cref="Panel"/> class.
     /// </summary>
-    public Panel() : this(DEFAULT_BACKGROUND, DEFAULT_BORDER) { }
+    private Panel() : this(ModContent.Request<Texture2D>("QuestBooks/Assets/Textures/UI/Panel", AssetRequestMode.ImmediateLoad)) { }
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Panel"/> class with the specified texture asset.
+    /// </summary>
+    /// <param name="asset">
+    ///     The texture asset of the panel.
+    /// </param>
+    private Panel(Asset<Texture2D> asset)
+    {
+        Asset = asset;
 
+        SetPadding(Corner);
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="Panel"/> class with the specified texture asset.
+    /// </summary>
+    /// <param name="path">
+    ///     The path of the texture asset of the panel.
+    /// </param>
+    private Panel(string path)
+    {
+        Asset = ModContent.Request<Texture2D>(path, AssetRequestMode.ImmediateLoad);
+        
+        SetPadding(Corner);
+    }
+
+    /// <inheritdoc/>
     protected override void DrawSelf(SpriteBatch spriteBatch)
     {
         base.DrawSelf(spriteBatch);
         
         var dimensions = GetDimensions();
-
-        var start = new Point((int)dimensions.X, (int)dimensions.Y);
-        var end = new Point(start.X + (int)dimensions.Width - Edge.Corner, start.Y + (int)dimensions.Height - Edge.Corner);
-
-        var width = end.X - start.X - Edge.Corner;
-        var height = end.Y - start.Y - Edge.Corner;
-
+        var bounds = dimensions.ToRectangle();
+        
         var parameters = spriteBatch.Capture() with
         {
-            SamplerState = SamplerState.PointClamp
+           SamplerState = SamplerState.PointClamp
         };
+
+        using var scope = spriteBatch.Scope(in parameters);
+
+        var background = Background * Opacity;
+        var border = (IsMouseHovering && Highlight != Color.Transparent ? Highlight : Border) * Opacity;
         
-        using var scope = spriteBatch.Scope(parameters);
-
-        void Draw(Asset<Texture2D> asset, Color color)
-        {
-            var texture = asset.Value;
-
-            spriteBatch.Draw(texture, new Rectangle(start.X, start.Y, Edge.Corner, Edge.Corner), new Rectangle(0, 0, Edge.Corner, Edge.Corner), color);
-            spriteBatch.Draw(texture, new Rectangle(end.X, start.Y, Edge.Corner, Edge.Corner), new Rectangle(Edge.Corner + Edge.Side, 0, Edge.Corner, Edge.Corner), color);
-            spriteBatch.Draw(texture, new Rectangle(start.X, end.Y, Edge.Corner, Edge.Corner), new Rectangle(0, Edge.Corner + Edge.Side, Edge.Corner, Edge.Corner), color);
-            spriteBatch.Draw(texture, new Rectangle(end.X, end.Y, Edge.Corner, Edge.Corner), new Rectangle(Edge.Corner + Edge.Side, Edge.Corner + Edge.Side, Edge.Corner, Edge.Corner), color);
-
-            spriteBatch.Draw(texture, new Rectangle(start.X + Edge.Corner, start.Y, width, Edge.Corner), new Rectangle(Edge.Corner, 0, Edge.Side, Edge.Corner), color);
-            spriteBatch.Draw(texture, new Rectangle(start.X + Edge.Corner, end.Y, width, Edge.Corner), new Rectangle(Edge.Corner, Edge.Corner + Edge.Side, Edge.Side, Edge.Corner), color);
-            spriteBatch.Draw(texture, new Rectangle(start.X, start.Y + Edge.Corner, Edge.Corner, height), new Rectangle(0, Edge.Corner, Edge.Corner, Edge.Side), color);
-            spriteBatch.Draw(texture, new Rectangle(end.X, start.Y + Edge.Corner, Edge.Corner, height), new Rectangle(Edge.Corner + Edge.Side, Edge.Corner, Edge.Corner, Edge.Side), color);
-
-            spriteBatch.Draw(texture, new Rectangle(start.X + Edge.Corner, start.Y + Edge.Corner, width, height), new Rectangle(Edge.Corner, Edge.Corner, Edge.Side, Edge.Side), color);
-        }
-
-        var backgroundColor = Colors.Background * Opacity;
-        var borderColor = (Highlight.Enabled && IsMouseHovering ? Highlight.Color : Colors.Border) * Opacity;
-        
-        Draw(Background, backgroundColor);
-        Draw(Border, borderColor);
+        PanelUtilities.Draw(Texture, bounds, Texture.Frame(2, 1, 1), in background, Corner, Side); 
+        PanelUtilities.Draw(Texture, bounds, Texture.Frame(2), in border, Corner, Side); 
     }
+
+    public static Panel FromPath(string path) => new(path);
+    
+    public static Panel FromAsset(Asset<Texture2D> asset) => new(asset);
 }
 
 public static class PanelExtensions
 {
-    public static Panel Highlight(this Panel panel, Color color)
+    public static Panel WithBackgroundColor(this Panel panel, in Color color)
     {
-        panel.Highlight = new PanelHighlightSettings(color);
+        panel.Background = color;
         
         return panel;
     }
+    
+    public static Panel WithBorderColor(this Panel panel, in Color color)
+    {
+        panel.Border = color;
+        
+        return panel;
+    }
+    
+    public static Panel WithHighlight(this Panel panel, in Color color)
+    {
+        panel.Highlight = color;
+        
+        return panel;
+    }
+}
 
-    public static Panel Highlight(this Panel panel) => panel.Highlight(PanelHighlightSettings.DEFAULT_HIGHLIGHT_COLOR);
+public static class PanelUtilities
+{
+    private static SpriteBatch Batch => Main.spriteBatch;
+    
+    public static void Draw(Texture2D texture, Rectangle bounds, Rectangle frame, in Color color, int corner, int side)
+    {
+        corner = Math.Min(corner, Math.Min(bounds.Width, bounds.Height) / 2);
+        
+        var start = bounds.Location;
+        var end = new Point(bounds.Right - corner, bounds.Bottom - corner);
+
+        var width = bounds.Width - corner * 2;
+        var height = bounds.Height - corner * 2;
+
+        Batch.Draw(texture, new Rectangle(start.X, start.Y, corner, corner), new Rectangle(frame.X, frame.Y, corner, corner), color);
+        Batch.Draw(texture, new Rectangle(end.X, start.Y, corner, corner), new Rectangle(frame.Right - corner, frame.Y, corner, corner), color);
+        Batch.Draw(texture, new Rectangle(start.X, end.Y, corner, corner), new Rectangle(frame.X, frame.Bottom - corner, corner, corner), color);
+        Batch.Draw(texture, new Rectangle(end.X, end.Y, corner, corner), new Rectangle(frame.Right - corner, frame.Bottom - corner, corner, corner), color);
+
+        Batch.Draw(texture, new Rectangle(start.X + corner, start.Y, width, corner), new Rectangle(frame.X + corner, frame.Y, side, corner), color);
+        Batch.Draw(texture, new Rectangle(start.X + corner, end.Y, width, corner), new Rectangle(frame.X + corner, frame.Bottom - corner, side, corner), color);
+        Batch.Draw(texture, new Rectangle(start.X, start.Y + corner, corner, height), new Rectangle(frame.X, frame.Y + corner, corner, side), color);
+        Batch.Draw(texture, new Rectangle(end.X, start.Y + corner, corner, height), new Rectangle(frame.Right - corner, frame.Y + corner, corner, side), color);
+
+        Batch.Draw(texture, new Rectangle(start.X + corner, start.Y + corner, width, height), new Rectangle(frame.X + corner, frame.Y + corner, side, side), color);
+    }
 }

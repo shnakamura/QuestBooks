@@ -1,48 +1,89 @@
-﻿namespace QuestBooks.Common.UI.Elements;
+﻿using Terraria.UI;
 
-// ReSharper disable CompareOfFloatsByEqualityOperator
-public class ProgressBar : Element
+namespace QuestBooks.Common.UI;
+
+public sealed class ProgressBar : Element
 {
-    public delegate void ProgressBarChangeCallback(float progress);
+    public static ProgressBar Full => new ProgressBar().WithFullDimensions();
+    
+    public static ProgressBar Empty => new();
+    
+    private float _progress;
     
     /// <summary>
-    ///     Raised when the progress of the progress bar is changed.
-    /// </summary>
-    public event ProgressBarChangeCallback OnChangeProgress;
-    
-    private float progress;
-    
-    /// <summary>
-    ///     Gets or sets the progress of the progress bar.
+    ///     Gets the progress of the progress bar.
     /// </summary>
     /// <value>
-    ///     A value in the range of <c>[0f - 1f]</c>, where <c>0f</c> represents fully incomplete, and <c>1f</c> represents fully complete.
+    ///     A value in the range of <c>[0f, 1f]</c>, where <c>0f</c> represents no progress and <c>1f</c> represents full progress.
     /// </value>
     public float Progress
     {
-        get => progress;
-        set
-        {
-            progress = Math.Clamp(value, 0f, 1f);
-            
-            OnChangeProgress?.Invoke(progress);
-        }
+        get => _progress;
+        set => _progress = Math.Clamp(value, 0f, 1f);
     }
 
     /// <summary>
-    ///     Gets a value indicating whether the progress bar is complete.
+    ///     Gets the background panel of the progress bar.
     /// </summary>
-    /// <value>
-    ///     <see langword="true"/> if the progress bar is complete; otherwise, <see langword="false"/>.
-    /// </value>
-    public bool Complete => Progress == 1f;
+    public Panel Background { get; }
 
     /// <summary>
-    ///     Gets a value indicating whether the progress bar is incomplete.
+    ///     Gets the fill panel of the progress bar.
     /// </summary>
-    /// <value>
-    ///     <see langword="true"/> if the progress bar is incomplete; otherwise, <see langword="false"/>.
-    /// </value>
-    public bool Incomplete => Progress != 1f;
+    public Panel Fill { get; }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ProgressBar"/> class.
+    /// </summary>
+    private ProgressBar()
+    {
+        Background = Panel.FromPath("QuestBooks/Assets/Textures/UI/DarkPanel").WithFullDimensions();
+        Fill = Panel.FromPath("QuestBooks/Assets/Textures/UI/Panel").WithHeight(StyleDimension.FromPercent(1f));
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ProgressBar"/> class with the specified progress.
+    /// </summary>
+    /// <param name="progress">
+    ///     The progress of the progress bar.
+    /// </param>
+    private ProgressBar(float progress) : this() => Progress = progress;
+
+    /// <inheritdoc/>
+    public override void OnInitialize()
+    {
+        base.OnInitialize();
+
+        Append(Background);
+        Append(Fill);
+    }
+
+    /// <inheritdoc/>
+    public override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+        
+        Fill.Width = StyleDimension.FromPercent(Progress);
+    }
+
+    /// <summary>
+    ///     Returns a new <see cref="ProgressBar"/> with the specified progress.
+    /// </summary>
+    /// <param name="progress">
+    ///     The progress of the progress bar.
+    /// </param>
+    /// <returns>
+    ///     A new <see cref="ProgressBar"/> with the specified progress.
+    /// </returns>
+    public static ProgressBar FromProgress(float progress) => new(progress);
 }
-// ReSharper restore CompareOfFloatsByEqualityOperator
+
+public static class ProgressBarExtensions
+{
+    public static ProgressBar WithColor(this ProgressBar bar, in Color color)
+    {
+        bar.Fill.WithBackgroundColor(color);
+
+        return bar;
+    }
+}

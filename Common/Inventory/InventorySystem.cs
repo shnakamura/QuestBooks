@@ -1,15 +1,15 @@
 ﻿namespace QuestBooks.Common.Inventory;
 
 [Autoload(Side = ModSide.Client)]
-public sealed class InventoryCallbacks : ModSystem
+public sealed class InventorySystem : ModSystem
 {
     /// <summary>
-    ///     Raised when the player's inventory is opened.
+    ///     Occurs when the player's inventory is opened.
     /// </summary>
     public static event Action OnOpenInventory;
 
     /// <summary>
-    ///     Raised when the player's inventory is closed.
+    ///     Occurs when the player's inventory is closed.
     /// </summary>
     public static event Action OnCloseInventory;
         

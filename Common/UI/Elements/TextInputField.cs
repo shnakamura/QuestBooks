@@ -1,12 +1,42 @@
-﻿using Terraria.GameContent;
+﻿using QuestBooks.Core.Graphics;
+using ReLogic.Content;
+using ReLogic.Graphics;
+using Terraria.GameContent;
 using Terraria.GameInput;
+using Terraria.UI;
 using Terraria.UI.Chat;
 
-namespace QuestBooks.Common.UI.Elements;
+namespace QuestBooks.Common.UI;
+
+/// <summary>
+///     Represents a callback invoked when the contents of a text input field are changed.
+/// </summary>
+/// <param name="contents">
+///     The contents of the text input field.
+/// </param>
+public delegate void TextInputFieldChangeCallback(string contents);
 
 public class TextInputField : Element
 {
-    public delegate void TextInputFieldChangeCallback(string contents);
+    private static readonly RasterizerState RASTERIZER_STATE = new()
+    {
+        CullMode = CullMode.None,
+        ScissorTestEnable = true
+    };
+
+    /// <summary>
+    ///     Gets an empty text input field with full dimensions.
+    /// </summary>
+    public static TextInputField Full => new TextInputField().WithFullDimensions();
+    
+    /// <summary>
+    ///     Gets an empty text input field.
+    /// </summary>
+    public static TextInputField Empty => new();
+    
+    private float _opacity = 1f;
+    
+    private string _contents;
     
     /// <summary>
     ///     Raised when the contents of the text input field are changed.
@@ -22,8 +52,54 @@ public class TextInputField : Element
     ///     Raised when the text input field ends writing.
     /// </summary>
     public event Action OnEndWriting;
+
+    /// <summary>
+    ///     Gets or sets the font asset of the text.
+    /// </summary>
+    public Asset<DynamicSpriteFont> Asset { get; set; } = FontAssets.MouseText;
+
+    /// <summary>
+    ///     Gets or sets the contents of the text input field.
+    /// </summary>
+    public string Contents
+    {
+        get => _contents;
+        set
+        {
+            if (_contents == value)
+            {
+                return;
+            }
+            
+            _contents = value;
+            
+            OnChangeContents?.Invoke(_contents);
+        }
+    }
+
+    /// <summary>
+    ///     Gets or sets the scale of the text.
+    /// </summary>
+    public float Scale { get; set; } = 1f;
     
-    private string contents;
+    /// <summary>
+    ///     Gets or sets the color of the text.
+    /// </summary>
+    public Color Color { get; set; } = Color.White;
+    
+    /// <summary>
+    ///     Gets or sets the opacity of the text.
+    /// </summary>
+    /// <value>
+    ///     A value in the range of <c>[0f - 1f]</c>, where <c>0f</c> represents fully transparent and <c>1f</c> represents fully opaque.
+    /// </value>
+    public float Opacity
+    {
+        get => _opacity;
+        set => _opacity = Math.Clamp(value, 0f, 1f);
+    }
+
+    public bool Ticker { get; set; } = true;
     
     /// <summary>
     ///     Gets a value indicating whether the text input field is writing.
@@ -32,61 +108,91 @@ public class TextInputField : Element
     ///     <see langword="true"/> if the text input field is writing; otherwise, <see langword="false"/>.
     /// </value>
     public bool Writing { get; private set; }
-
-    /// <summary>
-    ///     Gets or sets the contents of the text input field.
-    /// </summary>
-    public string Contents
-    {
-        get => contents;
-        set
-        {
-            contents = value;
-            
-            OnChangeContents?.Invoke(contents);
-        }
-    }
     
     /// <summary>
-    ///     Gets a value indicating whether the text input field is empty.
+    ///     Gets the font of the text input field.
+    /// </summary>
+    public DynamicSpriteFont Font => Asset.Value;
+
+    /// <summary>
+    ///     Gets a value indicating whether the contents of the text input field are empty.
     /// </summary>
     /// <value>
-    ///     <see langword="true"/> if the text input field is empty; otherwise, <see langword="false"/>.
+    ///     <see langword="true"/> if the contents of the text input field are empty; otherwise, <see langword="false"/>.
     /// </value>
-    public bool Empty => Contents == string.Empty;
+    public bool Blank => string.IsNullOrEmpty(Contents);
 
-    public override void Draw(SpriteBatch spriteBatch)
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="TextInputField"/> class.
+    /// </summary>
+    public TextInputField() { }
+
+    public override void LeftClick(UIMouseEvent evt)
     {
-        base.Draw(spriteBatch);
+        base.LeftClick(evt);
+        
+        Begin();
+    }
+
+    protected override void DrawSelf(SpriteBatch spriteBatch)
+    {
+        base.DrawSelf(spriteBatch);
         
         Write();
-        
-        if (string.IsNullOrEmpty(Contents))
+
+        var active = Writing || !Blank;
+
+        var contents = active ? Contents : "Search";
+        var color = active ? Color : Color.Gray;
+
+        if (string.IsNullOrEmpty(contents))
         {
             return;
         }
-        
+
         var dimensions = GetInnerDimensions();
+        var position = dimensions.Position();
 
-        var Scale = 1f;
-        var Color = Microsoft.Xna.Framework.Color.White;
-        var Opacity = 1f;
-
-        var position = dimensions.Position() + new Vector2(0f, (4f + dimensions.Height / 2f) * Scale);
-
-        var font = FontAssets.MouseText.Value;
-        var size = ChatManager.GetStringSize(font, Contents, new Vector2(Scale));
+        var scale = new Vector2(Scale);
+        var size = ChatManager.GetStringSize(Font, contents, scale);
         
-        var center = new Vector2(size.X * 0f, size.Y / 2f);
+        const int padding = 2;
         
-        var scale = Scale;
-        
-        if (size.X > dimensions.Width)
+        if (size.X > dimensions.Width - padding)
         {
-            scale *= dimensions.Width / size.X;
+            position.X -= size.X - dimensions.Width + padding;
         }
 
-        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, font, Contents, position, Color * Opacity, 0f, center, new Vector2(scale));
+        var origin = new Vector2(0f, size.Y / 2f);
+
+        position.Y += size.Y / 2f + 4f;
+
+        var device = spriteBatch.GraphicsDevice;
+        var scissor = device.ScissorRectangle;
+
+        var bounds = GetClippingRectangle(spriteBatch);
+        
+        bounds.Inflate(padding, padding);
+
+        device.ScissorRectangle = bounds;
+        
+        var snapshot = spriteBatch.Capture();
+
+        var parameters = snapshot with
+        {
+            RasterizerState = RASTERIZER_STATE
+        };
+        
+        spriteBatch.End();
+        spriteBatch.Begin(in parameters);
+        
+        ChatManager.DrawColorCodedStringWithShadow(spriteBatch, Font, contents, position, color * Opacity, 0f, origin, scale);
+        
+        spriteBatch.End();
+        
+        device.ScissorRectangle = scissor;
+        
+        spriteBatch.Begin(in snapshot);
     }
 
     /// <summary>
@@ -145,12 +251,19 @@ public class TextInputField : Element
         {
             return;
         }
-        
+
         PlayerInput.WritingText = true;
         
         Main.instance.HandleIME();
         Main.CurrentInputTextTakerOverride = this;
 
         Contents = Main.GetInputText(Contents);
+        
+        if (!Main.mouseLeft || ContainsPoint(Main.MouseScreen))
+        {
+            return;
+        }
+
+        End();
     }
 }

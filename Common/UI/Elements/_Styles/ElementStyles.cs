@@ -4,6 +4,7 @@ namespace QuestBooks.Common.UI;
 
 public sealed class Button : IElementStyle
 {
+    /// <inheritdoc/>
     public static void Apply<TElement>(TElement element) where TElement : Element
     {
         switch (element)

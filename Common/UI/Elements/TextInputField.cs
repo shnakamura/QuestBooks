@@ -143,17 +143,19 @@ public class TextInputField : Element
             return;
         }
         
+        var batch = context.Batch;
+        var device = context.Device;
+        
+        var snapshot = batch.Capture();
+        
+        batch.End();
+        
         Write();
 
         var active = Writing || !Blank;
 
         var contents = active ? Contents : "Search";
         var color = active ? Color : Color.Gray;
-
-        if (string.IsNullOrEmpty(contents))
-        {
-            return;
-        }
 
         var dimensions = GetInnerDimensions();
         var position = dimensions.Position();
@@ -172,25 +174,18 @@ public class TextInputField : Element
 
         position.Y += size.Y / 2f + 4f;
 
-        var batch = context.Batch;
-        var device = context.Device;
-        
         var scissor = device.ScissorRectangle;
-
         var bounds = GetClippingRectangle(batch);
         
         bounds.Inflate(padding, padding);
 
         device.ScissorRectangle = bounds;
-        
-        var snapshot = batch.Capture();
 
         var parameters = snapshot with
         {
             RasterizerState = RASTERIZER_STATE
         };
         
-        batch.End();
         batch.Begin(in parameters);
         
         ChatManager.DrawColorCodedStringWithShadow(batch, Font, contents, position, color * Opacity, 0f, origin, scale);
